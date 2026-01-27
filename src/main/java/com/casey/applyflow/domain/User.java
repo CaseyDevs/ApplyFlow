@@ -1,9 +1,13 @@
 package com.casey.applyflow.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
     private String name;
     private String email;
     private String password;
+    private List<Application> applications = new ArrayList<>(); // Temp before persistence
 
     public User(String name, String email, String password) {
         this.name = name;
@@ -34,5 +38,9 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void addApplication(Application application) {
+        applications.add(application);
     }
 }
