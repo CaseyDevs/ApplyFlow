@@ -26,7 +26,7 @@ public class Application {
     @Column(nullable = false)
     private String title;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String url;
 
     @Enumerated(EnumType.STRING)
@@ -97,6 +97,10 @@ public class Application {
 
     public void setInterview(Interview interview) {
         this.interview = interview;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public void setUser(User user) {

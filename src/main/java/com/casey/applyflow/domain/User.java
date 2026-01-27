@@ -32,7 +32,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Application> applications = new ArrayList<>();
 
-    protected User() {} // JPA Contructor
+    protected User() {} // JPA Constructor
 
     public User(String name, String email, String password) {
         this.name = name;
