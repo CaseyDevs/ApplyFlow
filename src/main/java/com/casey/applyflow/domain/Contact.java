@@ -1,9 +1,37 @@
 package com.casey.applyflow.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "contact")
 public class Contact {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column()
     private String email;
+
+    @Column()
     private String phoneNumber;
+
+    @OneToMany(mappedBy = "interviewer")
+    private List<Interview> interviews = new ArrayList<>();
+
+    protected Contact() {} // JPA Constructor
 
     public Contact(String name, String email, String phoneNumber) {
         this.name = name;
@@ -33,5 +61,13 @@ public class Contact {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public List<Interview> getInterviews() {
+        return interviews;
+    }
+
+    public Long getId() {
+        return id;
     }
 }
