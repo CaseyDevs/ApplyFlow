@@ -31,7 +31,6 @@ public class User {
         this.email = email;
     }
 
-
     public String getPassword() {
         return password;
     }
@@ -42,5 +41,9 @@ public class User {
 
     public void addApplication(Application application) {
         applications.add(application);
+    }
+
+    public List<Application> getApplications() {
+        return applications;
     }
 }
