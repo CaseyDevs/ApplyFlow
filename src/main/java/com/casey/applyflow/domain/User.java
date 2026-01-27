@@ -66,6 +66,12 @@ public class User {
 
     public void addApplication(Application application) {
         applications.add(application);
+        application.setUser(this);
+    }
+
+    public void removeApplication(Application application) {
+        applications.remove(application);
+        application.setUser(null);
     }
 
     public List<Application> getApplications() {

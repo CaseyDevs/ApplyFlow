@@ -98,4 +98,8 @@ public class Application {
     public void setInterview(Interview interview) {
         this.interview = interview;
     }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
