@@ -24,23 +24,26 @@ public class ApplicationController {
     }
 
     @PostMapping("/applications")
-    public String addApplication(@RequestBody String entity) {
+    public ResponseEntity<ApplicationResponseDto> addApplication(@RequestBody String entity) {
         //TODO: process POST request
         
-        return entity;
+        return ResponseEntity.ok().build();
+
     }
 
     @PutMapping("applications/{id}")
-    public String updateApplication(@PathVariable String id, @RequestBody String entity) {
+    public ResponseEntity<ApplicationResponseDto> updateApplication(@PathVariable String id, @RequestBody String entity) {
         //TODO: process PUT request
         
-        return entity;
+        return ResponseEntity.ok().build();
+
     }
     
     @PatchMapping("applications/{id}")
-    public String updateApplicationField(@PathVariable String id, @RequestBody String entity) {
+    public ResponseEntity<ApplicationResponseDto> updateApplicationField(@PathVariable String id, @RequestBody String entity) {
         //TODO: process PATCH request
 
-        return entity;
+        return ResponseEntity.ok().build();
+
     }
 }
