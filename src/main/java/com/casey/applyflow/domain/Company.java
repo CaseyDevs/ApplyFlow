@@ -1,9 +1,9 @@
 package com.casey.applyflow.domain;
 
 public class Company {
-    String name;
-    String location;
-    Double rating;
+    private String name;
+    private String location;
+    private Double rating;
 
     public Company(String name, String location, Double rating) {
         this.name = name;
