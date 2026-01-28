@@ -47,7 +47,7 @@ public class Application {
 
     protected Application() {} // JPA constructor
 
-    public Application(String title, String url, Status status, Company company, Interview interview) {
+    public Application(String title, String url, Company company, Interview interview, Status status) {
         this.title = title;
         this.url = url;
         this.status = status;
