@@ -2,37 +2,58 @@ package com.casey.applyflow.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.casey.applyflow.dto.ApplicationRequestDto;
-import com.casey.applyflow.dto.ApplicationResponseDto;
-
-import jakarta.validation.Valid;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import com.casey.applyflow.dto.ApplicationRequestDto;
+import com.casey.applyflow.dto.ApplicationResponseDto;
+import com.casey.applyflow.service.ApplicationService;
+
+import jakarta.validation.Valid;
+
+import java.net.URI;
+import java.util.List;
+
+
 @RestController
 @RequestMapping("/api")
 public class ApplicationController {
+
+    private final ApplicationService applicationService;
+
+    public ApplicationController(ApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
     
     @GetMapping("/applications")
-    public ResponseEntity<ApplicationResponseDto> getApplications(@RequestParam String param) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<ApplicationResponseDto>> getApplications() {
+
+        return ResponseEntity.ok(applicationService.getAllApplications());
     }
 
     @PostMapping("/applications")
-    public ResponseEntity<ApplicationResponseDto> addApplication(@Valid @RequestBody ApplicationRequestDto requestDto) {
-        //TODO: process POST request
-        
+    public ResponseEntity<ApplicationResponseDto> addApplication(
+            @Valid @RequestBody ApplicationRequestDto request
+        ) {
 
-        
-        return ResponseEntity.ok().build();
+        // Pass data to service
+        ApplicationResponseDto response = applicationService.createApplication(
+            request.title(), 
+            request.url(), 
+            request.companyId(), 
+            request.interviewId(), 
+            request.status()
+        );
+
+        String uri = "/api/applications/" + request.title().toLowerCase().replaceAll(" ", "-");
+
+        // Generate URI and return created application
+        return ResponseEntity.created(URI.create(uri)).body(response); 
 
     }
 

@@ -68,7 +68,7 @@ public class ApplicationService {
     // Create Application (Post)
 
     @Transactional
-    public void createApplication(String title, String url, Long companyId, Long interviewId, Status status) {
+    public ApplicationResponseDto createApplication(String title, String url, Long companyId, Long interviewId, Status status) {
         Company company = companyRepository.findById(companyId)
             .orElseThrow(() -> new EntityNotFoundException("Company not found"));
         Interview interview = interviewRepository.findById(interviewId)
@@ -77,14 +77,20 @@ public class ApplicationService {
         Application application = new Application(title, url, company, interview, status);
 
         // TODO: Replace with authenticated user
-        User user = new User("Test", "test@example.com", "password");
-
+        User user = userRepository.findByEmail("test@example.com")
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         user.addApplication(application);  // save new application to users application list
-        applicationRepository.save(application);
+        Application savedApplication = applicationRepository.save(application);
 
         // log success
         log.info("Created application {} for user {}", title, user.getName());
+        
+        return new ApplicationResponseDto(
+            savedApplication.getTitle(),
+            savedApplication.getUrl(),
+            savedApplication.getStatus()
+        );
     }
 
     // Update Applicaiton (Put)
