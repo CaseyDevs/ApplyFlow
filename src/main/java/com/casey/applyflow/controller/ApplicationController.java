@@ -1,6 +1,7 @@
 package com.casey.applyflow.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,15 @@ public class ApplicationController {
     public ResponseEntity<List<ApplicationResponseDto>> getApplications() {
 
         return ResponseEntity.ok(applicationService.getAllApplications());
+    }
+
+
+    @GetMapping("/applications/{title}")
+    public ResponseEntity<ApplicationResponseDto> getApplicationByTitle(
+        @PathVariable String title
+    ) {
+
+        return ResponseEntity.ok(applicationService.getApplicationByTitle(title));
     }
 
     @PostMapping("/applications")

@@ -70,7 +70,8 @@ public class ApplicationService {
         User user = userRepository.findByEmail("test@example.com")
             .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        Application application = applicationRepository.findByTitle(title).get();
+        Application application = applicationRepository.findByTitle(title)
+            .orElseThrow(() -> new EntityNotFoundException("Application not found with title: " + title));
 
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
 
