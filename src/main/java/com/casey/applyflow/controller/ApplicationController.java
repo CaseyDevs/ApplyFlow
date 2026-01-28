@@ -3,7 +3,10 @@ package com.casey.applyflow.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
+
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +27,10 @@ public class ApplicationController {
     }
 
     @PostMapping("/applications")
-    public ResponseEntity<ApplicationResponseDto> addApplication(@RequestBody String entity) {
+    public ResponseEntity<ApplicationResponseDto> addApplication(@Valid @RequestBody ApplicationRequestDto requestDto) {
         //TODO: process POST request
+        
+
         
         return ResponseEntity.ok().build();
 
