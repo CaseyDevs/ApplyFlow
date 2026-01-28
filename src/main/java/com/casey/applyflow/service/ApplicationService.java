@@ -115,6 +115,33 @@ public class ApplicationService {
         );
     }
 
+    @Transactional
+    public ApplicationResponseDto updateApplication(Long applicationId, String title, String url, Long companyId, Long interviewId, Status status) {
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
+        Company company = companyRepository.findById(companyId)
+            .orElseThrow(() -> new EntityNotFoundException("Company not found"));
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new EntityNotFoundException("Interview not found"));
+        
+        // Update all fields
+        application.setTitle(title);
+        application.setUrl(url);
+        application.setCompany(company);
+        application.setInterview(interview);
+        application.setStatus(status);
+        
+        log.info("Updated application {}", applicationId);
+        
+        return new ApplicationResponseDto(
+            application.getTitle(),
+            application.getUrl(),
+            application.getStatus(),
+            application.getCompany(),
+            application.getInterview()
+        );
+    }
+
     // Update Applicaiton (Put)
 
     // Update Apllication (Patch)

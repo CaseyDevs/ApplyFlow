@@ -67,11 +67,19 @@ public class ApplicationController {
     }
 
     @PutMapping("applications/{id}")
-    public ResponseEntity<ApplicationResponseDto> updateApplication(@PathVariable String id, @RequestBody String entity) {
-        //TODO: process PUT request
-        
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApplicationResponseDto> updateApplication(@PathVariable Long id, @RequestBody ApplicationRequestDto request) {
 
+        ApplicationResponseDto response = applicationService.updateApplication(
+            id, 
+            request.title(),
+            request.url(),
+            request.companyId(),
+            request.interviewId(),
+            request.status()
+        );
+
+        // Return updated application data
+        return ResponseEntity.ok().body(response);
     }
     
     @PatchMapping("applications/{id}")
