@@ -1,3 +1,5 @@
+package com.casey.applyflow.service;
+
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
@@ -11,11 +13,11 @@ import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.UserRepository;
+import com.casey.applyflow.domain.enums.Status;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
-import com.casey.applyflow.domain.enums.Status;
 
 
 @Service
@@ -46,7 +48,6 @@ public class ApplicationService {
 
     @Transactional
     public void createApplication(String title, String url, Long companyId, Long interviewId, Status status) {
-        // Needs handling
         Company company = companyRepository.findById(companyId)
             .orElseThrow(() -> new EntityNotFoundException("Company not found"));
         Interview interview = interviewRepository.findById(interviewId)
