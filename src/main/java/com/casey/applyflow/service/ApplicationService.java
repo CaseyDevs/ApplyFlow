@@ -48,11 +48,12 @@ public class ApplicationService {
     public List<ApplicationResponseDto> getAllApplications() {
 
         // TODO: Replace with authenticated user
-        User user = new User("Test", "test@example.com", "password");
+        User user = userRepository.findByEmail("test@example.com")
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         // TODO: Add specification & filters
         
-        log.debug("Fetching accounts for user {}", user);
+        log.debug("Fetching applications for user {}", user);
 
         return applicationRepository.findAll().stream()
             .map(application -> new ApplicationResponseDto(
@@ -64,9 +65,23 @@ public class ApplicationService {
     }
 
     // Get Application by...
+    public ApplicationResponseDto getApplicationByTitle(String title) {
+
+        User user = userRepository.findByEmail("test@example.com")
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Application application = applicationRepository.findByTitle(title).get();
+
+        log.debug("Fetching application {} for user {}", application.getTitle(), user);
+
+        return new ApplicationResponseDto(
+            application.getTitle(),
+            application.getUrl(),
+            application.getStatus()
+        );
+    }
 
     // Create Application (Post)
-
     @Transactional
     public ApplicationResponseDto createApplication(String title, String url, Long companyId, Long interviewId, Status status) {
         Company company = companyRepository.findById(companyId)
