@@ -59,7 +59,9 @@ public class ApplicationService {
             .map(application -> new ApplicationResponseDto(
                 application.getTitle(),
                 application.getUrl(),
-                application.getStatus()
+                application.getStatus(),
+                application.getCompany(),
+                application.getInterview()
             ))
             .collect(Collectors.toList());
     }
@@ -78,7 +80,9 @@ public class ApplicationService {
         return new ApplicationResponseDto(
             application.getTitle(),
             application.getUrl(),
-            application.getStatus()
+            application.getStatus(),
+            application.getCompany(),
+            application.getInterview()
         );
     }
 
@@ -105,7 +109,9 @@ public class ApplicationService {
         return new ApplicationResponseDto(
             savedApplication.getTitle(),
             savedApplication.getUrl(),
-            savedApplication.getStatus()
+            savedApplication.getStatus(),
+            savedApplication.getCompany(),
+            savedApplication.getInterview()
         );
     }
 
