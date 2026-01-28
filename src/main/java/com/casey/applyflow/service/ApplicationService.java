@@ -1,7 +1,7 @@
 package com.casey.applyflow.service;
 
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +14,12 @@ import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.domain.enums.Status;
+import com.casey.applyflow.dto.ApplicationResponseDto;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 
 
@@ -40,8 +43,26 @@ public class ApplicationService {
         this.interviewRepository = interviewRepository;
     }
     
-    // Get Application (Get)
-    
+    // Get Applications (Get)
+    @Transactional(readOnly = true)
+    public List<ApplicationResponseDto> getAllApplications() {
+
+        // TODO: Replace with authenticated user
+        User user = new User("Test", "test@example.com", "password");
+
+        // TODO: Add specification & filters
+        
+        log.debug("Fetching accounts for user {}", user);
+
+        return applicationRepository.findAll().stream()
+            .map(application -> new ApplicationResponseDto(
+                application.getTitle(),
+                application.getUrl(),
+                application.getStatus()
+            ))
+            .collect(Collectors.toList());
+    }
+
     // Get Application by...
 
     // Create Application (Post)
@@ -57,6 +78,7 @@ public class ApplicationService {
 
         // TODO: Replace with authenticated user
         User user = new User("Test", "test@example.com", "password");
+
 
         user.addApplication(application);  // save new application to users application list
         applicationRepository.save(application);
