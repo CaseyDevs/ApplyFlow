@@ -5,6 +5,7 @@ import com.casey.applyflow.domain.Interview;
 import com.casey.applyflow.domain.enums.Status;
 
 public record ApplicationResponseDto(
+    Long id,
     String title,
     String url,
     Status status,

@@ -57,6 +57,7 @@ public class ApplicationService {
 
         return applicationRepository.findAll().stream()
             .map(application -> new ApplicationResponseDto(
+                application.getId(),
                 application.getTitle(),
                 application.getUrl(),
                 application.getStatus(),
@@ -78,6 +79,7 @@ public class ApplicationService {
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
 
         return new ApplicationResponseDto(
+            application.getId(),
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
@@ -107,6 +109,7 @@ public class ApplicationService {
         log.info("Created application {} for user {}", title, user.getName());
         
         return new ApplicationResponseDto(
+            savedApplication.getId(),
             savedApplication.getTitle(),
             savedApplication.getUrl(),
             savedApplication.getStatus(),
@@ -115,6 +118,7 @@ public class ApplicationService {
         );
     }
 
+    // Update Applicaiton (Put)
     @Transactional
     public ApplicationResponseDto updateApplication(Long applicationId, String title, String url, Long companyId, Long interviewId, Status status) {
         Application application = applicationRepository.findById(applicationId)
@@ -134,6 +138,7 @@ public class ApplicationService {
         log.info("Updated application {}", applicationId);
         
         return new ApplicationResponseDto(
+            application.getId(),
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
@@ -142,7 +147,6 @@ public class ApplicationService {
         );
     }
 
-    // Update Applicaiton (Put)
 
     // Update Apllication (Patch)
 }
