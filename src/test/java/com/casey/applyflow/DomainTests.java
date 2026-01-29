@@ -22,7 +22,7 @@ public class DomainTests {
         Contact contact = new Contact("John", "example@company.com", "+44 00000000000", company);
         Interview interview = new Interview(LocalDateTime.of(2007, 10, 2, 13, 45, 30, 123456789), "Se", contact);
 
-        Application application = new Application("Backend Developer", "www.fakeurl.com", Status.APPLIED, company, interview);
+        Application application = new Application("Backend Developer", "www.fakeurl.com", company, interview,  Status.APPLIED);
         User user = new User("John Doe", "johndoe@example.com", "password");
         User user2 = new User("Doe John", "doejohn@example.com", "password");
         
