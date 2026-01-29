@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
+import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
 import com.casey.applyflow.service.ApplicationService;
 
 import jakarta.validation.Valid;
@@ -50,43 +51,33 @@ public class ApplicationController {
             @Valid @RequestBody ApplicationRequestDto request
         ) {
 
-        // Pass data to service
-        ApplicationResponseDto response = applicationService.createApplication(
-            request.title(), 
-            request.url(), 
-            request.companyId(), 
-            request.interviewId(), 
-            request.status()
-        );
+        ApplicationResponseDto response = applicationService.createApplication(request);
 
         String uri = "/api/applications/" + request.title().toLowerCase().replaceAll(" ", "-");
 
-        // Generate URI and return created application
         return ResponseEntity.created(URI.create(uri)).body(response); 
 
     }
 
     @PutMapping("applications/{id}")
-    public ResponseEntity<ApplicationResponseDto> updateApplication(@PathVariable Long id, @RequestBody ApplicationRequestDto request) {
+    public ResponseEntity<ApplicationResponseDto> updateApplication(
+        @PathVariable Long id, 
+        @RequestBody ApplicationRequestDto request
+    ) {
 
-        ApplicationResponseDto response = applicationService.updateApplication(
-            id, 
-            request.title(),
-            request.url(),
-            request.companyId(),
-            request.interviewId(),
-            request.status()
-        );
+        ApplicationResponseDto response = applicationService.updateApplication(id, request);
 
-        // Return updated application data
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok(response);
     }
     
     @PatchMapping("applications/{id}")
-    public ResponseEntity<ApplicationResponseDto> updateApplicationField(@PathVariable String id, @RequestBody String entity) {
-        //TODO: process PATCH request
+    public ResponseEntity<ApplicationResponseDto> updateApplicationField(
+        @PathVariable Long id, 
+        @RequestBody UpdateApplicationFieldRequestDto request
+    ) {
 
-        return ResponseEntity.ok().build();
+        ApplicationResponseDto response = applicationService.updateApplicationField(id, request);
 
+        return ResponseEntity.ok(response);
     }
 }
