@@ -13,8 +13,9 @@ import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.UserRepository;
-import com.casey.applyflow.domain.enums.Status;
 import com.casey.applyflow.dto.ApplicationResponseDto;
+import com.casey.applyflow.dto.ApplicationRequestDto;
+import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -90,13 +91,13 @@ public class ApplicationService {
 
     // Create Application (Post)
     @Transactional
-    public ApplicationResponseDto createApplication(String title, String url, Long companyId, Long interviewId, Status status) {
-        Company company = companyRepository.findById(companyId)
+    public ApplicationResponseDto createApplication(ApplicationRequestDto request) {
+        Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new EntityNotFoundException("Company not found"));
-        Interview interview = interviewRepository.findById(interviewId)
+        Interview interview = interviewRepository.findById(request.interviewId())
             .orElseThrow(() -> new EntityNotFoundException("Interview not found"));
 
-        Application application = new Application(title, url, company, interview, status);
+        Application application = new Application(request.title(), request.url(), company, interview, request.status());
 
         // TODO: Replace with authenticated user
         User user = userRepository.findByEmail("test@example.com")
@@ -106,7 +107,7 @@ public class ApplicationService {
         Application savedApplication = applicationRepository.save(application);
 
         // log success
-        log.info("Created application {} for user {}", title, user.getName());
+        log.info("Created application {} for user {}", request.title(), user.getName());
         
         return new ApplicationResponseDto(
             savedApplication.getId(),
@@ -120,22 +121,22 @@ public class ApplicationService {
 
     // Update Applicaiton (Put)
     @Transactional
-    public ApplicationResponseDto updateApplication(Long applicationId, String title, String url, Long companyId, Long interviewId, Status status) {
+    public ApplicationResponseDto updateApplication(Long applicationId, ApplicationRequestDto request) {
         Application application = applicationRepository.findById(applicationId)
             .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
-        Company company = companyRepository.findById(companyId)
+        Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new EntityNotFoundException("Company not found"));
-        Interview interview = interviewRepository.findById(interviewId)
+        Interview interview = interviewRepository.findById(request.interviewId())
             .orElseThrow(() -> new EntityNotFoundException("Interview not found"));
         
         // Update all fields
-        application.setTitle(title);
-        application.setUrl(url);
+        application.setTitle(request.title());
+        application.setUrl(request.url());
         application.setCompany(company);
         application.setInterview(interview);
-        application.setStatus(status);
+        application.setStatus(request.status());
         
-        log.info("Updated application {}", applicationId);
+        log.info("Updated application {} for user {}", application.getId(), application.getUser());
         
         return new ApplicationResponseDto(
             application.getId(),
@@ -149,4 +150,42 @@ public class ApplicationService {
 
 
     // Update Apllication (Patch)
+    @Transactional
+    public ApplicationResponseDto updateApplicationField(Long applicationId, UpdateApplicationFieldRequestDto request) {
+        Application application = applicationRepository.findById(applicationId).get();
+
+        if(request.title() != null) {
+            application.setTitle(request.title());
+        }
+        
+        if(request.url() != null) {
+            application.setUrl(request.url());
+        }
+
+        if(request.status() != null) {
+            application.setStatus(request.status());
+        }
+
+        if(request.companyId() != null) {
+            Company company = companyRepository.findById(request.companyId()).get();
+            application.setCompany(company);
+        }
+
+        if(request.interviewId() != null) {
+            Interview interview = interviewRepository.findById(request.interviewId()).get();
+            application.setInterview(interview);
+        }
+
+        log.info("Patched application {} for user {}", application.getTitle(), application.getUser());
+
+        return new ApplicationResponseDto(
+            application.getId(),
+            application.getTitle(),
+            application.getUrl(),
+            application.getStatus(),
+            application.getCompany(),
+            application.getInterview()
+        );
+
+    }
 }
