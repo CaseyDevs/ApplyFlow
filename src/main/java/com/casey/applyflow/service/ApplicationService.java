@@ -192,4 +192,31 @@ public class ApplicationService {
         );
 
     }
+
+    // Remove application (DELETE)
+    @Transactional
+    public ApplicationResponseDto removeApplication(Long applicationId) {
+        User user = userRepository.findByEmail("test@example.com")
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id:" + applicationId));
+        
+        if (user.getApplications().contains(application)) {
+            user.removeApplication(application);
+            applicationRepository.delete(application);
+            log.info("Application has been removed! ID: {}", applicationId);
+            
+            return new ApplicationResponseDto(
+                application.getId(),
+                application.getTitle(),
+                application.getUrl(),
+                application.getStatus(),
+                application.getCompany().getId(),
+                application.getInterview().getId()
+            );
+        } else {
+            throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
+        }
+    }
 }
