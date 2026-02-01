@@ -3,6 +3,7 @@ package com.casey.applyflow.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,6 @@ public class ApplicationController {
 
         return ResponseEntity.ok(applicationService.getAllApplications());
     }
-
 
     @GetMapping("/applications/{title}")
     public ResponseEntity<ApplicationResponseDto> getApplicationById(
@@ -78,6 +78,14 @@ public class ApplicationController {
 
         ApplicationResponseDto response = applicationService.updateApplicationField(id, request);
 
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("applications/{id}")
+    public ResponseEntity<ApplicationResponseDto> removeApplication(
+        @PathVariable Long id
+    ) {
+        ApplicationResponseDto response = applicationService.removeApplication(id);
         return ResponseEntity.ok(response);
     }
 }
