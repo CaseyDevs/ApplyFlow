@@ -52,6 +52,7 @@ public class ApplicationService {
         User user = userRepository.findByEmail("test@example.com")
             .orElseThrow(() -> new UserNotFoundException("User not found"));
 
+
         // TODO: Add specification & filters
         
         log.debug("Fetching applications for user {}", user);
@@ -62,8 +63,8 @@ public class ApplicationService {
                 application.getTitle(),
                 application.getUrl(),
                 application.getStatus(),
-                application.getCompany(),
-                application.getInterview()
+                application.getCompany().getId(),
+                application.getInterview().getId()
             ))
             .collect(Collectors.toList());
     }
@@ -84,8 +85,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany(),
-            application.getInterview()
+            application.getCompany().getId(),
+            application.getInterview().getId()
         );
     }
 
@@ -114,8 +115,8 @@ public class ApplicationService {
             savedApplication.getTitle(),
             savedApplication.getUrl(),
             savedApplication.getStatus(),
-            savedApplication.getCompany(),
-            savedApplication.getInterview()
+            savedApplication.getCompany().getId(),
+            savedApplication.getInterview().getId()
         );
     }
 
@@ -143,8 +144,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany(),
-            application.getInterview()
+            application.getCompany().getId(),
+            application.getInterview().getId()
         );
     }
 
@@ -186,8 +187,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany(),
-            application.getInterview()
+            application.getCompany().getId(),
+            application.getInterview().getId()
         );
 
     }

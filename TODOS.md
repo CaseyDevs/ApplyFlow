@@ -2,9 +2,7 @@
 
 ## Application Contoller / Service
 - Test application serivce & edge cases
-- Implement additional global exceptions for edge cases
 - Implement delete endpoint
-- Remove .get() implementations, replace with exception throws
 - Remove full exposure of Company and Interview entities in ApplicaitonResponseDto
 - Change get by title for get by id in controller
 - Implement filters and pagination
