@@ -69,13 +69,13 @@ public class ApplicationService {
     }
 
     // Get Application by...
-    public ApplicationResponseDto getApplicationByTitle(String title) {
+    public ApplicationResponseDto getApplicationById(Long id) {
 
         User user = userRepository.findByEmail("test@example.com")
             .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Application application = applicationRepository.findByTitle(title)
-            .orElseThrow(() -> new ApplicationNotFoundException("Application not found with title: " + title));
+        Application application = applicationRepository.findById(id)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
 
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
 
