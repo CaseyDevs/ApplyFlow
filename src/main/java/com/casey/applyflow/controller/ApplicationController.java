@@ -39,11 +39,11 @@ public class ApplicationController {
 
 
     @GetMapping("/applications/{title}")
-    public ResponseEntity<ApplicationResponseDto> getApplicationByTitle(
-        @PathVariable String title
+    public ResponseEntity<ApplicationResponseDto> getApplicationById(
+        @PathVariable Long id
     ) {
 
-        return ResponseEntity.ok(applicationService.getApplicationByTitle(title));
+        return ResponseEntity.ok(applicationService.getApplicationById(id));
     }
 
     @PostMapping("/applications")
