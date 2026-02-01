@@ -16,6 +16,7 @@ import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
+import com.casey.applyflow.exception.ApplicationNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -152,7 +153,8 @@ public class ApplicationService {
     // Update Apllication (Patch)
     @Transactional
     public ApplicationResponseDto updateApplicationField(Long applicationId, UpdateApplicationFieldRequestDto request) {
-        Application application = applicationRepository.findById(applicationId).get();
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application with id: " + applicationId + "does not exist"));
 
         if(request.title() != null) {
             application.setTitle(request.title());
