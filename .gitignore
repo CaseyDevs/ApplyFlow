@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Security - RSA Keys ###
+src/main/resources/certs/*.pem
+!src/main/resources/certs/*.example
+!src/main/resources/certs/README.md
