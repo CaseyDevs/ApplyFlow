@@ -16,13 +16,13 @@ import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
+import com.casey.applyflow.exception.ApplicationNotFoundException;
+import com.casey.applyflow.exception.CompanyNotFoundException;
+import com.casey.applyflow.exception.InterviewNotFoundException;
+import com.casey.applyflow.exception.UserNotFoundException;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
-
-
-
 
 @Service
 public class ApplicationService {
@@ -50,7 +50,8 @@ public class ApplicationService {
 
         // TODO: Replace with authenticated user
         User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
+
 
         // TODO: Add specification & filters
         
@@ -62,20 +63,20 @@ public class ApplicationService {
                 application.getTitle(),
                 application.getUrl(),
                 application.getStatus(),
-                application.getCompany(),
-                application.getInterview()
+                application.getCompany() != null ? application.getCompany().getId() : null,
+                application.getInterview() != null ? application.getInterview().getId() : null
             ))
             .collect(Collectors.toList());
     }
 
     // Get Application by...
-    public ApplicationResponseDto getApplicationByTitle(String title) {
+    public ApplicationResponseDto getApplicationById(Long id) {
 
         User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        Application application = applicationRepository.findByTitle(title)
-            .orElseThrow(() -> new EntityNotFoundException("Application not found with title: " + title));
+        Application application = applicationRepository.findById(id)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
 
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
 
@@ -84,8 +85,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany(),
-            application.getInterview()
+            application.getCompany().getId(),
+            application.getInterview().getId()
         );
     }
 
@@ -93,15 +94,15 @@ public class ApplicationService {
     @Transactional
     public ApplicationResponseDto createApplication(ApplicationRequestDto request) {
         Company company = companyRepository.findById(request.companyId())
-            .orElseThrow(() -> new EntityNotFoundException("Company not found"));
+            .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
         Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new EntityNotFoundException("Interview not found"));
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
 
         Application application = new Application(request.title(), request.url(), company, interview, request.status());
 
         // TODO: Replace with authenticated user
         User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         user.addApplication(application);  // save new application to users application list
         Application savedApplication = applicationRepository.save(application);
@@ -114,8 +115,8 @@ public class ApplicationService {
             savedApplication.getTitle(),
             savedApplication.getUrl(),
             savedApplication.getStatus(),
-            savedApplication.getCompany(),
-            savedApplication.getInterview()
+            savedApplication.getCompany() != null ? application.getCompany().getId() : null,
+            savedApplication.getInterview() != null ? application.getInterview().getId() : null
         );
     }
 
@@ -123,11 +124,11 @@ public class ApplicationService {
     @Transactional
     public ApplicationResponseDto updateApplication(Long applicationId, ApplicationRequestDto request) {
         Application application = applicationRepository.findById(applicationId)
-            .orElseThrow(() -> new EntityNotFoundException("Application not found with id: " + applicationId));
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + applicationId));
         Company company = companyRepository.findById(request.companyId())
-            .orElseThrow(() -> new EntityNotFoundException("Company not found"));
+            .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
         Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new EntityNotFoundException("Interview not found"));
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
         
         // Update all fields
         application.setTitle(request.title());
@@ -143,8 +144,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany(),
-            application.getInterview()
+            application.getCompany() != null ? application.getCompany().getId() : null,
+            application.getInterview() != null ? application.getInterview().getId() : null
         );
     }
 
@@ -152,7 +153,8 @@ public class ApplicationService {
     // Update Apllication (Patch)
     @Transactional
     public ApplicationResponseDto updateApplicationField(Long applicationId, UpdateApplicationFieldRequestDto request) {
-        Application application = applicationRepository.findById(applicationId).get();
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application with id: " + applicationId + "does not exist"));
 
         if(request.title() != null) {
             application.setTitle(request.title());
@@ -167,12 +169,14 @@ public class ApplicationService {
         }
 
         if(request.companyId() != null) {
-            Company company = companyRepository.findById(request.companyId()).get();
+            Company company = companyRepository.findById(request.companyId())
+                .orElseThrow(() -> new CompanyNotFoundException("Company with id:" + request.companyId() + "does not exist"));
             application.setCompany(company);
         }
 
         if(request.interviewId() != null) {
-            Interview interview = interviewRepository.findById(request.interviewId()).get();
+            Interview interview = interviewRepository.findById(request.interviewId())
+            .orElseThrow(() -> new InterviewNotFoundException("Interview with id:" + request.interviewId() + "does not exist"));
             application.setInterview(interview);
         }
 
@@ -183,9 +187,36 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany(),
-            application.getInterview()
+            application.getCompany() != null ? application.getCompany().getId() : null,
+            application.getInterview() != null ? application.getInterview().getId() : null
         );
 
+    }
+
+    // Remove application (DELETE)
+    @Transactional
+    public ApplicationResponseDto removeApplication(Long applicationId) {
+        User user = userRepository.findByEmail("test@example.com")
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id:" + applicationId));
+        
+        if (user.getApplications().contains(application)) {
+            user.removeApplication(application);
+            applicationRepository.delete(application);
+            log.info("Application has been removed! ID: {}", applicationId);
+
+            return new ApplicationResponseDto(
+                application.getId(),
+                application.getTitle(),
+                application.getUrl(),
+                application.getStatus(),
+                application.getCompany() != null ? application.getCompany().getId() : null,
+                application.getInterview() != null ? application.getInterview().getId() : null
+            );
+        } else {
+            throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
+        }
     }
 }
