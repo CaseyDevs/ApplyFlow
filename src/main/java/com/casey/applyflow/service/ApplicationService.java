@@ -1,5 +1,8 @@
 package com.casey.applyflow.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.Interview;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.repository.ApplicationRepository;
+import com.casey.applyflow.repository.ApplicationSpecification;
 import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.UserRepository;
@@ -20,9 +24,6 @@ import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ApplicationService {
@@ -46,18 +47,23 @@ public class ApplicationService {
     
     // Get Applications (Get)
     @Transactional(readOnly = true)
-    public List<ApplicationResponseDto> getAllApplications() {
+    public Page<ApplicationResponseDto> getAllApplications(String companyName, Long companyId, Boolean hasInterview,  Pageable pageable) {
 
         // TODO: Replace with authenticated user
         User user = userRepository.findByEmail("test@example.com")
             .orElseThrow(() -> new UserNotFoundException("User not found"));
+        
+    // TODO: Replace nulls above with request filter values
+        Specification<Application> spec = Specification
+            .where(ApplicationSpecification.belongsToUser(user))
+            .and(ApplicationSpecification.companyName(companyName))
+            .and(ApplicationSpecification.companyId(companyId))
+            .and(ApplicationSpecification.hasInterview(hasInterview));
 
-
-        // TODO: Add specification & filters
         
         log.debug("Fetching applications for user {}", user);
-
-        return applicationRepository.findAll().stream()
+ 
+        return applicationRepository.findAll(spec, pageable)
             .map(application -> new ApplicationResponseDto(
                 application.getId(),
                 application.getTitle(),
@@ -65,8 +71,7 @@ public class ApplicationService {
                 application.getStatus(),
                 application.getCompany() != null ? application.getCompany().getId() : null,
                 application.getInterview() != null ? application.getInterview().getId() : null
-            ))
-            .collect(Collectors.toList());
+            ));
     }
 
     // Get Application by...
