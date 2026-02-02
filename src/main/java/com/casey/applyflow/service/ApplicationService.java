@@ -25,9 +25,6 @@ import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class ApplicationService {
     private ApplicationRepository applicationRepository;
@@ -65,7 +62,7 @@ public class ApplicationService {
 
         
         log.debug("Fetching applications for user {}", user);
-
+ 
         return applicationRepository.findAll(spec, pageable)
             .map(application -> new ApplicationResponseDto(
                 application.getId(),
