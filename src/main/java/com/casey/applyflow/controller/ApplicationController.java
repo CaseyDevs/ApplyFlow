@@ -1,6 +1,7 @@
 package com.casey.applyflow.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,9 +34,17 @@ public class ApplicationController {
     }
     
     @GetMapping("/applications")
-    public ResponseEntity<List<ApplicationResponseDto>> getApplications() {
+    public ResponseEntity<List<ApplicationResponseDto>> getApplications(
+        @RequestParam(required = false) String companyName,
+        @RequestParam(required = false) Long companyId,
+        @RequestParam(required = false) Boolean hasInterview
+    ) {
 
-        return ResponseEntity.ok(applicationService.getAllApplications());
+        return ResponseEntity.ok(applicationService.getAllApplications(
+            companyName,
+            companyId,
+            hasInterview
+        ));
     }
 
     @GetMapping("/applications/{title}")
