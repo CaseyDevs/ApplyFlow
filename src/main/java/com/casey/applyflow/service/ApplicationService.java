@@ -53,14 +53,12 @@ public class ApplicationService {
         User user = userRepository.findByEmail("test@example.com")
             .orElseThrow(() -> new UserNotFoundException("User not found"));
         
-    // TODO: Replace nulls above with request filter values
         Specification<Application> spec = Specification
             .where(ApplicationSpecification.belongsToUser(user))
             .and(ApplicationSpecification.companyName(companyName))
             .and(ApplicationSpecification.companyId(companyId))
             .and(ApplicationSpecification.hasInterview(hasInterview));
 
-        
         log.debug("Fetching applications for user {}", user);
  
         return applicationRepository.findAll(spec, pageable)
