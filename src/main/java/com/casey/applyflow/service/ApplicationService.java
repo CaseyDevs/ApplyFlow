@@ -3,6 +3,8 @@ package com.casey.applyflow.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -44,14 +46,20 @@ public class ApplicationService {
         this.companyRepository = companyRepository;
         this.interviewRepository = interviewRepository;
     }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+    
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
     
     // Get Applications (Get)
     @Transactional(readOnly = true)
     public Page<ApplicationResponseDto> getAllApplications(String companyName, Long companyId, Boolean hasInterview,  Pageable pageable) {
 
-        // TODO: Replace with authenticated user
-        User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = getCurrentUser();
         
         Specification<Application> spec = Specification
             .where(ApplicationSpecification.belongsToUser(user))
@@ -75,8 +83,8 @@ public class ApplicationService {
     // Get Application by...
     public ApplicationResponseDto getApplicationById(Long id) {
 
-        User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = getCurrentUser();
+
 
         Application application = applicationRepository.findById(id)
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
@@ -103,9 +111,7 @@ public class ApplicationService {
 
         Application application = new Application(request.title(), request.url(), company, interview, request.status());
 
-        // TODO: Replace with authenticated user
-        User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = getCurrentUser();
 
         user.addApplication(application);  // save new application to users application list
         Application savedApplication = applicationRepository.save(application);
@@ -199,8 +205,7 @@ public class ApplicationService {
     // Remove application (DELETE)
     @Transactional
     public ApplicationResponseDto removeApplication(Long applicationId) {
-        User user = userRepository.findByEmail("test@example.com")
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = getCurrentUser();
         
         Application application = applicationRepository.findById(applicationId)
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id:" + applicationId));
