@@ -63,8 +63,8 @@ public class ApplicationService {
                 application.getTitle(),
                 application.getUrl(),
                 application.getStatus(),
-                application.getCompany().getId(),
-                application.getInterview().getId()
+                application.getCompany() != null ? application.getCompany().getId() : null,
+                application.getInterview() != null ? application.getInterview().getId() : null
             ))
             .collect(Collectors.toList());
     }
@@ -115,8 +115,8 @@ public class ApplicationService {
             savedApplication.getTitle(),
             savedApplication.getUrl(),
             savedApplication.getStatus(),
-            savedApplication.getCompany().getId(),
-            savedApplication.getInterview().getId()
+            savedApplication.getCompany() != null ? application.getCompany().getId() : null,
+            savedApplication.getInterview() != null ? application.getInterview().getId() : null
         );
     }
 
@@ -144,8 +144,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany().getId(),
-            application.getInterview().getId()
+            application.getCompany() != null ? application.getCompany().getId() : null,
+            application.getInterview() != null ? application.getInterview().getId() : null
         );
     }
 
@@ -187,8 +187,8 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
-            application.getCompany().getId(),
-            application.getInterview().getId()
+            application.getCompany() != null ? application.getCompany().getId() : null,
+            application.getInterview() != null ? application.getInterview().getId() : null
         );
 
     }
@@ -206,14 +206,14 @@ public class ApplicationService {
             user.removeApplication(application);
             applicationRepository.delete(application);
             log.info("Application has been removed! ID: {}", applicationId);
-            
+
             return new ApplicationResponseDto(
                 application.getId(),
                 application.getTitle(),
                 application.getUrl(),
                 application.getStatus(),
-                application.getCompany().getId(),
-                application.getInterview().getId()
+                application.getCompany() != null ? application.getCompany().getId() : null,
+                application.getInterview() != null ? application.getInterview().getId() : null
             );
         } else {
             throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
