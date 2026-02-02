@@ -2,7 +2,7 @@
 
 ## Application Contoller / Service
 - Test application serivce & edge cases
-- Implement filters and pagination
+- Implement pagination
 
 ## Other
 - Implement security configs (SecurityFilterChain) - **priority**
