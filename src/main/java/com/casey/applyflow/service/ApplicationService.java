@@ -1,5 +1,7 @@
 package com.casey.applyflow.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +50,7 @@ public class ApplicationService {
     
     // Get Applications (Get)
     @Transactional(readOnly = true)
-    public List<ApplicationResponseDto> getAllApplications(String companyName, Long companyId, Boolean hasInterview) {
+    public Page<ApplicationResponseDto> getAllApplications(String companyName, Long companyId, Boolean hasInterview,  Pageable pageable) {
 
         // TODO: Replace with authenticated user
         User user = userRepository.findByEmail("test@example.com")
@@ -64,7 +66,7 @@ public class ApplicationService {
         
         log.debug("Fetching applications for user {}", user);
 
-        return applicationRepository.findAll(spec).stream()
+        return applicationRepository.findAll(spec, pageable)
             .map(application -> new ApplicationResponseDto(
                 application.getId(),
                 application.getTitle(),
@@ -72,8 +74,7 @@ public class ApplicationService {
                 application.getStatus(),
                 application.getCompany() != null ? application.getCompany().getId() : null,
                 application.getInterview() != null ? application.getInterview().getId() : null
-            ))
-            .collect(Collectors.toList());
+            ));
     }
 
     // Get Application by...
