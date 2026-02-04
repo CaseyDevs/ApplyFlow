@@ -13,6 +13,7 @@ import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.dto.ContactRequestDto;
 import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.exception.CompanyNotFoundException;
+import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.repository.ContactRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -86,5 +87,19 @@ public class ContactService {
             contact.getPhoneNumber()
         );
         
+    }
+
+    @Transactional
+    public void deleteContact(Long id, ContactRequestDto request) {
+        Contact contact = contactRepository.findById(id)
+            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
+        
+        Company company = companyRepository.findById(request.companyId())
+            .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
+        
+        company.removeInterviewer(contact);
+        contactRepository.delete(contact);
+
+        log.info("Removed contact {}", contact.getName());
     }
 }
