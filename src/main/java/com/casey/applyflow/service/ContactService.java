@@ -3,6 +3,8 @@ package com.casey.applyflow.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,13 +13,14 @@ import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.dto.ContactRequestDto;
 import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.exception.CompanyNotFoundException;
-import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.ContactRepository;
+import com.casey.applyflow.repository.CompanyRepository;
 
 @Service
 public class ContactService {
     private final CompanyRepository companyRepository;
     private final ContactRepository contactRepository;
+    private final Logger log = LoggerFactory.getLogger(ContactService.class);
 
     ContactService(CompanyRepository companyRepository, ContactRepository contactRepository) {
         this.companyRepository = companyRepository;
@@ -28,6 +31,8 @@ public class ContactService {
     public List<ContactResponseDto> getCompanyContacts(Long companyId) {
         Company company = companyRepository.findById(companyId)
             .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
+
+        log.debug("Fetching company {} contacts", company.getName());
 
         return company.getInterviewers().stream()
             .map(contact -> new ContactResponseDto(
@@ -50,7 +55,7 @@ public class ContactService {
         Contact savedContact = contactRepository.save(contact);
         company.addInterviewer(savedContact);
 
-        
+        log.info("Contact created and saved to company", company.getName());
 
         return new ContactResponseDto(
             savedContact.getId(),
