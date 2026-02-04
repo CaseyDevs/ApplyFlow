@@ -14,6 +14,9 @@ import com.casey.applyflow.dto.ContactRequestDto;
 import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.repository.ContactRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.casey.applyflow.repository.CompanyRepository;
 
 @Service
@@ -63,5 +66,25 @@ public class ContactService {
             savedContact.getEmail(),
             savedContact.getPhoneNumber()
         );
+    }
+
+    @Transactional
+    public ContactResponseDto updateContact(Long id, ContactRequestDto request) {
+        Contact contact = contactRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException());
+
+        contact.setName(request.name());
+        contact.setEmail(request.email());
+        contact.setPhoneNumber(request.phoneNumber());
+
+        log.info("Contact {} updated", contact.getName());
+
+        return new ContactResponseDto(
+            contact.getId(),
+            contact.getName(),
+            contact.getEmail(),
+            contact.getPhoneNumber()
+        );
+        
     }
 }
