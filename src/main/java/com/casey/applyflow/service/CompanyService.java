@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.dto.CompanyRequestDto;
 import com.casey.applyflow.dto.CompanyResponseDto;
+import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.repository.CompanyRepository;
 
 import jakarta.transaction.Transactional;
@@ -34,5 +35,22 @@ public class CompanyService {
             savedCompany.getRating()
         );
     }
+
+    @Transactional
+    public CompanyResponseDto updateCompanyResponseDto(Long companyId, CompanyRequestDto request) {
+        Company company = companyRepository.findById(companyId)
+            .orElseThrow(() -> new CompanyNotFoundException("Company not found."));
+
+        company.setName(request.name());
+        company.setLocation(request.location());
+        company.setRating(request.rating());
+
+        return new CompanyResponseDto(
+            company.getName(),
+            company.getLocation(),
+            company.getRating()
+        );
+    }
+
 
 }
