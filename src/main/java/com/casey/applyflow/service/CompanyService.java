@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.dto.CompanyRequestDto;
 import com.casey.applyflow.dto.CompanyResponseDto;
+import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.repository.CompanyRepository;
 
@@ -29,6 +31,7 @@ public class CompanyService {
 
         return companyRepository.findAll(pageable)
             .map(company -> new CompanyResponseDto(
+                company.getId(),
                 company.getName(),
                 company.getLocation(),
                 company.getRating()
@@ -48,6 +51,7 @@ public class CompanyService {
         log.info("Company - {} - created successfully.", company.getName());
 
         return new CompanyResponseDto(
+            savedCompany.getId(),
             savedCompany.getName(), 
             savedCompany.getLocation(), 
             savedCompany.getRating()
@@ -66,6 +70,7 @@ public class CompanyService {
         log.info("Company - {} - updated successfully.", company.getName());
 
         return new CompanyResponseDto(
+            company.getId(),
             company.getName(),
             company.getLocation(),
             company.getRating()
@@ -79,7 +84,7 @@ public class CompanyService {
 
         // ensure no applications currently use this company
         if(!company.getApplications().isEmpty()) {
-            throw new IllegalStateException("Cannot delete company with existing applications");
+            throw new CompanyInUseException("Cannot delete company with existing applications");
         }
 
         companyRepository.delete(company);
