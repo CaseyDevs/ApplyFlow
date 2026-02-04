@@ -31,6 +31,9 @@ public class Company {
     @OneToMany(mappedBy = "company")
     private List<Contact> interviewers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "company")
+    private List<Application> applications = new ArrayList<>();
+
     protected Company() {} // JPA Constructor
 
     public Company(String name, String location, Double rating) {
@@ -75,6 +78,18 @@ public class Company {
     public void removeInterviewer(Contact contact) {
         interviewers.remove(contact);
         contact.setCompany(null);
+    }
+
+    public List<Application> getApplications() {
+        return applications;
+    }
+
+    public void addApplication(Application application) {
+        applications.add(application);
+    }
+
+    public void removeApplication(Application application) {
+        applications.remove(application);
     }
 
     public Long getId() {

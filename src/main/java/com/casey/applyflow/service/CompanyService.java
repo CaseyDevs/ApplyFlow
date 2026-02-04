@@ -2,15 +2,19 @@ package com.casey.applyflow.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.dto.CompanyRequestDto;
 import com.casey.applyflow.dto.CompanyResponseDto;
+import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.repository.CompanyRepository;
 
-import jakarta.transaction.Transactional;
 
 @Service
 public class CompanyService {
@@ -21,9 +25,21 @@ public class CompanyService {
         this.companyRepository = companyRepository;
     }
 
+    @Transactional(readOnly = true)
+    public Page<CompanyResponseDto> getAllCompanies(Pageable pageable) {
+        log.debug("Fetching all known companies");
+
+        return companyRepository.findAll(pageable)
+            .map(company -> new CompanyResponseDto(
+                company.getId(),
+                company.getName(),
+                company.getLocation(),
+                company.getRating()
+            ));
+    }
+
     @Transactional
     public CompanyResponseDto createCompany(CompanyRequestDto request) {
-        
         Company company = new Company(
             request.name(), 
             request.location(), 
@@ -35,6 +51,7 @@ public class CompanyService {
         log.info("Company - {} - created successfully.", company.getName());
 
         return new CompanyResponseDto(
+            savedCompany.getId(),
             savedCompany.getName(), 
             savedCompany.getLocation(), 
             savedCompany.getRating()
@@ -42,7 +59,7 @@ public class CompanyService {
     }
 
     @Transactional
-    public CompanyResponseDto updateCompanyResponseDto(Long companyId, CompanyRequestDto request) {
+    public CompanyResponseDto updateCompany(Long companyId, CompanyRequestDto request) {
         Company company = companyRepository.findById(companyId)
             .orElseThrow(() -> new CompanyNotFoundException("Company not found."));
 
@@ -53,10 +70,25 @@ public class CompanyService {
         log.info("Company - {} - updated successfully.", company.getName());
 
         return new CompanyResponseDto(
+            company.getId(),
             company.getName(),
             company.getLocation(),
             company.getRating()
         );
+    }
+
+    @Transactional
+    public void deleteCompany(Long id) {
+        Company company = companyRepository.findById(id)
+            .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
+        // ensure no applications currently use this company
+        if(!company.getApplications().isEmpty()) {
+            throw new CompanyInUseException("Cannot delete company with existing applications");
+        }
+
+        companyRepository.delete(company);
+        log.info("Company {} deleted successfully!", company.getName());
     }
 
 }
