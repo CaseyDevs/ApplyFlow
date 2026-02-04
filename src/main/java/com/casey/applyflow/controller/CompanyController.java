@@ -3,10 +3,12 @@ package com.casey.applyflow.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.casey.applyflow.dto.CompanyRequestDto;
 import com.casey.applyflow.dto.CompanyResponseDto;
 import com.casey.applyflow.service.CompanyService;
 
-import org.apache.catalina.connector.Response;
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -35,10 +37,12 @@ public class CompanyController {
     }
 
     @PostMapping("/companies")
-    public ResponseEntity<CompanyResponseDto> createCompany() {
-        
-        
-        return entity;
+    public ResponseEntity<CompanyResponseDto> createCompany(
+        @Valid @RequestBody CompanyRequestDto request
+    ) {
+        CompanyResponseDto response = companyService.createCompany(request);
+
+        return ResponseEntity.ok(response);
     }
     
     
