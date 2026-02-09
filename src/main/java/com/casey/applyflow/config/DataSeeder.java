@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Configuration;
 
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Company;
+import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Status;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.CompanyRepository;
+import com.casey.applyflow.repository.ContactRepository;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.UserRepository;
 
@@ -24,7 +26,9 @@ public class DataSeeder {
             UserRepository userRepo,
             CompanyRepository companyRepo, 
             InterviewRepository interviewRepo,
-            ApplicationRepository applicationRepo) {
+            ContactRepository contactRepository,
+            ApplicationRepository applicationRepo
+        ) {
         return args -> {
             // Only seed if database is empty
             if (userRepo.count() == 0) {
@@ -54,6 +58,25 @@ public class DataSeeder {
                     null
                 );
                 interview2 = interviewRepo.save(interview2);
+
+                // Create contacts
+                Contact contact1 = new Contact(
+                    "John Doe", 
+                    "example@email.com", 
+                    "07777777777", 
+                    company1
+                );
+                contactRepository.save(contact1);
+                company1.addInterviewer(contact1);
+
+                Contact contact2 = new Contact(
+                    "Jill Dee", 
+                    "example@email.com", 
+                    "07111111111", 
+                    company1
+                );
+                contactRepository.save(contact2);
+                company1.addInterviewer(contact2);
                 
                 // Create applications
                 Application app1 = new Application(
