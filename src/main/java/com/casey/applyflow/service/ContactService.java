@@ -88,11 +88,11 @@ public class ContactService {
     }
 
     @Transactional
-    public void deleteContact(Long id, ContactRequestDto request) {
-        Contact contact = contactRepository.findById(id)
+    public void deleteContact(Long companyId, Long contactId) {
+        Contact contact = contactRepository.findById(contactId)
             .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
         
-        Company company = companyRepository.findById(request.companyId())
+        Company company = companyRepository.findById(companyId)
             .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
         
         // Ensure company has contact to prevent deletion of contacts in other companies
