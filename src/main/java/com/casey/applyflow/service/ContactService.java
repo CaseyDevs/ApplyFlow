@@ -16,8 +16,6 @@ import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.repository.ContactRepository;
 
-import jakarta.persistence.EntityNotFoundException;
-
 import com.casey.applyflow.repository.CompanyRepository;
 
 @Service
@@ -59,7 +57,7 @@ public class ContactService {
         Contact savedContact = contactRepository.save(contact);
         company.addInterviewer(savedContact);
 
-        log.info("Contact created and saved to company", company.getName());
+        log.info("Contact created and saved to company {}", company.getName());
 
         return new ContactResponseDto(
             savedContact.getId(),
@@ -72,7 +70,7 @@ public class ContactService {
     @Transactional
     public ContactResponseDto updateContact(Long id, ContactRequestDto request) {
         Contact contact = contactRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException());
+            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
 
         contact.setName(request.name());
         contact.setEmail(request.email());
@@ -97,9 +95,14 @@ public class ContactService {
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
         
-        company.removeInterviewer(contact);
-        contactRepository.delete(contact);
+        // Ensure company has contact to prevent deletion of contacts in other companies
+        if (company.getInterviewers().contains(contact)) {
+            company.removeInterviewer(contact);
+            contactRepository.delete(contact);
 
-        log.info("Removed contact {}", contact.getName());
+            log.info("Removed contact {}", contact.getName());
+        } else {
+            throw new Error("ILL ADD A CUSTOM EXCEPTION HERE");
+        }
     }
 }
