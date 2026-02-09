@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +34,7 @@ public class ContactController {
         this.contactService = contactService;
     }
     
-    @GetMapping("/contact")
+    @GetMapping("/contacts")
     public ResponseEntity<List<ContactResponseDto>> getCompanyContacts(
         @Valid @RequestParam Long companyId
     ) {
@@ -42,7 +43,7 @@ public class ContactController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/contact")
+    @PostMapping("/contacts")
     public ResponseEntity<ContactResponseDto> createContact(
         @Valid @RequestBody ContactRequestDto request
     ) {
@@ -51,7 +52,7 @@ public class ContactController {
         return ResponseEntity.ok(response);
     }
     
-    @PutMapping("/contact/{id}")
+    @PutMapping("/contacts/{id}")
     public ResponseEntity<ContactResponseDto> updateContact(
         @PathVariable Long id,
         @Valid @RequestBody ContactRequestDto request
@@ -59,6 +60,16 @@ public class ContactController {
         ContactResponseDto response = contactService.updateContact(id, request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/companies/{companyId}/contacts/{contactId}")
+    public ResponseEntity<Void> deleteContact(
+        @PathVariable Long companyId,
+        @PathVariable Long contactId
+    ) {
+        contactService.deleteContact(companyId, contactId);
+
+        return ResponseEntity.noContent().build();
     }
     
 }
