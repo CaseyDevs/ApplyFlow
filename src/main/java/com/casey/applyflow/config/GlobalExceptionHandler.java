@@ -12,12 +12,22 @@ import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
+import com.casey.applyflow.exception.ContactNotInCompanyException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ContactNotInCompanyException.class)
+    public ResponseEntity<ErrorResponse> handleContactNotInCompany(ContactNotInCompanyException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(), 
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
 
     @ExceptionHandler(ContactNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleContactNotFound(ContactNotFoundException ex) {

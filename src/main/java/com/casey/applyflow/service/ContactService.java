@@ -14,6 +14,7 @@ import com.casey.applyflow.dto.ContactRequestDto;
 import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
+import com.casey.applyflow.exception.ContactNotInCompanyException;
 import com.casey.applyflow.repository.ContactRepository;
 
 import com.casey.applyflow.repository.CompanyRepository;
@@ -84,7 +85,6 @@ public class ContactService {
             contact.getEmail(),
             contact.getPhoneNumber()
         );
-        
     }
 
     @Transactional
@@ -102,7 +102,7 @@ public class ContactService {
 
             log.info("Removed contact {}", contact.getName());
         } else {
-            throw new Error("ILL ADD A CUSTOM EXCEPTION HERE");
+            throw new ContactNotInCompanyException("This contact does not exist in this company.");
         }
     }
 }
