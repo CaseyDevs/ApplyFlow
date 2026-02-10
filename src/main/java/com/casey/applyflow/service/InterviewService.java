@@ -8,10 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.casey.applyflow.dto.InterviewRequestDto;
 import com.casey.applyflow.dto.InterviewResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
+import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.InterviewRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Interview;
@@ -31,7 +30,7 @@ public class InterviewService {
     @Transactional(readOnly = true)
     public InterviewResponseDto getInterview(Long interviewId) {
         Interview interview = interviewRepository.findById(interviewId)
-            .orElseThrow(() -> new EntityNotFoundException());
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
 
         log.debug("Fetching interview");
 
