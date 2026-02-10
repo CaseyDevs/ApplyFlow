@@ -11,7 +11,6 @@ import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.InterviewRepository;
-
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Interview;
 
@@ -73,7 +72,7 @@ public class InterviewService {
         interview.setDate(request.date());
         interview.setType(request.type());
         interview.setInterviewer(request.interviewer());
-        
+
         log.info("Interview {} updated", interviewId);
 
         return new InterviewResponseDto(
@@ -81,5 +80,24 @@ public class InterviewService {
             interview.getType(),
             interview.getInterviewer()
         );
+    }
+
+    @Transactional
+    public void deleteInterview(Long applicationId, Long interviewId) {
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
+
+        // check interview matches the entity in the application
+        if (!interview.equals(application.getInterview())) {
+            throw new InterviewNotFoundException("Interview does not belong to application");
+        }
+
+        application.setInterview(null);
+        applicationRepository.save(application);
+        interviewRepository.delete(interview);
+
+        log.info("Interview {} removed from application {}", interviewId, applicationId);
     }
 }
