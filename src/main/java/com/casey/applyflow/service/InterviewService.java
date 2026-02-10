@@ -32,9 +32,8 @@ public class InterviewService {
         Interview interview = interviewRepository.findById(interviewId)
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
 
-        log.debug("Fetching interview");
+        log.debug("Fetching interview {}", interviewId);
 
-        // return response dto
         return new InterviewResponseDto(
             interview.getDate(),
             interview.getType(),
@@ -55,8 +54,27 @@ public class InterviewService {
 
         interviewRepository.save(interview);
         application.setInterview(interview);
+        applicationRepository.save(application);
 
         log.info("Interview {} saved to database + application {}", interview.getId(), applicationId);
+
+        return new InterviewResponseDto(
+            interview.getDate(),
+            interview.getType(),
+            interview.getInterviewer()
+        );
+    }
+
+    @Transactional
+    public InterviewResponseDto updateInterview(Long interviewId, InterviewRequestDto request) {
+        Interview interview = interviewRepository.findById(interviewId)
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
+
+        interview.setDate(request.date());
+        interview.setType(request.type());
+        interview.setInterviewer(request.interviewer());
+        
+        log.info("Interview {} updated", interviewId);
 
         return new InterviewResponseDto(
             interview.getDate(),
