@@ -9,9 +9,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record ApplicationRequestDto(
-    @NotBlank String title,
-    @NotBlank @URL String url,
-    @NotNull Long companyId,
-    @Nullable Long interviewId,
-    @NotNull Status status    
+    @NotBlank 
+    String title,
+    
+    @NotBlank 
+    @URL 
+    String url,
+
+    @NotNull 
+    Long companyId,
+    
+    @Nullable 
+    Long interviewId,
+
+    @NotNull 
+    Status status    
 ) {}
