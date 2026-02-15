@@ -2,8 +2,6 @@ package com.casey.applyflow.dto;
 
 import java.time.LocalDateTime;
 
-import com.casey.applyflow.domain.Contact;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 

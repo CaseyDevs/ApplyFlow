@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.dto.InterviewRequestDto;
 import com.casey.applyflow.dto.InterviewResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
@@ -42,11 +43,7 @@ public class InterviewService {
 
         log.debug("Fetching interview {}", interviewId);
 
-        return new InterviewResponseDto(
-            interview.getDate(),
-            interview.getType(),
-            interview.getInterviewer()
-        );
+        return toResponseDto(interview);
     }
 
     @Transactional
@@ -68,11 +65,7 @@ public class InterviewService {
 
         log.info("Interview {} saved to database + application {}", interview.getId(), applicationId);
 
-        return new InterviewResponseDto(
-            interview.getDate(),
-            interview.getType(),
-            interview.getInterviewer()
-        );
+        return toResponseDto(interview);
     }
 
     @Transactional
@@ -88,10 +81,28 @@ public class InterviewService {
 
         log.info("Interview {} updated", interviewId);
 
+        return toResponseDto(interview);
+    }
+
+    private InterviewResponseDto toResponseDto(Interview interview) {
         return new InterviewResponseDto(
+            interview.getId(),
             interview.getDate(),
             interview.getType(),
-            interview.getInterviewer()
+            toContactResponseDto(interview.getInterviewer())
+        );
+    }
+
+    private ContactResponseDto toContactResponseDto(Contact contact) {
+        if (contact == null) {
+            return null;
+        }
+
+        return new ContactResponseDto(
+            contact.getId(),
+            contact.getName(),
+            contact.getEmail(),
+            contact.getPhoneNumber()
         );
     }
 
