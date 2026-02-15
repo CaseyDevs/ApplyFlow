@@ -49,12 +49,11 @@ public class Application {
 
     protected Application() {} // JPA constructor
 
-    public Application(String title, String url, Company company, List<Interview> interviews, Status status) {
+    public Application(String title, String url, Company company, Status status) {
         this.title = title;
         this.url = url;
         this.status = status;
         this.company = company;
-        this.interviews = interviews;
     }
 
     public Long getId() {

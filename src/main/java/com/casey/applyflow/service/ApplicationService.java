@@ -1,8 +1,5 @@
 package com.casey.applyflow.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,6 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +79,7 @@ public class ApplicationService {
                 application.getUrl(),
                 application.getStatus(),
                 application.getCompany() != null ? application.getCompany().getId() : null,
-                application.getInterviews().stream().map(Interview::getId).toList()
+                getAllInterviewIds(application)
             ));
     }
 
@@ -100,7 +100,7 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany().getId(),
-            application.getInterviews().stream().map(Interview::getId).toList()
+            getAllInterviewIds(application)    
         );
     }
 
@@ -109,20 +109,13 @@ public class ApplicationService {
     public ApplicationResponseDto createApplication(ApplicationRequestDto request) {
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
         Application application = new Application(request.title(), request.url(), company, request.status());
 
         User user = getCurrentUser();
 
         user.addApplication(application);  // save new application to users application list
         Application savedApplication = applicationRepository.save(application);
-
-        if (request.interviewIds() != null) {
-            List<Interview> interviews = getInterviews(request.interviewIds());
-            savedApplication.setInterviews(interviews);
-            for (Interview interview : interviews) {
-                interviewRepository.save(interview);
-            }
-        }
 
         // log success
         log.info("Created application {} for user {}", request.title(), user.getName());
@@ -133,7 +126,7 @@ public class ApplicationService {
             savedApplication.getUrl(),
             savedApplication.getStatus(),
             savedApplication.getCompany() != null ? application.getCompany().getId() : null,
-            savedApplication.getInterviews().stream().map(Interview::getId).toList()
+            getAllInterviewIds(application)
         );
     }
 
@@ -144,16 +137,15 @@ public class ApplicationService {
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + applicationId));
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+        Interview interview = interviewRepository.findById(request.interviewId())
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
         
         // Update all fields
         application.setTitle(request.title());
         application.setUrl(request.url());
         application.setCompany(company);
+        application.addInterview(interview);
         application.setStatus(request.status());
-
-        if (request.interviewIds() != null) {
-            application.setInterviews(getInterviews(request.interviewIds()));
-        }
         
         log.info("Updated application {} for user {}", application.getId(), application.getUser());
         
@@ -163,7 +155,7 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany() != null ? application.getCompany().getId() : null,
-            application.getInterviews().stream().map(Interview::getId).toList()
+            getAllInterviewIds(application)
         );
     }
 
@@ -192,8 +184,10 @@ public class ApplicationService {
             application.setCompany(company);
         }
 
-        if(request.interviewIds() != null) {
-            application.setInterviews(getInterviews(request.interviewIds()));
+        if(request.interviewId() != null) {
+            Interview interview = interviewRepository.findById(request.interviewId())
+            .orElseThrow(() -> new InterviewNotFoundException("Interview with id:" + request.interviewId() + "does not exist"));
+            application.addInterview(interview);
         }
 
         log.info("Patched application {} for user {}", application.getTitle(), application.getUser());
@@ -204,7 +198,10 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany() != null ? application.getCompany().getId() : null,
-            application.getInterviews().stream().map(Interview::getId).toList()
+            
+            application.getInterviews() != null 
+            ? application.getInterviews().stream().map(Interview::getId).toList() 
+            : null
         );
 
     }
@@ -228,25 +225,19 @@ public class ApplicationService {
                 application.getUrl(),
                 application.getStatus(),
                 application.getCompany() != null ? application.getCompany().getId() : null,
-                application.getInterviews().stream().map(Interview::getId).toList()
+                getAllInterviewIds(application)
             );
         } else {
             throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
         }
     }
 
-    private List<Interview> getInterviews(List<Long> interviewIds) {
-        if (interviewIds == null) {
-            return null;
-        }
-
-        List<Interview> interviews = new ArrayList<>();
-        for (Long interviewId : interviewIds) {
-            Interview interview = interviewRepository.findById(interviewId)
-                .orElseThrow(() -> new InterviewNotFoundException("Interview with id:" + interviewId + "does not exist"));
-            interviews.add(interview);
-        }
-
-        return interviews;
+    public List<Long> getAllInterviewIds(Application application) {
+        return application.getInterviews() != null
+        ? application.getInterviews()
+            .stream()
+            .map(Interview::getId)
+            .toList()
+        : null;
     }
 }

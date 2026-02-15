@@ -38,20 +38,12 @@ public class InterviewService {
 
     @Transactional(readOnly = true)
     public InterviewResponseDto getInterview(Long applicationId, Long interviewId) {
-        Application application = applicationRepository.findById(applicationId)
-            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
-
-        Interview interview = interviewRepository.findById(interviewId)
-            .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
+        Interview interview = interviewRepository.findByIdAndApplicationId(interviewId, applicationId)
+            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
 
         log.debug("Fetching interview {}", interviewId);
 
-        if (interview.getApplication() == null
-            || !interview.getApplication().getId().equals(application.getId())) {
-            throw new InterviewNotFoundException("Interview does not belong to application");
-        }
-
-        return toResponseDto(interview);
+        return toInterviewResponseDto(interview);
     }
 
     @Transactional
@@ -68,12 +60,12 @@ public class InterviewService {
             application
         );
 
-        application.addInterview(interview);
         interviewRepository.save(interview);
+        application.addInterview(interview);
 
         log.info("Interview {} saved to database + application {}", interview.getId(), applicationId);
 
-        return toResponseDto(interview);
+        return toInterviewResponseDto(interview);
     }
 
     @Transactional
@@ -89,10 +81,10 @@ public class InterviewService {
 
         log.info("Interview {} updated", interviewId);
 
-        return toResponseDto(interview);
+        return toInterviewResponseDto(interview);
     }
 
-    private InterviewResponseDto toResponseDto(Interview interview) {
+    private InterviewResponseDto toInterviewResponseDto(Interview interview) {
         return new InterviewResponseDto(
             interview.getId(),
             interview.getDate(),
@@ -116,18 +108,10 @@ public class InterviewService {
 
     @Transactional
     public void deleteInterview(Long applicationId, Long interviewId) {
-        Interview interview = interviewRepository.findById(interviewId)
+        Interview interview = interviewRepository.findByIdAndApplicationId(interviewId, applicationId)
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
-        Application application = applicationRepository.findById(applicationId)
-            .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
 
-        // check interview matches the entity in the application
-        if (interview.getApplication() == null
-            || !interview.getApplication().getId().equals(application.getId())) {
-            throw new InterviewNotFoundException("Interview does not belong to application");
-        }
-
-        application.removeInterview(interview);
+        // should remove interview from related application entity
         interviewRepository.delete(interview);
 
         log.info("Interview {} removed from application {}", interviewId, applicationId);
