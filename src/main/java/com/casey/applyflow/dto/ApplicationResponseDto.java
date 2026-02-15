@@ -8,5 +8,5 @@ public record ApplicationResponseDto(
     String url,
     Status status,
     Long companyId,
-    Long interviewId
+    java.util.List<Long> interviewIds
 ) {}

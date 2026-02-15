@@ -37,11 +37,19 @@ public class InterviewService {
 
 
     @Transactional(readOnly = true)
-    public InterviewResponseDto getInterview(Long interviewId) {
+    public InterviewResponseDto getInterview(Long applicationId, Long interviewId) {
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
+
         Interview interview = interviewRepository.findById(interviewId)
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
 
         log.debug("Fetching interview {}", interviewId);
+
+        if (interview.getApplication() == null
+            || !interview.getApplication().getId().equals(application.getId())) {
+            throw new InterviewNotFoundException("Interview does not belong to application");
+        }
 
         return toResponseDto(interview);
     }
@@ -56,12 +64,12 @@ public class InterviewService {
         Interview interview = new Interview(
             request.date(), 
             request.type(), 
-            interviewer
+            interviewer,
+            application
         );
 
+        application.addInterview(interview);
         interviewRepository.save(interview);
-        application.setInterview(interview);
-        applicationRepository.save(application);
 
         log.info("Interview {} saved to database + application {}", interview.getId(), applicationId);
 
@@ -114,12 +122,12 @@ public class InterviewService {
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
 
         // check interview matches the entity in the application
-        if (!interview.equals(application.getInterview())) {
+        if (interview.getApplication() == null
+            || !interview.getApplication().getId().equals(application.getId())) {
             throw new InterviewNotFoundException("Interview does not belong to application");
         }
 
-        application.setInterview(null);
-        applicationRepository.save(application);
+        application.removeInterview(interview);
         interviewRepository.delete(interview);
 
         log.info("Interview {} removed from application {}", interviewId, applicationId);

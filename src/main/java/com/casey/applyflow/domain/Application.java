@@ -1,5 +1,7 @@
 package com.casey.applyflow.domain;
 
+import java.util.List;
+
 import com.casey.applyflow.domain.enums.Status;
 
 import jakarta.persistence.Column;
@@ -39,7 +41,7 @@ public class Application {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interview_id", nullable = true)
-    private Interview interview;
+    private List<Interview> interviews;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -47,12 +49,12 @@ public class Application {
 
     protected Application() {} // JPA constructor
 
-    public Application(String title, String url, Company company, Interview interview, Status status) {
+    public Application(String title, String url, Company company, List<Interview> interviews, Status status) {
         this.title = title;
         this.url = url;
         this.status = status;
         this.company = company;
-        this.interview = interview;
+        this.interviews = interviews;
     }
 
     public Long getId() {
@@ -91,12 +93,18 @@ public class Application {
         this.company = company;
     }
 
-    public Interview getInterview() {
-        return interview;
+    public List<Interview> getInterviews() {
+        return interviews;
     }
 
-    public void setInterview(Interview interview) {
-        this.interview = interview;
+    public void addInterview(Interview interview) {
+        interviews.add(interview);
+        interview.setApplication(this);
+    }
+
+    public void removeInterview(Interview interview) {
+        interviews.remove(interview);
+        interview.setApplication(null);
     }
 
     public User getUser() {

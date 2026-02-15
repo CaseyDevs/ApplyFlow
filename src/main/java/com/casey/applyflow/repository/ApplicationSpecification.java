@@ -22,7 +22,7 @@ public class ApplicationSpecification {
     public static Specification<Application> hasInterview(Boolean hasInterview) {
         return (root, query, cb) ->
             hasInterview == null ? null :
-                (hasInterview ? cb.isNotNull(root.get("interview")) : cb.isNull(root.get("interview")));
+                (hasInterview ? cb.isNotEmpty(root.get("interviews")) : cb.isEmpty(root.get("interviews")));
     }
 
     public static Specification<Application> belongsToUser(User user) {

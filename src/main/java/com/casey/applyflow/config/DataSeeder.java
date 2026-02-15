@@ -44,21 +44,6 @@ public class DataSeeder {
                 Company company2 = new Company("Tech Solutions Inc", "New York, NY", 4.2);
                 company2 = companyRepo.save(company2);
                 
-                // Create interviews
-                Interview interview1 = new Interview(
-                    LocalDateTime.of(2026, 2, 15, 10, 0), 
-                    "PHONE", 
-                    null
-                );
-                interview1 = interviewRepo.save(interview1);
-                
-                Interview interview2 = new Interview(
-                    LocalDateTime.of(2026, 2, 20, 14, 30), 
-                    "TECHNICAL", 
-                    null
-                );
-                interview2 = interviewRepo.save(interview2);
-
                 // Create contacts
                 Contact contact1 = new Contact(
                     "John Doe", 
@@ -83,7 +68,6 @@ public class DataSeeder {
                     "Software Engineer",
                     "https://www.example.com/jobs/123",
                     company1,
-                    interview1,
                     Status.INTERVIEWING
                 );
                 app1.setUser(testUser);
@@ -93,7 +77,6 @@ public class DataSeeder {
                     "Senior Developer",
                     "https://www.techsolutions.com/careers/456",
                     company2,
-                    interview2,
                     Status.APPLIED
                 );
                 app2.setUser(testUser);
@@ -103,11 +86,29 @@ public class DataSeeder {
                     "Full Stack Developer",
                     "https://www.example.com/jobs/789",
                     company1,
-                    null,
                     Status.INTERESTED
                 );
                 app3.setUser(testUser);
                 applicationRepo.save(app3);
+
+                // Create interviews
+                Interview interview1 = new Interview(
+                    LocalDateTime.of(2026, 2, 15, 10, 0), 
+                    "PHONE", 
+                    null,
+                    app1
+                );
+                app1.addInterview(interview1);
+                interview1 = interviewRepo.save(interview1);
+                
+                Interview interview2 = new Interview(
+                    LocalDateTime.of(2026, 2, 20, 14, 30), 
+                    "TECHNICAL", 
+                    null,
+                    app2
+                );
+                app2.addInterview(interview2);
+                interview2 = interviewRepo.save(interview2);
                 
                 System.out.println("✅ Database seeded with test data!");
                 System.out.println("   - 1 user created");

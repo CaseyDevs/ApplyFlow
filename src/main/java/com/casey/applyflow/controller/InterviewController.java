@@ -29,11 +29,12 @@ public class InterviewController {
         this.interviewService = interviewService;
     }
     
-    @GetMapping("/interviews/{interviewId}")
+    @GetMapping("applications/{applicationId}/interviews/{interviewId}")
     public ResponseEntity<InterviewResponseDto> getInterview(
+        @PathVariable @Min(1) Long applicationId,
         @PathVariable @Min(1) Long interviewId
     ) {
-        InterviewResponseDto response = interviewService.getInterview(interviewId);
+        InterviewResponseDto response = interviewService.getInterview(applicationId, interviewId);
         
         return ResponseEntity.ok(response);
     }
