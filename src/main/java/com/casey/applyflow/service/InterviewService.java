@@ -8,21 +8,30 @@ import org.springframework.transaction.annotation.Transactional;
 import com.casey.applyflow.dto.InterviewRequestDto;
 import com.casey.applyflow.dto.InterviewResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
+import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.repository.ApplicationRepository;
+import com.casey.applyflow.repository.ContactRepository;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.domain.Application;
+import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
 
 @Service
 public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final ApplicationRepository applicationRepository;
+    private final ContactRepository contactRepository;
     private final Logger log = LoggerFactory.getLogger(InterviewService.class);
 
-    public InterviewService(InterviewRepository interviewRepository, ApplicationRepository applicationRepository) {
+    public InterviewService(
+        InterviewRepository interviewRepository, 
+        ApplicationRepository applicationRepository,
+        ContactRepository contactRepository
+    ) {
         this.interviewRepository = interviewRepository;
         this.applicationRepository = applicationRepository;
+        this.contactRepository = contactRepository;
     }
 
 
@@ -44,11 +53,13 @@ public class InterviewService {
     public InterviewResponseDto createInterview(Long applicationId, InterviewRequestDto request) {
         Application application = applicationRepository.findById(applicationId)
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
-        
+        Contact interviewer = contactRepository.findById(request.interviewerId())
+            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
+
         Interview interview = new Interview(
             request.date(), 
             request.type(), 
-            request.interviewer()
+            interviewer
         );
 
         interviewRepository.save(interview);
@@ -68,10 +79,12 @@ public class InterviewService {
     public InterviewResponseDto updateInterview(Long interviewId, InterviewRequestDto request) {
         Interview interview = interviewRepository.findById(interviewId)
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
+        Contact interviewer = contactRepository.findById(request.interviewerId())
+            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
 
         interview.setDate(request.date());
         interview.setType(request.type());
-        interview.setInterviewer(request.interviewer());
+        interview.setInterviewer(interviewer);
 
         log.info("Interview {} updated", interviewId);
 

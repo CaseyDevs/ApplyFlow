@@ -25,8 +25,8 @@ public class InterviewController {
         this.interviewService = interviewService;
     }
     
-    @GetMapping("/interviews/{id}")
-    public ResponseEntity<InterviewResponseDto> getInterview (
+    @GetMapping("/interviews/{interviewId}")
+    public ResponseEntity<InterviewResponseDto> getInterview(
         @Valid @PathVariable Long interviewId
     ) {
         InterviewResponseDto response = interviewService.getInterview(interviewId);
@@ -34,7 +34,7 @@ public class InterviewController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("applications/{id}/interviews")
+    @PostMapping("applications/{applicationId}/interviews")
     public ResponseEntity<InterviewResponseDto> createInterview(
         @Valid @PathVariable Long applicationId,
         @RequestBody InterviewRequestDto request

@@ -15,7 +15,7 @@ public record InterviewRequestDto (
     String type,
 
     @Nullable
-    Contact interviewer
+    Long interviewerId
 
     // Add notes
 ) {}
