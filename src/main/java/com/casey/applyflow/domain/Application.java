@@ -1,9 +1,11 @@
 package com.casey.applyflow.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.casey.applyflow.domain.enums.Status;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 
@@ -39,9 +42,8 @@ public class Application {
     @JoinColumn(name = "company_id", nullable = true)
     private Company company;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interview_id", nullable = true)
-    private List<Interview> interviews;
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Interview> interviews = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -54,6 +56,7 @@ public class Application {
         this.url = url;
         this.status = status;
         this.company = company;
+        this.interviews = new ArrayList<>();
     }
 
     public Long getId() {

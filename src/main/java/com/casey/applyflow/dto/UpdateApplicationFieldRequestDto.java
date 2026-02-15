@@ -13,9 +13,6 @@ public record UpdateApplicationFieldRequestDto(
 
     @Nullable
     Long companyId,
-    
-    @Nullable
-    java.util.List<Long> interviewIds,
 
     @Nullable
     Status status    

@@ -137,14 +137,11 @@ public class ApplicationService {
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + applicationId));
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
-        Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
         
         // Update all fields
         application.setTitle(request.title());
         application.setUrl(request.url());
         application.setCompany(company);
-        application.addInterview(interview);
         application.setStatus(request.status());
         
         log.info("Updated application {} for user {}", application.getId(), application.getUser());
@@ -184,12 +181,6 @@ public class ApplicationService {
             application.setCompany(company);
         }
 
-        if(request.interviewId() != null) {
-            Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new InterviewNotFoundException("Interview with id:" + request.interviewId() + "does not exist"));
-            application.addInterview(interview);
-        }
-
         log.info("Patched application {} for user {}", application.getTitle(), application.getUser());
 
         return new ApplicationResponseDto(
@@ -198,10 +189,7 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany() != null ? application.getCompany().getId() : null,
-            
-            application.getInterviews() != null 
-            ? application.getInterviews().stream().map(Interview::getId).toList() 
-            : null
+            getAllInterviewIds(application)
         );
 
     }
