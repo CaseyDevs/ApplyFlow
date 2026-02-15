@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,5 +61,15 @@ public class InterviewController {
         InterviewResponseDto response = interviewService.updateInterview(interviewId, request);
         
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/applications/{applicationId}/interviews/{interviewId}")
+    public ResponseEntity<Void> deleteInterview(
+        @PathVariable @Min(1) Long applicationId,
+        @PathVariable @Min(1) Long interviewId
+    ) {
+        interviewService.deleteInterview(applicationId, interviewId);
+        
+        return ResponseEntity.noContent().build();
     }
 }
