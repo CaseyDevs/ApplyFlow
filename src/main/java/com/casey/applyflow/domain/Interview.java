@@ -34,15 +34,20 @@ public class Interview {
     @JoinColumn(name = "contact_id")
     private Contact interviewer;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false)
+    private Application application;
+
     @OneToMany(mappedBy = "interview", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes = new ArrayList<>();
 
     protected Interview() {} // JPA constructor
 
-    public Interview(LocalDateTime date, String type, Contact interviewer) {
+    public Interview(LocalDateTime date, String type, Contact interviewer, Application application) {
         this.date = date;
         this.type = type;
         this.interviewer = interviewer;
+        this.application = application;
     }
 
     public LocalDateTime getDate() {
@@ -67,6 +72,14 @@ public class Interview {
 
     public void setInterviewer(Contact interviewer) {
         this.interviewer = interviewer;
+    }
+
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
     }
 
     public List<Note> getNotes() {

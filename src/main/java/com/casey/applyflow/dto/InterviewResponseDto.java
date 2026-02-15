@@ -2,11 +2,10 @@ package com.casey.applyflow.dto;
 
 import java.time.LocalDateTime;
 
-import com.casey.applyflow.domain.Contact;
-
 public record InterviewResponseDto(
+    Long id,
     LocalDateTime date,
     String type,
-    Contact interviewer
+    ContactResponseDto interviewer
     // TODO: RETURN NOTES
 ) {}

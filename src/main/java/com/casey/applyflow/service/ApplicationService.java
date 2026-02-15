@@ -7,6 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +79,7 @@ public class ApplicationService {
                 application.getUrl(),
                 application.getStatus(),
                 application.getCompany() != null ? application.getCompany().getId() : null,
-                application.getInterview() != null ? application.getInterview().getId() : null
+                getAllInterviewIds(application)
             ));
     }
 
@@ -97,7 +100,7 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany().getId(),
-            application.getInterview().getId()
+            getAllInterviewIds(application)    
         );
     }
 
@@ -106,10 +109,8 @@ public class ApplicationService {
     public ApplicationResponseDto createApplication(ApplicationRequestDto request) {
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
-        Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
 
-        Application application = new Application(request.title(), request.url(), company, interview, request.status());
+        Application application = new Application(request.title(), request.url(), company, request.status());
 
         User user = getCurrentUser();
 
@@ -125,7 +126,7 @@ public class ApplicationService {
             savedApplication.getUrl(),
             savedApplication.getStatus(),
             savedApplication.getCompany() != null ? application.getCompany().getId() : null,
-            savedApplication.getInterview() != null ? application.getInterview().getId() : null
+            getAllInterviewIds(application)
         );
     }
 
@@ -136,14 +137,11 @@ public class ApplicationService {
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + applicationId));
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
-        Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
         
         // Update all fields
         application.setTitle(request.title());
         application.setUrl(request.url());
         application.setCompany(company);
-        application.setInterview(interview);
         application.setStatus(request.status());
         
         log.info("Updated application {} for user {}", application.getId(), application.getUser());
@@ -154,7 +152,7 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany() != null ? application.getCompany().getId() : null,
-            application.getInterview() != null ? application.getInterview().getId() : null
+            getAllInterviewIds(application)
         );
     }
 
@@ -183,12 +181,6 @@ public class ApplicationService {
             application.setCompany(company);
         }
 
-        if(request.interviewId() != null) {
-            Interview interview = interviewRepository.findById(request.interviewId())
-            .orElseThrow(() -> new InterviewNotFoundException("Interview with id:" + request.interviewId() + "does not exist"));
-            application.setInterview(interview);
-        }
-
         log.info("Patched application {} for user {}", application.getTitle(), application.getUser());
 
         return new ApplicationResponseDto(
@@ -197,7 +189,7 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany() != null ? application.getCompany().getId() : null,
-            application.getInterview() != null ? application.getInterview().getId() : null
+            getAllInterviewIds(application)
         );
 
     }
@@ -221,10 +213,19 @@ public class ApplicationService {
                 application.getUrl(),
                 application.getStatus(),
                 application.getCompany() != null ? application.getCompany().getId() : null,
-                application.getInterview() != null ? application.getInterview().getId() : null
+                getAllInterviewIds(application)
             );
         } else {
             throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
         }
+    }
+
+    public List<Long> getAllInterviewIds(Application application) {
+        return application.getInterviews() != null
+        ? application.getInterviews()
+            .stream()
+            .map(Interview::getId)
+            .toList()
+        : null;
     }
 }

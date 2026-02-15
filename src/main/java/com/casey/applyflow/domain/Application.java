@@ -1,7 +1,11 @@
 package com.casey.applyflow.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.casey.applyflow.domain.enums.Status;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 
@@ -37,9 +42,8 @@ public class Application {
     @JoinColumn(name = "company_id", nullable = true)
     private Company company;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interview_id", nullable = true)
-    private Interview interview;
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Interview> interviews = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -47,12 +51,12 @@ public class Application {
 
     protected Application() {} // JPA constructor
 
-    public Application(String title, String url, Company company, Interview interview, Status status) {
+    public Application(String title, String url, Company company, Status status) {
         this.title = title;
         this.url = url;
         this.status = status;
         this.company = company;
-        this.interview = interview;
+        this.interviews = new ArrayList<>();
     }
 
     public Long getId() {
@@ -91,12 +95,18 @@ public class Application {
         this.company = company;
     }
 
-    public Interview getInterview() {
-        return interview;
+    public List<Interview> getInterviews() {
+        return interviews;
     }
 
-    public void setInterview(Interview interview) {
-        this.interview = interview;
+    public void addInterview(Interview interview) {
+        interviews.add(interview);
+        interview.setApplication(this);
+    }
+
+    public void removeInterview(Interview interview) {
+        interviews.remove(interview);
+        interview.setApplication(null);
     }
 
     public User getUser() {
