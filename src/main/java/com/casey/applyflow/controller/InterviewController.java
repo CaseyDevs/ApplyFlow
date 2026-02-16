@@ -33,7 +33,7 @@ public class InterviewController {
         this.interviewService = interviewService;
     }
     
-    @GetMapping("applications/{applicationId}/interviews/{interviewId}")
+    @GetMapping("/applications/{applicationId}/interviews/{interviewId}")
     public ResponseEntity<InterviewResponseDto> getInterview(
         @PathVariable @Min(1) Long applicationId,
         @PathVariable @Min(1) Long interviewId
@@ -43,7 +43,7 @@ public class InterviewController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("applications/{applicaitonId}/interviews")
+    @GetMapping("/applications/{applicationId}/interviews")
     public ResponseEntity<List<InterviewResponseDto>> getAllInterviews(
         @PathVariable @Min(1) Long applicationId
     ) {
