@@ -20,7 +20,7 @@ public record ApplicationRequestDto(
     Long companyId,
     
     @Nullable 
-    java.util.List<Long> interviewIds,
+    Long interviewId,
 
     @NotNull 
     Status status    
