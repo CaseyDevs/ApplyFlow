@@ -7,6 +7,8 @@ import com.casey.applyflow.service.InterviewService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api")
@@ -29,7 +33,7 @@ public class InterviewController {
         this.interviewService = interviewService;
     }
     
-    @GetMapping("applications/{applicationId}/interviews/{interviewId}")
+    @GetMapping("/applications/{applicationId}/interviews/{interviewId}")
     public ResponseEntity<InterviewResponseDto> getInterview(
         @PathVariable @Min(1) Long applicationId,
         @PathVariable @Min(1) Long interviewId
@@ -38,6 +42,16 @@ public class InterviewController {
         
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/applications/{applicationId}/interviews")
+    public ResponseEntity<List<InterviewResponseDto>> getAllInterviews(
+        @PathVariable @Min(1) Long applicationId
+    ) {
+        List<InterviewResponseDto> response = interviewService.getAllInterviews(applicationId);
+
+        return ResponseEntity.ok(response);
+    }
+    
 
     @PostMapping("/applications/{applicationId}/interviews")
     public ResponseEntity<InterviewResponseDto> createInterview(

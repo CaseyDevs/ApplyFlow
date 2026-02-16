@@ -1,5 +1,9 @@
 package com.casey.applyflow.service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collector;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,9 @@ import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
+
+// TODO: ADD GET ALL INTERVIEWS FOR APPLICATIONS
+// UPDATE OTHER CONTROLLER, SERVICE, ENTITIES TO FOLLOW BEST PRACTICES
 
 @Service
 public class InterviewService {
@@ -44,6 +51,17 @@ public class InterviewService {
         log.debug("Fetching interview {}", interviewId);
 
         return toInterviewResponseDto(interview);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InterviewResponseDto> getAllInterviews(Long applicationId) {
+        List<Interview> interviews = interviewRepository.findAllByApplicationId(applicationId);
+
+        log.debug("Fetching interviews");
+
+        return interviews.stream()
+            .map(this::toInterviewResponseDto)
+            .toList();
     }
 
     @Transactional
