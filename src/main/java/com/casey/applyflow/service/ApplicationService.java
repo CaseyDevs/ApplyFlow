@@ -32,11 +32,9 @@ import com.casey.applyflow.exception.UserNotFoundException;
 @Service
 public class ApplicationService {
 
-    private final InterviewController interviewController;
     private ApplicationRepository applicationRepository;
     private UserRepository userRepository;
     private CompanyRepository companyRepository;
-    private InterviewRepository interviewRepository;
     private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
 
     ApplicationService(
@@ -48,8 +46,6 @@ public class ApplicationService {
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
-        this.interviewRepository = interviewRepository;
-        this.interviewController = interviewController;
     }
 
     private User getCurrentUser() {
@@ -63,7 +59,6 @@ public class ApplicationService {
     // Get Applications (Get)
     @Transactional(readOnly = true)
     public Page<ApplicationResponseDto> getAllApplications(String companyName, Long companyId, Boolean hasInterview,  Pageable pageable) {
-
         User user = getCurrentUser();
         
         Specification<Application> spec = Specification
@@ -80,11 +75,9 @@ public class ApplicationService {
 
     // Get Application by...
     public ApplicationResponseDto getApplicationById(Long id) {
-
         User user = getCurrentUser();
 
-
-        Application application = applicationRepository.findById(id)
+        Application application = applicationRepository.findByIdAndUserId(id, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
 
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
@@ -95,12 +88,13 @@ public class ApplicationService {
     // Create Application (Post)
     @Transactional
     public ApplicationResponseDto createApplication(ApplicationRequestDto request) {
+        User user = getCurrentUser();
+
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
         Application application = new Application(request.title(), request.url(), company, request.status());
 
-        User user = getCurrentUser();
 
         user.addApplication(application);  // save new application to users application list
         Application savedApplication = applicationRepository.save(application);
@@ -114,7 +108,9 @@ public class ApplicationService {
     // Update Applicaiton (Put)
     @Transactional
     public ApplicationResponseDto updateApplication(Long applicationId, ApplicationRequestDto request) {
-        Application application = applicationRepository.findById(applicationId)
+        User user = getCurrentUser();
+
+        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + applicationId));
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
@@ -149,7 +145,9 @@ public class ApplicationService {
     // Update Apllication (Patch)
     @Transactional
     public ApplicationResponseDto updateApplicationField(Long applicationId, UpdateApplicationFieldRequestDto request) {
-        Application application = applicationRepository.findById(applicationId)
+        User user = getCurrentUser();
+
+        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application with id: " + applicationId + "does not exist"));
 
         if(request.title() != null) {
@@ -180,18 +178,14 @@ public class ApplicationService {
     public ApplicationResponseDto removeApplication(Long applicationId) {
         User user = getCurrentUser();
         
-        Application application = applicationRepository.findById(applicationId)
+        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id:" + applicationId));
         
-        if (!applicationRepository.existByIdAndUserId(applicationId, user.getId())) {
-            throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
-        }
-        
-            user.removeApplication(application);
-            applicationRepository.delete(application);
-            log.info("Application has been removed! ID: {}", applicationId);
+        user.removeApplication(application);
+        applicationRepository.delete(application);
+        log.info("Application has been removed! ID: {}", applicationId);
 
-            return toApplicationResponseDto(application); 
+        return toApplicationResponseDto(application);
     }
 
     private List<Long> getAllInterviewIds(Application application) {
