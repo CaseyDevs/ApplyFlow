@@ -1,8 +1,6 @@
 package com.casey.applyflow.service;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +19,12 @@ import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
-
-// TODO: ADD GET ALL INTERVIEWS FOR APPLICATIONS
-// UPDATE OTHER CONTROLLER, SERVICE, ENTITIES TO FOLLOW BEST PRACTICES
+import com.casey.applyflow.domain.User;
 
 @Service
 public class InterviewService {
+
+    private final CurrentUserProvider currentUserProvider;
     private final InterviewRepository interviewRepository;
     private final ApplicationRepository applicationRepository;
     private final ContactRepository contactRepository;
@@ -35,17 +33,21 @@ public class InterviewService {
     public InterviewService(
         InterviewRepository interviewRepository, 
         ApplicationRepository applicationRepository,
-        ContactRepository contactRepository
+        ContactRepository contactRepository,
+        CurrentUserProvider currentUserProvider
     ) {
         this.interviewRepository = interviewRepository;
         this.applicationRepository = applicationRepository;
         this.contactRepository = contactRepository;
+        this.currentUserProvider = currentUserProvider;
     }
 
 
     @Transactional(readOnly = true)
     public InterviewResponseDto getInterview(Long applicationId, Long interviewId) {
-        Interview interview = interviewRepository.findByIdAndApplicationId(interviewId, applicationId)
+        User user = currentUserProvider.getCurrentUser();
+
+        Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
 
         log.debug("Fetching interview {}", interviewId);
@@ -55,7 +57,9 @@ public class InterviewService {
 
     @Transactional(readOnly = true)
     public List<InterviewResponseDto> getAllInterviews(Long applicationId) {
-        List<Interview> interviews = interviewRepository.findAllByApplicationId(applicationId);
+        User user = currentUserProvider.getCurrentUser();
+
+        List<Interview> interviews = interviewRepository.findAllByApplicationIdAndUserId(applicationId, user.getId());
 
         log.debug("Fetching interviews");
 
@@ -66,7 +70,9 @@ public class InterviewService {
 
     @Transactional
     public InterviewResponseDto createInterview(Long applicationId, InterviewRequestDto request) {
-        Application application = applicationRepository.findById(applicationId)
+        User user = currentUserProvider.getCurrentUser();
+
+        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
         Contact interviewer = contactRepository.findById(request.interviewerId())
             .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
@@ -88,7 +94,9 @@ public class InterviewService {
 
     @Transactional
     public InterviewResponseDto updateInterview(Long interviewId, InterviewRequestDto request) {
-        Interview interview = interviewRepository.findById(interviewId)
+        User user = currentUserProvider.getCurrentUser();
+
+        Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
         Contact interviewer = contactRepository.findById(request.interviewerId())
             .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
@@ -126,11 +134,17 @@ public class InterviewService {
 
     @Transactional
     public void deleteInterview(Long applicationId, Long interviewId) {
-        Interview interview = interviewRepository.findByIdAndApplicationId(interviewId, applicationId)
+        User user = currentUserProvider.getCurrentUser();
+
+        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found!"));
+
+        Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
 
         // should remove interview from related application entity
         interviewRepository.delete(interview);
+        application.removeInterview(interview);
 
         log.info("Interview {} removed from application {}", interviewId, applicationId);
     }
