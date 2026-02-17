@@ -1,8 +1,6 @@
 package com.casey.applyflow.service;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +20,6 @@ import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
 
-// TODO: ADD GET ALL INTERVIEWS FOR APPLICATIONS
 // UPDATE OTHER CONTROLLER, SERVICE, ENTITIES TO FOLLOW BEST PRACTICES
 
 @Service

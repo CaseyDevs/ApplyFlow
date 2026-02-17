@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.casey.applyflow.controller.InterviewController;
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.Interview;
@@ -27,11 +27,12 @@ import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
-import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
 @Service
 public class ApplicationService {
+
+    private final InterviewController interviewController;
     private ApplicationRepository applicationRepository;
     private UserRepository userRepository;
     private CompanyRepository companyRepository;
@@ -43,11 +44,12 @@ public class ApplicationService {
         UserRepository userRepository,
         CompanyRepository companyRepository,
         InterviewRepository interviewRepository
-    ) {
+    , InterviewController interviewController) {
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.interviewRepository = interviewRepository;
+        this.interviewController = interviewController;
     }
 
     private User getCurrentUser() {
@@ -73,14 +75,7 @@ public class ApplicationService {
         log.debug("Fetching applications for user {}", user);
  
         return applicationRepository.findAll(spec, pageable)
-            .map(application -> new ApplicationResponseDto(
-                application.getId(),
-                application.getTitle(),
-                application.getUrl(),
-                application.getStatus(),
-                application.getCompany() != null ? application.getCompany().getId() : null,
-                getAllInterviewIds(application)
-            ));
+            .map(this::toApplicationResponseDto);
     }
 
     // Get Application by...
@@ -94,14 +89,7 @@ public class ApplicationService {
 
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
 
-        return new ApplicationResponseDto(
-            application.getId(),
-            application.getTitle(),
-            application.getUrl(),
-            application.getStatus(),
-            application.getCompany().getId(),
-            getAllInterviewIds(application)    
-        );
+        return toApplicationResponseDto(application);
     }
 
     // Create Application (Post)
@@ -120,14 +108,7 @@ public class ApplicationService {
         // log success
         log.info("Created application {} for user {}", request.title(), user.getName());
         
-        return new ApplicationResponseDto(
-            savedApplication.getId(),
-            savedApplication.getTitle(),
-            savedApplication.getUrl(),
-            savedApplication.getStatus(),
-            savedApplication.getCompany() != null ? application.getCompany().getId() : null,
-            getAllInterviewIds(application)
-        );
+        return toApplicationResponseDto(savedApplication);
     }
 
     // Update Applicaiton (Put)
@@ -146,7 +127,15 @@ public class ApplicationService {
         
         log.info("Updated application {} for user {}", application.getId(), application.getUser());
         
-        return new ApplicationResponseDto(
+        return toApplicationResponseDto(application);
+    }
+
+    private ApplicationResponseDto toApplicationResponseDto(Application application) {
+        if (application == null) {
+            return null;
+        }
+
+        return new ApplicationResponseDto (
             application.getId(),
             application.getTitle(),
             application.getUrl(),
@@ -183,15 +172,7 @@ public class ApplicationService {
 
         log.info("Patched application {} for user {}", application.getTitle(), application.getUser());
 
-        return new ApplicationResponseDto(
-            application.getId(),
-            application.getTitle(),
-            application.getUrl(),
-            application.getStatus(),
-            application.getCompany() != null ? application.getCompany().getId() : null,
-            getAllInterviewIds(application)
-        );
-
+        return toApplicationResponseDto(application);
     }
 
     // Remove application (DELETE)
@@ -207,20 +188,13 @@ public class ApplicationService {
             applicationRepository.delete(application);
             log.info("Application has been removed! ID: {}", applicationId);
 
-            return new ApplicationResponseDto(
-                application.getId(),
-                application.getTitle(),
-                application.getUrl(),
-                application.getStatus(),
-                application.getCompany() != null ? application.getCompany().getId() : null,
-                getAllInterviewIds(application)
-            );
+            return toApplicationResponseDto(application);
         } else {
             throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
         }
     }
 
-    public List<Long> getAllInterviewIds(Application application) {
+    private List<Long> getAllInterviewIds(Application application) {
         return application.getInterviews() != null
         ? application.getInterviews()
             .stream()
