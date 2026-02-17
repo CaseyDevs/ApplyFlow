@@ -183,15 +183,15 @@ public class ApplicationService {
         Application application = applicationRepository.findById(applicationId)
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id:" + applicationId));
         
-        if (user.getApplications().contains(application)) {
+        if (!applicationRepository.existByIdAndUserId(applicationId, user.getId())) {
+            throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
+        }
+        
             user.removeApplication(application);
             applicationRepository.delete(application);
             log.info("Application has been removed! ID: {}", applicationId);
 
-            return toApplicationResponseDto(application);
-        } else {
-            throw new ApplicationNotFoundException("User does not own application with id: " + applicationId);
-        }
+            return toApplicationResponseDto(application); 
     }
 
     private List<Long> getAllInterviewIds(Application application) {

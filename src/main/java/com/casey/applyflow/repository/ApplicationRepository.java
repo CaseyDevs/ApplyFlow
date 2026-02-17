@@ -11,4 +11,5 @@ import com.casey.applyflow.domain.User;
 public interface ApplicationRepository extends JpaRepository<Application, Long>, JpaSpecificationExecutor<Application> {
     List<Application> findByUser(User user);
     List<Application> findByUserId(Long userId);
+    boolean existByIdAndUserId(Long applicationId, Long userId);
 }
