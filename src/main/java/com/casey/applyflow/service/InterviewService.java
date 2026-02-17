@@ -19,11 +19,14 @@ import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
+import com.casey.applyflow.domain.User;
 
 // UPDATE OTHER CONTROLLER, SERVICE, ENTITIES TO FOLLOW BEST PRACTICES
 
 @Service
 public class InterviewService {
+
+    private final CurrentUserProvider currentUserProvider;
     private final InterviewRepository interviewRepository;
     private final ApplicationRepository applicationRepository;
     private final ContactRepository contactRepository;
@@ -32,16 +35,20 @@ public class InterviewService {
     public InterviewService(
         InterviewRepository interviewRepository, 
         ApplicationRepository applicationRepository,
-        ContactRepository contactRepository
+        ContactRepository contactRepository,
+        CurrentUserProvider currentUserProvider
     ) {
         this.interviewRepository = interviewRepository;
         this.applicationRepository = applicationRepository;
         this.contactRepository = contactRepository;
+        this.currentUserProvider = currentUserProvider;
     }
 
 
     @Transactional(readOnly = true)
     public InterviewResponseDto getInterview(Long applicationId, Long interviewId) {
+        
+
         Interview interview = interviewRepository.findByIdAndApplicationId(interviewId, applicationId)
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found"));
 

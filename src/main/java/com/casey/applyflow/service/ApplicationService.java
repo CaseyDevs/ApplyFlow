@@ -3,8 +3,6 @@ package com.casey.applyflow.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,45 +19,37 @@ import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.ApplicationSpecification;
 import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.InterviewRepository;
-import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
-import com.casey.applyflow.exception.UserNotFoundException;
 
 @Service
 public class ApplicationService {
 
-    private ApplicationRepository applicationRepository;
-    private UserRepository userRepository;
-    private CompanyRepository companyRepository;
+    private final CurrentUserProvider currentUserProvider;
+
+    private final ApplicationRepository applicationRepository;
+    private final CompanyRepository companyRepository;
     private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
 
     ApplicationService(
         ApplicationRepository applicationRepository,
-        UserRepository userRepository,
         CompanyRepository companyRepository,
-        InterviewRepository interviewRepository
-    , InterviewController interviewController) {
+        InterviewRepository interviewRepository, 
+        InterviewController interviewController,
+        CurrentUserProvider currentUserProvider
+    ) {
         this.applicationRepository = applicationRepository;
-        this.userRepository = userRepository;
         this.companyRepository = companyRepository;
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-    
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        this.currentUserProvider = currentUserProvider;
     }
     
     // Get Applications (Get)
     @Transactional(readOnly = true)
     public Page<ApplicationResponseDto> getAllApplications(String companyName, Long companyId, Boolean hasInterview,  Pageable pageable) {
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUser();
         
         Specification<Application> spec = Specification
             .where(ApplicationSpecification.belongsToUser(user))
@@ -75,7 +65,7 @@ public class ApplicationService {
 
     // Get Application by...
     public ApplicationResponseDto getApplicationById(Long id) {
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUser();
 
         Application application = applicationRepository.findByIdAndUserId(id, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
@@ -88,7 +78,7 @@ public class ApplicationService {
     // Create Application (Post)
     @Transactional
     public ApplicationResponseDto createApplication(ApplicationRequestDto request) {
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUser();
 
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
@@ -108,7 +98,7 @@ public class ApplicationService {
     // Update Applicaiton (Put)
     @Transactional
     public ApplicationResponseDto updateApplication(Long applicationId, ApplicationRequestDto request) {
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUser();
 
         Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + applicationId));
@@ -141,11 +131,10 @@ public class ApplicationService {
         );
     }
 
-
     // Update Apllication (Patch)
     @Transactional
     public ApplicationResponseDto updateApplicationField(Long applicationId, UpdateApplicationFieldRequestDto request) {
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUser();
 
         Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application with id: " + applicationId + "does not exist"));
@@ -176,7 +165,7 @@ public class ApplicationService {
     // Remove application (DELETE)
     @Transactional
     public ApplicationResponseDto removeApplication(Long applicationId) {
-        User user = getCurrentUser();
+        User user = currentUserProvider.getCurrentUser();
         
         Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id:" + applicationId));
