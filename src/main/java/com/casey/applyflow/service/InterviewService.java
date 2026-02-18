@@ -127,7 +127,7 @@ public class InterviewService {
         return new ContactResponseDto(
             contact.getId(),
             contact.getName(),
-            contact.getEmail(),
+            contact.getEmail(),  
             contact.getPhoneNumber()
         );
     }
