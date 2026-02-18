@@ -1,4 +1,4 @@
-package com.casey.applyflow.controller;
+package com.casey.applyflow.controller.v1;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +25,7 @@ import java.net.URI;
 
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class ApplicationController {
 
     private final ApplicationService applicationService;
