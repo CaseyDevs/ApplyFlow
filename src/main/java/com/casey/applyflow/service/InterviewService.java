@@ -59,7 +59,7 @@ public class InterviewService {
     public List<InterviewResponseDto> getAllInterviews(Long applicationId) {
         User user = currentUserProvider.getCurrentUser();
 
-        List<Interview> interviews = interviewRepository.findAllByApplicationIdAndUserId(applicationId, user.getId());
+        List<Interview> interviews = interviewRepository.findAllByApplicationIdAndApplicationUserId(applicationId, user.getId());
 
         log.debug("Fetching interviews");
 
