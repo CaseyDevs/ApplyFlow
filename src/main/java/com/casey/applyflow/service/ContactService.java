@@ -38,12 +38,8 @@ public class ContactService {
         log.debug("Fetching company {} contacts", company.getName());
 
         return company.getInterviewers().stream()
-            .map(contact -> new ContactResponseDto(
-                contact.getId(),
-                contact.getName(),
-                contact.getEmail(),
-                contact.getPhoneNumber()
-            )).collect(Collectors.toList());
+            .map(this::toContactResponseDto)
+            .toList();
     }
 
     @Transactional
@@ -60,12 +56,7 @@ public class ContactService {
 
         log.info("Contact created and saved to company {}", company.getName());
 
-        return new ContactResponseDto(
-            savedContact.getId(),
-            savedContact.getName(),
-            savedContact.getEmail(),
-            savedContact.getPhoneNumber()
-        );
+        return toContactResponseDto(savedContact);
     }
 
     @Transactional
@@ -79,6 +70,14 @@ public class ContactService {
 
         log.info("Contact {} updated", contact.getName());
 
+        return toContactResponseDto(contact);
+    }
+
+    private ContactResponseDto toContactResponseDto(Contact contact) {
+        if (contact == null) {
+            return null;
+        }
+
         return new ContactResponseDto(
             contact.getId(),
             contact.getName(),
@@ -89,20 +88,12 @@ public class ContactService {
 
     @Transactional
     public void deleteContact(Long companyId, Long contactId) {
-        Contact contact = contactRepository.findById(contactId)
-            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
+        Contact contact = contactRepository.findByIdAndCompanyId(contactId, companyId)
+            .orElseThrow(() -> new ContactNotInCompanyException("Contact does not exist in this company."));
         
-        Company company = companyRepository.findById(companyId)
-            .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
-        
-        // Ensure company has contact to prevent deletion of contacts in other companies
-        if (company.getInterviewers().contains(contact)) {
-            company.removeInterviewer(contact);
-            contactRepository.delete(contact);
+        contact.getCompany().removeInterviewer(contact);
+        contactRepository.delete(contact);
 
-            log.info("Removed contact {}", contact.getName());
-        } else {
-            throw new ContactNotInCompanyException("This contact does not exist in this company.");
-        }
+        log.info("Removed contact {}", contact.getName());
     }
 }

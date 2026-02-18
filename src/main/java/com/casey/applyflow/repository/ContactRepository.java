@@ -8,4 +8,5 @@ import com.casey.applyflow.domain.Contact;
 
 public interface ContactRepository extends JpaRepository<Contact, Long> {
     Optional<Contact> findByName(String name);
+    Optional<Contact> findByIdAndCompanyId(Long contactId, Long companyId);
 }

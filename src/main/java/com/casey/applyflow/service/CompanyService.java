@@ -14,7 +14,6 @@ import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.repository.CompanyRepository;
 
-
 @Service
 public class CompanyService {
     private final CompanyRepository companyRepository;
