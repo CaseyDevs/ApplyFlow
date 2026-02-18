@@ -1,7 +1,6 @@
 package com.casey.applyflow.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +59,8 @@ public class ContactService {
     }
 
     @Transactional
-    public ContactResponseDto updateContact(Long id, ContactRequestDto request) {
-        Contact contact = contactRepository.findById(id)
+    public ContactResponseDto updateContact(Long companyId, Long id, ContactRequestDto request) {
+        Contact contact = contactRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
 
         contact.setName(request.name());

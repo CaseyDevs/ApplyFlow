@@ -8,6 +8,7 @@ import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.service.ContactService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 import java.util.List;
 
@@ -46,12 +47,13 @@ public class ContactController {
         return ResponseEntity.ok(response);
     }
     
-    @PutMapping("/contacts/{id}")
+    @PutMapping("/companies/{companyId}/contacts/{id}")
     public ResponseEntity<ContactResponseDto> updateContact(
-        @PathVariable Long id,
+        @PathVariable @Min(1) Long companyId,
+        @PathVariable @Min(1) Long id,
         @Valid @RequestBody ContactRequestDto request
     ) {
-        ContactResponseDto response = contactService.updateContact(id, request);
+        ContactResponseDto response = contactService.updateContact(companyId, id, request);
 
         return ResponseEntity.ok(response);
     }
