@@ -1,4 +1,4 @@
-package com.casey.applyflow.controller;
+package com.casey.applyflow.controller.v1;
 
 import com.casey.applyflow.dto.InterviewRequestDto;
 import com.casey.applyflow.dto.InterviewResponseDto;
