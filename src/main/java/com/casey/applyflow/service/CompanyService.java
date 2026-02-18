@@ -14,7 +14,6 @@ import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.repository.CompanyRepository;
 
-
 @Service
 public class CompanyService {
     private final CompanyRepository companyRepository;
@@ -29,12 +28,7 @@ public class CompanyService {
         log.debug("Fetching all known companies");
 
         return companyRepository.findAll(pageable)
-            .map(company -> new CompanyResponseDto(
-                company.getId(),
-                company.getName(),
-                company.getLocation(),
-                company.getRating()
-            ));
+            .map(this::toCompanyResponseDto);
     }
 
     @Transactional
@@ -49,12 +43,7 @@ public class CompanyService {
 
         log.info("Company - {} - created successfully.", company.getName());
 
-        return new CompanyResponseDto(
-            savedCompany.getId(),
-            savedCompany.getName(), 
-            savedCompany.getLocation(), 
-            savedCompany.getRating()
-        );
+        return toCompanyResponseDto(savedCompany);
     }
 
     @Transactional
@@ -67,6 +56,14 @@ public class CompanyService {
         company.setRating(request.rating());
 
         log.info("Company - {} - updated successfully.", company.getName());
+
+        return toCompanyResponseDto(company);
+    }
+
+    private CompanyResponseDto toCompanyResponseDto(Company company) {
+        if (company == null) {
+            return null;
+        }
 
         return new CompanyResponseDto(
             company.getId(),

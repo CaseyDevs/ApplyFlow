@@ -142,7 +142,6 @@ public class InterviewService {
         Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
 
-        // should remove interview from related application entity
         interviewRepository.delete(interview);
         application.removeInterview(interview);
 

@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 @RequestMapping("/api")
 public class CompanyController {
-
     private final CompanyService companyService;
 
     CompanyController(CompanyService companyService) {

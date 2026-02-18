@@ -1,7 +1,6 @@
 package com.casey.applyflow.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +37,8 @@ public class ContactService {
         log.debug("Fetching company {} contacts", company.getName());
 
         return company.getInterviewers().stream()
-            .map(contact -> new ContactResponseDto(
-                contact.getId(),
-                contact.getName(),
-                contact.getEmail(),
-                contact.getPhoneNumber()
-            )).collect(Collectors.toList());
+            .map(this::toContactResponseDto)
+            .toList();
     }
 
     @Transactional
@@ -60,17 +55,12 @@ public class ContactService {
 
         log.info("Contact created and saved to company {}", company.getName());
 
-        return new ContactResponseDto(
-            savedContact.getId(),
-            savedContact.getName(),
-            savedContact.getEmail(),
-            savedContact.getPhoneNumber()
-        );
+        return toContactResponseDto(savedContact);
     }
 
     @Transactional
-    public ContactResponseDto updateContact(Long id, ContactRequestDto request) {
-        Contact contact = contactRepository.findById(id)
+    public ContactResponseDto updateContact(Long companyId, Long id, ContactRequestDto request) {
+        Contact contact = contactRepository.findByIdAndCompanyId(id, companyId)
             .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
 
         contact.setName(request.name());
@@ -78,6 +68,14 @@ public class ContactService {
         contact.setPhoneNumber(request.phoneNumber());
 
         log.info("Contact {} updated", contact.getName());
+
+        return toContactResponseDto(contact);
+    }
+
+    private ContactResponseDto toContactResponseDto(Contact contact) {
+        if (contact == null) {
+            return null;
+        }
 
         return new ContactResponseDto(
             contact.getId(),
@@ -89,20 +87,12 @@ public class ContactService {
 
     @Transactional
     public void deleteContact(Long companyId, Long contactId) {
-        Contact contact = contactRepository.findById(contactId)
-            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist."));
+        Contact contact = contactRepository.findByIdAndCompanyId(contactId, companyId)
+            .orElseThrow(() -> new ContactNotInCompanyException("Contact does not exist in this company."));
         
-        Company company = companyRepository.findById(companyId)
-            .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
-        
-        // Ensure company has contact to prevent deletion of contacts in other companies
-        if (company.getInterviewers().contains(contact)) {
-            company.removeInterviewer(contact);
-            contactRepository.delete(contact);
+        contact.getCompany().removeInterviewer(contact);
+        contactRepository.delete(contact);
 
-            log.info("Removed contact {}", contact.getName());
-        } else {
-            throw new ContactNotInCompanyException("This contact does not exist in this company.");
-        }
+        log.info("Removed contact {}", contact.getName());
     }
 }
