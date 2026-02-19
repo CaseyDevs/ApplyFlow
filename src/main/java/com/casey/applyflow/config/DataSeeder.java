@@ -10,6 +10,7 @@ import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.domain.Interview;
+import com.casey.applyflow.domain.Note;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Status;
 import com.casey.applyflow.repository.ApplicationRepository;
@@ -96,7 +97,8 @@ public class DataSeeder {
                     LocalDateTime.of(2026, 2, 15, 10, 0), 
                     "PHONE", 
                     null,
-                    app1
+                    app1,
+                    null
                 );
                 app1.addInterview(interview1);
                 interview1 = interviewRepo.save(interview1);
@@ -105,7 +107,8 @@ public class DataSeeder {
                     LocalDateTime.of(2026, 2, 20, 14, 30), 
                     "TECHNICAL", 
                     null,
-                    app2
+                    app2,
+                    null
                 );
                 app2.addInterview(interview2);
                 interview2 = interviewRepo.save(interview2);

@@ -81,7 +81,8 @@ public class InterviewService {
             request.date(), 
             request.type(), 
             interviewer,
-            application
+            application,
+            null
         );
 
         interviewRepository.save(interview);
@@ -115,7 +116,8 @@ public class InterviewService {
             interview.getId(),
             interview.getDate(),
             interview.getType(),
-            toContactResponseDto(interview.getInterviewer())
+            toContactResponseDto(interview.getInterviewer()),
+            null
         );
     }
 
