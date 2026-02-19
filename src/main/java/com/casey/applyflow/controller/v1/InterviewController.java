@@ -66,12 +66,13 @@ public class InterviewController {
         ).body(response);
     }
 
-    @PutMapping("/interviews/{interviewId}")
+    @PutMapping("/applications/{applicationId}/interviews/{interviewId}")
     public ResponseEntity<InterviewResponseDto> updateInterview(
+        @PathVariable @Min(1) Long applicationId, 
         @PathVariable @Min(1) Long interviewId, 
         @Valid @RequestBody InterviewRequestDto request
     ) {
-        InterviewResponseDto response = interviewService.updateInterview(interviewId, request);
+        InterviewResponseDto response = interviewService.updateInterview(applicationId, interviewId, request);
         
         return ResponseEntity.ok(response);
     }

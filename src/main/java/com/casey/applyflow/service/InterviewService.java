@@ -98,10 +98,10 @@ public class InterviewService {
     }
 
     @Transactional
-    public InterviewResponseDto updateInterview(Long interviewId, InterviewRequestDto request) {
+    public InterviewResponseDto updateInterview(Long applicationId, Long interviewId, InterviewRequestDto request) {
         User user = currentUserProvider.getCurrentUser();
 
-        Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
+        Interview interview = interviewRepository.findByIdAndApplicationIdAndApplicationUserId(applicationId, interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
         
         Contact interviewer = null;
