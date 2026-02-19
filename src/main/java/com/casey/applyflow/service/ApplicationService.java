@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.casey.applyflow.controller.InterviewController;
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.Interview;
@@ -27,9 +26,7 @@ import com.casey.applyflow.exception.CompanyNotFoundException;
 
 @Service
 public class ApplicationService {
-
     private final CurrentUserProvider currentUserProvider;
-
     private final ApplicationRepository applicationRepository;
     private final CompanyRepository companyRepository;
     private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
@@ -38,7 +35,6 @@ public class ApplicationService {
         ApplicationRepository applicationRepository,
         CompanyRepository companyRepository,
         InterviewRepository interviewRepository, 
-        InterviewController interviewController,
         CurrentUserProvider currentUserProvider
     ) {
         this.applicationRepository = applicationRepository;
