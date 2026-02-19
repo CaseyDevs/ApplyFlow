@@ -9,4 +9,5 @@ import com.casey.applyflow.domain.Note;
 
 public interface NoteRepository extends JpaRepository<Note, Long> {
     Optional<List<Note>>findAllByInterviewId(Long interviewId);
+    Optional<Note> findByIdAndInterviewApplicationUserId(Long noteId, Long userId);
 }

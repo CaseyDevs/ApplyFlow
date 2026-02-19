@@ -64,7 +64,19 @@ public class NoteService {
         noteRepository.save(note);
         interview.addNote(note);
 
-        log.debug("Note {} saved to interview {}", note.getId(), interview.getId());
+        log.info("Note {} saved to interview {}", note.getId(), interview.getId());
+
+        return toNoteResponseDto(note);
+    }
+
+    @Transactional
+    public NoteResponseDto updateNote(Long noteId, NoteRequestDto request) {
+        User user = currentUserProvider.getCurrentUser();
+
+        Note note = noteRepository.findByIdAndInterviewApplicationUserId(noteId, user.getId())
+            .orElseThrow(() -> new NoteNotFoundException("Note does not exist!"));
+
+        note.setDescription(request.description());
 
         return toNoteResponseDto(note);
     }
