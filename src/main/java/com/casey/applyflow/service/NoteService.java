@@ -25,15 +25,22 @@ public class NoteService {
     private Logger log = LoggerFactory.getLogger(NoteService.class);
 
 
-    public NoteService(NoteRepository noteRepository, InterviewRepository interviewRepository) {
+    public NoteService(NoteRepository noteRepository, InterviewRepository interviewRepository, CurrentUserProvider currentUserProvider) {
         this.noteRepository = noteRepository;
         this.interviewRepository = interviewRepository;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional(readOnly = true)
-    public List<NoteResponseDto> getAllNotes(Long interviewId) {
-        List<Note> notes = noteRepository.findAllByInterviewId(interviewId)
-            .orElseThrow(() -> new NoteNotFoundException("You do not have any notes for this interview."));
+    public List<NoteResponseDto> getAllNotes(Long applicationId, Long interviewId) {
+        User user = currentUserProvider.getCurrentUser();
+
+        // Verify interview exists and belongs to the user
+        interviewRepository.findByIdAndApplicationIdAndApplicationUserId(applicationId, interviewId, user.getId())
+            .orElseThrow(() -> new InterviewNotFoundException("Interview does not exist!"));
+
+        List<Note> notes = noteRepository.findAllByInterviewApplicationIdAndInterviewIdAndInterviewApplicationUserId(applicationId, interviewId, user.getId())
+            .orElse(List.of());
 
         log.info("Fetching notes for interview {}", interviewId);
 
@@ -44,16 +51,17 @@ public class NoteService {
 
     private NoteResponseDto toNoteResponseDto(Note note) {
         return new NoteResponseDto(
+            note.getId(),
             note.getDescription(),
             note.getInterview().getId()
         );
     }
 
     @Transactional
-    public NoteResponseDto createNote(NoteRequestDto request) {
+    public NoteResponseDto createNote(Long applicationId, Long interviewId, NoteRequestDto request) {
         User user = currentUserProvider.getCurrentUser();
 
-        Interview interview = interviewRepository.findByIdAndApplicationUserId(request.interviewId(), user.getId())
+        Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview does not exist!"));
         
         Note note = new Note(
@@ -64,16 +72,16 @@ public class NoteService {
         noteRepository.save(note);
         interview.addNote(note);
 
-        log.info("Note {} saved to interview {}", note.getId(), interview.getId());
+        log.info("Note {} saved to interview {}", note.getId(), interviewId);
 
         return toNoteResponseDto(note);
     }
 
     @Transactional
-    public NoteResponseDto updateNote(Long noteId, NoteRequestDto request) {
+    public NoteResponseDto updateNote(Long noteId, Long applicaitonId, Long interviewId, NoteRequestDto request) {
         User user = currentUserProvider.getCurrentUser();
 
-        Note note = noteRepository.findByIdAndInterviewApplicationUserId(noteId, user.getId())
+        Note note = noteRepository.findByIdAndInterviewApplicationIdAndInterviewIdAndInterviewApplicationUserId(noteId, applicaitonId, interviewId, user.getId())
             .orElseThrow(() -> new NoteNotFoundException("Note does not exist!"));
 
         note.setDescription(request.description());
@@ -82,10 +90,10 @@ public class NoteService {
     }
 
     @Transactional
-    public void deleteNote(Long noteId) {
+    public void deleteNote(Long noteId, Long applicationId, Long interviewId) {
         User user = currentUserProvider.getCurrentUser();
         
-        Note note = noteRepository.findByIdAndInterviewApplicationUserId(noteId, user.getId())
+        Note note = noteRepository.findByIdAndInterviewApplicationIdAndInterviewIdAndInterviewApplicationUserId(noteId, applicationId, interviewId, user.getId())
             .orElseThrow(() -> new NoteNotFoundException("Note does not exist!"));
 
         note.getInterview().removeNote(note);

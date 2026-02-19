@@ -74,14 +74,19 @@ public class InterviewService {
 
         Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
-        Contact interviewer = contactRepository.findById(request.interviewerId())
-            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
+
+        Contact interviewer = null;
+        if (request.interviewerId() != null) {
+            interviewer = contactRepository.findById(request.interviewerId())
+                .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
+        }
 
         Interview interview = new Interview(
             request.date(), 
             request.type(), 
             interviewer,
-            application
+            application,
+            null
         );
 
         interviewRepository.save(interview);
@@ -93,13 +98,17 @@ public class InterviewService {
     }
 
     @Transactional
-    public InterviewResponseDto updateInterview(Long interviewId, InterviewRequestDto request) {
+    public InterviewResponseDto updateInterview(Long applicationId, Long interviewId, InterviewRequestDto request) {
         User user = currentUserProvider.getCurrentUser();
 
-        Interview interview = interviewRepository.findByIdAndApplicationUserId(interviewId, user.getId())
+        Interview interview = interviewRepository.findByIdAndApplicationIdAndApplicationUserId(applicationId, interviewId, user.getId())
             .orElseThrow(() -> new InterviewNotFoundException("Interview not found!"));
-        Contact interviewer = contactRepository.findById(request.interviewerId())
-            .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
+        
+        Contact interviewer = null;
+        if (request.interviewerId() != null) {
+            interviewer = contactRepository.findById(request.interviewerId())
+                .orElseThrow(() -> new ContactNotFoundException("Contact does not exist"));
+        }
 
         interview.setDate(request.date());
         interview.setType(request.type());
@@ -115,7 +124,8 @@ public class InterviewService {
             interview.getId(),
             interview.getDate(),
             interview.getType(),
-            toContactResponseDto(interview.getInterviewer())
+            toContactResponseDto(interview.getInterviewer()),
+            null
         );
     }
 

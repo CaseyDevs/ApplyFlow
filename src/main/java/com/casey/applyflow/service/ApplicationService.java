@@ -118,7 +118,6 @@ public class ApplicationService {
         }
 
         return new ApplicationResponseDto (
-            application.getId(),
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),

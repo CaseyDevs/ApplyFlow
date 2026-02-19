@@ -42,12 +42,15 @@ public class ContactService {
     }
 
     @Transactional
-    public ContactResponseDto createContact(ContactRequestDto request) {
-        Company company = companyRepository.findById(request.companyId())
+    public ContactResponseDto createContact(Long companyId, ContactRequestDto request) {
+        Company company = companyRepository.findById(companyId)
             .orElseThrow(() -> new CompanyNotFoundException("Company does not exist."));
         
         Contact contact = new Contact(
-            request.name(), request.email(), request.phoneNumber(), company
+            request.name(), 
+            request.email(), 
+            request.phoneNumber(), 
+            company
         );
 
         Contact savedContact = contactRepository.save(contact);

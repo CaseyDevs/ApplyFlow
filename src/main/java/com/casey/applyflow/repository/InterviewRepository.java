@@ -12,6 +12,7 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
     List<Interview> findByDateAfter(LocalDateTime date);
     List<Interview> findByDateBefore(LocalDateTime date);
     Optional<Interview> findByIdAndApplicationUserId(Long interviewId, Long userId);
+    Optional<Interview> findByIdAndApplicationIdAndApplicationUserId(Long applicaitonId, Long interviewId, Long userId);
 
     List<Interview> findAllByApplicationIdAndApplicationUserId(Long applicationId, Long userId);
     boolean existsByIdAndApplicationId(Long interviewId, Long applicationId);

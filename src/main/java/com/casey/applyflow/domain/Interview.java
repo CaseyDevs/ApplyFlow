@@ -47,11 +47,12 @@ public class Interview {
 
     protected Interview() {} // JPA constructor
 
-    public Interview(LocalDateTime date, String type, Contact interviewer, Application application) {
+    public Interview(LocalDateTime date, String type, Contact interviewer, Application application, List<Note> notes) {
         this.date = date;
         this.type = type;
         this.interviewer = interviewer;
         this.application = application;
+        this.notes = notes;
     }
 
     public LocalDateTime getDate() {
