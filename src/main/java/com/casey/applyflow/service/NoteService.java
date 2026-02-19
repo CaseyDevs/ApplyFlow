@@ -80,4 +80,15 @@ public class NoteService {
 
         return toNoteResponseDto(note);
     }
+
+    @Transactional
+    public void deleteNote(Long noteId) {
+        User user = currentUserProvider.getCurrentUser();
+        
+        Note note = noteRepository.findByIdAndInterviewApplicationUserId(noteId, user.getId())
+            .orElseThrow(() -> new NoteNotFoundException("Note does not exist!"));
+
+        note.getInterview().removeNote(note);
+        noteRepository.delete(note);
+    }
 }
