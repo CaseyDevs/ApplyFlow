@@ -8,9 +8,9 @@ public record ContactRequestDto(
     @NotBlank(message = "Contact must have a name.")
     String name,
 
-    @Nullable String email,
-    @Nullable String phoneNumber,
+    @Nullable 
+    String email,
 
-    @NotNull(message = "Contact must have a company relationship")
-    Long companyId
+    @Nullable 
+    String phoneNumber
 ) {}

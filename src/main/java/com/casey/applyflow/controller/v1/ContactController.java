@@ -31,18 +31,19 @@ public class ContactController {
     
     @GetMapping("/companies/{companyId}/contacts")
     public ResponseEntity<List<ContactResponseDto>> getCompanyContacts(
-        @Valid @PathVariable Long companyId
+        @PathVariable @Min(1) Long companyId
     ) {
         List<ContactResponseDto> response = contactService.getCompanyContacts(companyId);
 
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/contacts")
+    @PostMapping("/companies/{companyId}/contacts")
     public ResponseEntity<ContactResponseDto> createContact(
+        @PathVariable @Min(1) Long companyId,
         @Valid @RequestBody ContactRequestDto request
     ) {
-        ContactResponseDto response = contactService.createContact(request);
+        ContactResponseDto response = contactService.createContact(companyId, request);
 
         return ResponseEntity.ok(response);
     }
