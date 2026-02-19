@@ -35,8 +35,12 @@ public class NoteService {
     public List<NoteResponseDto> getAllNotes(Long applicationId, Long interviewId) {
         User user = currentUserProvider.getCurrentUser();
 
+        // Verify interview exists and belongs to the user
+        interviewRepository.findByIdAndApplicationIdAndApplicationUserId(applicationId, interviewId, user.getId())
+            .orElseThrow(() -> new InterviewNotFoundException("Interview does not exist!"));
+
         List<Note> notes = noteRepository.findAllByInterviewApplicationIdAndInterviewIdAndInterviewApplicationUserId(applicationId, interviewId, user.getId())
-            .orElseThrow(() -> new NoteNotFoundException("You do not have any notes for this interview."));
+            .orElse(List.of());
 
         log.info("Fetching notes for interview {}", interviewId);
 
