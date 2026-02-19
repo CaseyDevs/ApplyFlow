@@ -7,19 +7,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.casey.applyflow.domain.Interview;
 import com.casey.applyflow.domain.Note;
+import com.casey.applyflow.domain.User;
+import com.casey.applyflow.dto.NoteRequestDto;
 import com.casey.applyflow.dto.NoteResponseDto;
+import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.NoteNotFoundException;
+import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.NoteRepository;
 
 @Service
 public class NoteService {
     private NoteRepository noteRepository;
+    private InterviewRepository interviewRepository;
+    private CurrentUserProvider currentUserProvider;
     private Logger log = LoggerFactory.getLogger(NoteService.class);
 
 
-    public NoteService(NoteRepository noteRepository) {
+    public NoteService(NoteRepository noteRepository, InterviewRepository interviewRepository) {
         this.noteRepository = noteRepository;
+        this.interviewRepository = interviewRepository;
     }
 
     @Transactional(readOnly = true)
@@ -39,5 +47,25 @@ public class NoteService {
             note.getDescription(),
             note.getInterview().getId()
         );
+    }
+
+    @Transactional
+    public NoteResponseDto createNote(NoteRequestDto request) {
+        User user = currentUserProvider.getCurrentUser();
+
+        Interview interview = interviewRepository.findByIdAndApplicationUserId(request.interviewId(), user.getId())
+            .orElseThrow(() -> new InterviewNotFoundException("Interview does not exist!"));
+        
+        Note note = new Note(
+            request.description(),
+            interview
+        );
+
+        noteRepository.save(note);
+        interview.addNote(note);
+
+        log.debug("Note {} saved to interview {}", note.getId(), interview.getId());
+
+        return toNoteResponseDto(note);
     }
 }
