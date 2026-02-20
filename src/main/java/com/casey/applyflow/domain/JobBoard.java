@@ -3,6 +3,7 @@ package com.casey.applyflow.domain;
 import java.util.List;
 
 import com.casey.applyflow.domain.enums.Role;
+import com.casey.applyflow.exception.NoOwnerException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,7 +48,7 @@ public class JobBoard {
         return members.stream()
             .filter(member -> member.getRole() == Role.OWNER)
             .findFirst()
-            .orElse(null);
+            .orElseThrow(() -> new NoOwnerException("Job board must have an owner"));
     }
 
     public List<JobBoardMember> getMembers() {

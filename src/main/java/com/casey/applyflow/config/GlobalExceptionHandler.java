@@ -12,6 +12,7 @@ import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.ContactNotInCompanyException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
+import com.casey.applyflow.exception.NoOwnerException;
 import com.casey.applyflow.exception.NoteNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
@@ -20,6 +21,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(NoOwnerException.class)
+    public ResponseEntity<ErrorResponse> handleNoOwner(NoOwnerException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
 
     @ExceptionHandler(NoteNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoteNotFound(NoteNotFoundException ex) {
