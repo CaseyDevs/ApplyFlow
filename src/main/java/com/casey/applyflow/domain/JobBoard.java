@@ -27,7 +27,7 @@ public class JobBoard {
     @Column(nullable = false)
     private List<JobBoardMember> members;
 
-    public JobBoard(String title, User owner, List<JobBoardMember> members) {
+    public JobBoard(String title, JobBoardMember owner, List<JobBoardMember> members) {
         this.title = title;
         this.members = members;
     }

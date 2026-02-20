@@ -30,6 +30,10 @@ public class JobBoardMember {
         this.role = role;
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public Role getRole() {
         return role;
     }
