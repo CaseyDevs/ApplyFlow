@@ -54,9 +54,12 @@ public class JobBoard {
     }
 
     public void setOwner(JobBoardMember member) {
-        if (members.contains(member) & ) {
-            member.setRole(Role.OWNER);
+        // reset current owners role
+        if (this.getOwner() != null) {   
+            this.getOwner().setRole(Role.MEMBER);
         }
+
+        member.setRole(Role.OWNER);
     }
 
     public List<JobBoardMember> getMembers() {

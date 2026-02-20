@@ -25,7 +25,8 @@ public class JobBoardMember {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public JobBoardMember(Role role) {
+    public JobBoardMember(User user, Role role) {
+        this.user = user;
         this.role = role;
     }
 
