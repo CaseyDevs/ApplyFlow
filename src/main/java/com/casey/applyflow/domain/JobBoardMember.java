@@ -1,0 +1,39 @@
+package com.casey.applyflow.domain;
+
+import com.casey.applyflow.domain.enums.Role;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "job_board_member")
+public class JobBoardMember {
+    @Id @GeneratedValue
+    private Long id;
+    
+    @ManyToOne
+    private User user;
+    
+    @ManyToOne
+    private JobBoard jobBoard;
+    
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    public JobBoardMember(Role role) {
+        this.role = role;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+}

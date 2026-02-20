@@ -2,6 +2,8 @@ package com.casey.applyflow.domain;
 
 import java.util.List;
 
+import com.casey.applyflow.domain.enums.Role;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,7 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 @Entity
-@Table(name="jobboard")
+@Table(name="job_board")
 public class JobBoard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,14 +24,10 @@ public class JobBoard {
     private String title;
 
     @Column(nullable = false)
-    private User owner;
+    private List<JobBoardMember> members;
 
-    @Column(nullable = false)
-    private List<User> members;
-
-    public JobBoard(String title, User owner, List<User> members) {
+    public JobBoard(String title, User owner, List<JobBoardMember> members) {
         this.title = title;
-        this.owner = owner;
         this.members = members;
     }
 
@@ -45,23 +43,22 @@ public class JobBoard {
         title = newTitle;
     }
 
-    public User getOwner() {
-        return owner;
+    public JobBoardMember getOwner() {
+        return members.stream()
+            .filter(member -> member.getRole() == Role.OWNER)
+            .findFirst()
+            .orElse(null);
     }
 
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public List<User> getMembers() {
+    public List<JobBoardMember> getMembers() {
         return members;
     }
 
-    public void addMember(User newMember) {
+    public void addMember(JobBoardMember newMember) {
         members.add(newMember);
     }
 
-    public void removeMember(User member) {
+    public void removeMember(JobBoardMember member) {
         members.remove(member);
     }
 }
