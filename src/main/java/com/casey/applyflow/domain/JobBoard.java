@@ -32,6 +32,8 @@ public class JobBoard {
         this.members = members;
     }
 
+    protected JobBoard() {}
+
     public Long getId() {
         return id;
     }
@@ -49,6 +51,12 @@ public class JobBoard {
             .filter(member -> member.getRole() == Role.OWNER)
             .findFirst()
             .orElseThrow(() -> new NoOwnerException("Job board must have an owner"));
+    }
+
+    public void setOwner(JobBoardMember member) {
+        if (members.contains(member) & ) {
+            member.setRole(Role.OWNER);
+        }
     }
 
     public List<JobBoardMember> getMembers() {
