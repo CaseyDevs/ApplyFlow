@@ -1,14 +1,18 @@
 package com.casey.applyflow.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
+import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
@@ -22,7 +26,7 @@ import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
+
 
 @Service
 public class JobBoardService {
@@ -33,19 +37,59 @@ public class JobBoardService {
     private UserRepository userRepository;
     private ApplicationRepository applicationRepository;
     private CurrentUserProvider currentUserProvider;
+    private ApplicationService applicationService;
 
     public JobBoardService(
         JobBoardRepository jobBoardRepository, 
         JobBoardMemberRepository jobBoardMemberRepository,
         UserRepository userRepository,
         ApplicationRepository applicationRepository,
-        CurrentUserProvider currentUserProvider
+        CurrentUserProvider currentUserProvider,
+        ApplicationService applicationService
     ) {
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
         this.currentUserProvider = currentUserProvider;
+        this.applicationService = applicationService;
+    }
+
+    @Transactional(readOnly = true)
+    public List<JobBoardResponseDto> getAllJobBoards() { // users can only have 1 job board for now
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        log.info("Getting job boards for user {}", currentUser.getId());
+
+        // Check user is a member of board
+        List<JobBoard> jobBoards = jobBoardRepository.findAllByUserId(currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of any job boards"));
+
+        return jobBoards.stream()
+            .map(jb -> new JobBoardResponseDto (
+                jb.getId(),
+                jb.getTitle(),
+                jb.getOwner().getId(),
+                jb.getMembers()
+            )).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        log.info("Fetching applications for job board {} for user {}", jobBoardId, currentUser.getId());
+
+        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        
+        return jobBoard.getApplications().stream()
+            .map(applicationService::toApplicationResponseDto)
+            .toList();
     }
 
     @Transactional
