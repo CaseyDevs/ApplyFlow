@@ -34,6 +34,10 @@ public class JobBoardMember {
         return id;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public void setJobBoard(JobBoard jobBoard) {
         this.jobBoard = jobBoard;
     }

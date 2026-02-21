@@ -55,22 +55,17 @@ public class JobBoardService {
     }
 
     @Transactional(readOnly = true)
-    public List<JobBoardResponseDto> getAllJobBoards() { // users can only have 1 job board for now
+    public List<JobBoardResponseDto> getAllJobBoards() {
         User currentUser = currentUserProvider.getCurrentUser();
 
         log.info("Getting job boards for user {}", currentUser.getId());
 
-        // Check user is a member of board
         List<JobBoard> jobBoards = jobBoardRepository.findAllByUserId(currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("User is not a member of any job boards"));
-
+            .orElseThrow(() -> new NotAMemberException("You are not a member of any job boards"));
+    
         return jobBoards.stream()
-            .map(jb -> new JobBoardResponseDto (
-                jb.getId(),
-                jb.getTitle(),
-                jb.getOwner().getId(),
-                jb.getMembers()
-            )).toList();
+            .map(this::toJobBoardResponseDto)
+            .toList();
     }
 
     @Transactional(readOnly = true)
@@ -83,8 +78,7 @@ public class JobBoardService {
 
         log.info("Fetching applications for job board {} for user {}", jobBoardId, currentUser.getId());
 
-        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
         
         return jobBoard.getApplications().stream()
             .map(applicationService::toApplicationResponseDto)
@@ -121,16 +115,14 @@ public class JobBoardService {
         }
 
         User currentUser = currentUserProvider.getCurrentUser();
-
-        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
-        
-        verifyIsOwner(jobBoard, currentUser.getId());
+        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         if (request.title() != null) {
             validateTitle(request.title());
+
             log.info("Updating job board {} title", jobBoard.getId());
             jobBoard.setTitle(request.title());
+            jobBoardRepository.save(jobBoard);
         }
 
         return toJobBoardResponseDto(jobBoard);
@@ -138,16 +130,12 @@ public class JobBoardService {
     
     @Transactional
     public void addMember(Long jobBoardId, Long userId) {
-        if (userId == null) {
+        if (jobBoardId == null || userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
         
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-        
-        // Verify current user has permission (must be owner)
         User currentUser = currentUserProvider.getCurrentUser();
-        verifyIsOwner(jobBoard, currentUser.getId());
+        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException("User does not exist."));
@@ -169,16 +157,12 @@ public class JobBoardService {
 
     @Transactional
     public void removeMember(Long jobBoardId, Long jobBoardMemberId) {
-        if (jobBoardMemberId == null) {
-            throw new IllegalArgumentException("Member ID cannot be null");
+        if (jobBoardMemberId == null || jobBoardId == null) {
+            throw new IllegalArgumentException("ID's cannot be null");
         }
         
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-        
-        // Verify current user has permission (must be owner)
         User currentUser = currentUserProvider.getCurrentUser();
-        verifyIsOwner(jobBoard, currentUser.getId());
+        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         JobBoardMember member = jobBoardMemberRepository.findByIdAndJobBoardId(jobBoardMemberId, jobBoardId)
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
@@ -198,16 +182,12 @@ public class JobBoardService {
 
     @Transactional
     public void setNewOwner(Long jobBoardId, Long jobBoardMemberId) {
-        if (jobBoardMemberId == null) {
-            throw new IllegalArgumentException("Member ID cannot be null");
+        if (jobBoardMemberId == null || jobBoardId == null) {
+            throw new IllegalArgumentException("ID's cannot be null");
         }
         
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-        
-        // Verify current user is the current owner
         User currentUser = currentUserProvider.getCurrentUser();
-        verifyIsOwner(jobBoard, currentUser.getId());
+        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         JobBoardMember newOwner = jobBoardMemberRepository.findByIdAndJobBoardId(jobBoardMemberId, jobBoardId)
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
@@ -216,6 +196,7 @@ public class JobBoardService {
         log.info("Transferring ownership of job board {} from member {} to member {}", 
                  jobBoardId, oldOwner.getId(), jobBoardMemberId);
         
+        oldOwner.setRole(Role.MEMBER);
         jobBoard.setOwner(newOwner);
         jobBoardRepository.save(jobBoard);
         
@@ -224,18 +205,12 @@ public class JobBoardService {
 
     @Transactional
     public void addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
+        if (jobBoardId == null || applicationId == null) {
+            throw new IllegalArgumentException("ID's cannot be null");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
-
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-
-        // Check if user is a member of the job board
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
 
         Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
@@ -249,14 +224,13 @@ public class JobBoardService {
 
     @Transactional
     public void removeApplicationFromJobBoard(Long jobBoardId, Long applicationId) {
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
+        if (jobBoardId == null || applicationId == null) {
+            throw new IllegalArgumentException("ID's cannot be null");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
-        
-        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
 
         Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
@@ -269,11 +243,14 @@ public class JobBoardService {
     }
 
     @Transactional
-    public void leaveJobBoard(long jobBoardId) {
+    public void leaveJobBoard(Long jobBoardId) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("ID's cannot be null");
+        }
+
         User currentUser = currentUserProvider.getCurrentUser();
 
-        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("You cannot leave a job board you are not a member of"));
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
 
         JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new NotAMemberException("You are not a member of this job board"));
@@ -294,12 +271,9 @@ public class JobBoardService {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
 
         User currentUser = currentUserProvider.getCurrentUser();
-        verifyIsOwner(jobBoard, currentUser.getId());
+        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
         
         log.info("Deleting job board {} owned by user {}", jobBoardId, currentUser.getId());
         
@@ -317,9 +291,9 @@ public class JobBoardService {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
+
+        User currentUser = currentUserProvider.getCurrentUser();
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
         
         return new JobBoardStatsDto(
             jobBoard.getOwner(),
@@ -341,13 +315,34 @@ public class JobBoardService {
         );
     }
     
+    private JobBoard getJobBoardForMember(Long jobBoardId, Long userId) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
+
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
+
+        return jobBoard;
+    }
+
+    private JobBoard getJobBoardForOwner(Long jobBoardId, Long userId) {
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, userId);
+        verifyIsOwner(jobBoard, userId);
+        return jobBoard;
+    }
+
     private void verifyIsOwner(JobBoard jobBoard, Long userId) {
         JobBoardMember owner = jobBoard.getOwner();
-        jobBoardMemberRepository.findByIdAndJobBoardId(owner.getId(), jobBoard.getId())
-            .filter(member -> member.getRole() == Role.OWNER)
-            .flatMap(member -> userRepository.findById(userId)
-                .filter(user -> user.getId().equals(userId)))
-            .orElseThrow(() -> new InsufficientPermissionException("Only the owner can perform this action."));
+        if (owner == null || owner.getUser() == null || !owner.getUser().getId().equals(userId)) {
+            throw new InsufficientPermissionException("Only the owner can perform this action.");
+        }
     }
     
     private void validateTitle(String title) {
