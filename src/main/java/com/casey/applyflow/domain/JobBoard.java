@@ -1,6 +1,9 @@
 package com.casey.applyflow.domain;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.exception.NoOwnerException;
@@ -27,14 +30,18 @@ public class JobBoard {
     private String title;
 
     @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<JobBoardMember> members;
+    private List<JobBoardMember> members = new ArrayList<>();
 
     @OneToMany(mappedBy = "jobBoard")
-    private List<Application> applications;
+    private Set<Application> applications = new HashSet<>();
 
-    public JobBoard(String title, JobBoardMember owner, List<JobBoardMember> members) {
+    public JobBoard(
+        String title,
+        JobBoardMember owner,
+        Set<Application> applications
+    ) {
         this.title = title;
-        this.members = members;
+        this.applications = applications != null ? applications : new HashSet<>();
     }
 
     protected JobBoard() {}
@@ -79,6 +86,10 @@ public class JobBoard {
     public void removeMember(JobBoardMember member) {
         member.setJobBoard(null);
         members.remove(member);
+    }
+
+    public Set<Application> getApplications() {
+        return applications;
     }
 
     public void addApplication(Application application) {

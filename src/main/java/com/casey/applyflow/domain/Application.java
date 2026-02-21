@@ -132,4 +132,17 @@ public class Application {
     public void setJobBoard(JobBoard jobBoard) {
         this.jobBoard = jobBoard;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Application)) return false;
+        Application that = (Application) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

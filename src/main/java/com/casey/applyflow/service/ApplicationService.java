@@ -112,7 +112,7 @@ public class ApplicationService {
         return toApplicationResponseDto(application);
     }
 
-    private ApplicationResponseDto toApplicationResponseDto(Application application) {
+    protected ApplicationResponseDto toApplicationResponseDto(Application application) {
         if (application == null) {
             return null;
         }
