@@ -15,6 +15,7 @@ import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
+import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
@@ -311,6 +312,22 @@ public class JobBoardService {
         log.info("Job board {} deleted successfully", jobBoardId);
     }
 
+    @Transactional(readOnly = true)
+    public JobBoardStatsDto getJobBoardStats(Long jobBoardId) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
+        
+        return new JobBoardStatsDto(
+            jobBoard.getOwner(),
+            jobBoard.getApplications().size(),
+            jobBoard.getMembers()
+        );
+    }
+
     private JobBoardMember toJobBoardMember(User member) {
         return new JobBoardMember(member, Role.MEMBER);
     }
@@ -338,4 +355,5 @@ public class JobBoardService {
             throw new IllegalArgumentException("Job board title cannot be empty");
         }
     }
+        
 }
