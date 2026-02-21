@@ -52,10 +52,10 @@ public class JobBoardService {
     public JobBoardResponseDto createJobBoard(JobBoardRequestDto request) {
         validateTitle(request.title());
         
-        User user = currentUserProvider.getCurrentUser();
-        log.info("Creating job board '{}' for user {}", request.title(), user.getId());
+        User currentUser = currentUserProvider.getCurrentUser();
+        log.info("Creating job board '{}' for user {}", request.title(), currentUser.getId());
         
-        JobBoardMember owner = toJobBoardMember(user);
+        JobBoardMember owner = toJobBoardMember(currentUser);
         owner.setRole(Role.OWNER);
 
         JobBoard jobBoard = new JobBoard(
@@ -163,16 +163,16 @@ public class JobBoardService {
             throw new IllegalArgumentException("Application ID cannot be null");
         }
         
-        User user = currentUserProvider.getCurrentUser();
+        User currentUser = currentUserProvider.getCurrentUser();
 
         JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
             .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
 
         // Check if user is a member of the job board
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, user.getId())
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
 
-        Application application = applicationRepository.findByIdAndUserId(applicationId, user.getId())
+        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
         
         log.info("Adding application {} to job board {}", applicationId, jobBoardId);
@@ -189,16 +189,15 @@ public class JobBoardService {
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
-        Long userId = currentUser.getId();
         
         JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
             .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
 
         // Check if user is a member of the job board
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
 
-        Application application = applicationRepository.findByIdAndUserId(applicationId, userId)
+        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
         
         log.info("Removing application {} from job board {}", applicationId, jobBoardId);
@@ -206,6 +205,29 @@ public class JobBoardService {
         jobBoardRepository.save(jobBoard);
         
         log.info("Application {} removed from job board {} successfully", applicationId, jobBoardId);
+    }
+
+    @Transactional
+    public void deleteJobBoard(Long jobBoardId) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
+
+        User currentUser = currentUserProvider.getCurrentUser();
+        verifyIsOwner(jobBoard, currentUser.getId());
+        
+        log.info("Deleting job board {} owned by user {}", jobBoardId, currentUser.getId());
+        
+        // Detach all applications from the job board before deletion
+        jobBoard.getApplications().forEach(app -> app.setJobBoard(null));
+        
+        // Members will be cascade deleted
+        jobBoardRepository.delete(jobBoard);
+        
+        log.info("Job board {} deleted successfully", jobBoardId);
     }
 
     private JobBoardMember toJobBoardMember(User member) {
