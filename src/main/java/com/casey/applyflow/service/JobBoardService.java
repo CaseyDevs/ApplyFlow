@@ -26,8 +26,6 @@ import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
 
-
-
 @Service
 public class JobBoardService {
     private static final Logger log = LoggerFactory.getLogger(JobBoardService.class);
@@ -112,6 +110,27 @@ public class JobBoardService {
         jobBoardRepository.save(jobBoard);
         
         log.info("Job board '{}' created successfully with ID {}", jobBoard.getTitle(), jobBoard.getId());
+        return toJobBoardResponseDto(jobBoard);
+    }
+
+    @Transactional
+    public JobBoardResponseDto updateJobBoard(Long jobBoardId, JobBoardRequestDto request) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        
+        verifyIsOwner(jobBoard, currentUser.getId());
+
+        if (request.title() != null) {
+            validateTitle(request.title());
+            jobBoard.setTitle(request.title());
+        }
+
         return toJobBoardResponseDto(jobBoard);
     }
     
@@ -234,12 +253,8 @@ public class JobBoardService {
         
         User currentUser = currentUserProvider.getCurrentUser();
         
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-
-        // Check if user is a member of the job board
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
+        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
 
         Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
@@ -249,6 +264,25 @@ public class JobBoardService {
         jobBoardRepository.save(jobBoard);
         
         log.info("Application {} removed from job board {} successfully", applicationId, jobBoardId);
+    }
+
+    @Transactional
+    public void leaveJobBoard(long jobBoardId) {
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("You cannot leave a job board you are not a member of"));
+
+        JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("You are not a member of this job board"));
+
+        if (member.getRole() == Role.OWNER) {
+            throw new InsufficientPermissionException("Owner cannot leave the job board. Transfer ownership first.");
+        }
+
+        jobBoard.removeMember(member);
+        jobBoardMemberRepository.delete(member);
+        jobBoardRepository.save(jobBoard);
     }
 
     @Transactional
