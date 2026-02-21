@@ -5,7 +5,8 @@ import java.util.List;
 import com.casey.applyflow.domain.JobBoardMember;
 
 public record JobBoardResponseDto(
+    Long id,
     String title,
-    Long userId,
+    Long ownerId,
     List<JobBoardMember> members // TODO: CHANGE TO DTO
 ) {}
