@@ -1,9 +1,12 @@
 package com.casey.applyflow.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.casey.applyflow.domain.JobBoardMember;
 
 public interface JobBoardMemberRepository extends JpaRepository<JobBoardMember, Long> {
-    JobBoardMember findByIdAndJobBoardId(Long jobBoardMemberId, Long jobBoardId);
+    Optional<JobBoardMember> findByIdAndJobBoardId(Long jobBoardMemberId, Long jobBoardId);
+    Optional<JobBoardMember> findByJobBoardIdAndUserId(Long jobBoardId, Long userId);
 }
