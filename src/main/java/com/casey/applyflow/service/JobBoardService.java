@@ -18,7 +18,7 @@ import com.casey.applyflow.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
-// TODO: ADD LOGGING, MEMBER REMOVAL, SET NEW OWNER, GET APPLICATIONS ETC...
+// TODO: ADD LOGGING, SET NEW OWNER, GET APPLICATIONS ETC...
 
 @Service
 public class JobBoardService {
@@ -42,8 +42,8 @@ public class JobBoardService {
     @Transactional
     public JobBoardResponseDto createJobBoard(JobBoardRequestDto request) {
         User user = currentUserProvider.getCurrentUser();
-        
         JobBoardMember owner = toJobBoardMember(user);
+        owner.setRole(Role.OWNER);
 
         JobBoard jobBoard = new JobBoard(
             request.title(), 
@@ -86,6 +86,18 @@ public class JobBoardService {
 
         jobBoard.removeMember(member);
         jobBoardMemberRepository.delete(member);
+        jobBoardRepository.save(jobBoard);
+    }
+
+    @Transactional
+    public void setNewOwner(Long jobBoardId, Long jobBoardMemberId) {
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
+
+        JobBoardMember member = jobBoardMemberRepository.findByIdAndJobBoardId(jobBoardId, jobBoardMemberId)
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+
+        jobBoard.setOwner(member);
         jobBoardRepository.save(jobBoard);
     }
 

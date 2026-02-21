@@ -26,7 +26,6 @@ public class JobBoard {
     @Column(nullable = true)
     private String title;
 
-    
     @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobBoardMember> members;
 
