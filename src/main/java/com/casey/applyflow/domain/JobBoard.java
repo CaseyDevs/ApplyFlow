@@ -5,10 +5,12 @@ import java.util.List;
 import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.exception.NoOwnerException;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
@@ -24,7 +26,8 @@ public class JobBoard {
     @Column(nullable = true)
     private String title;
 
-    @Column(nullable = false)
+    
+    @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobBoardMember> members;
 
     public JobBoard(String title, JobBoardMember owner, List<JobBoardMember> members) {
@@ -67,10 +70,12 @@ public class JobBoard {
     }
 
     public void addMember(JobBoardMember newMember) {
+        newMember.setJobBoard(this);
         members.add(newMember);
     }
 
     public void removeMember(JobBoardMember member) {
+        member.setJobBoard(null);
         members.remove(member);
     }
 }

@@ -70,7 +70,7 @@ public class JobBoardService {
             });
         
         JobBoardMember member = toJobBoardMember(user);
-
+        
         jobBoard.addMember(member);
         jobBoardMemberRepository.save(member);
         jobBoardRepository.save(jobBoard);
@@ -85,7 +85,6 @@ public class JobBoardService {
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
 
         jobBoard.removeMember(member);
-        
         jobBoardMemberRepository.delete(member);
         jobBoardRepository.save(jobBoard);
     }
