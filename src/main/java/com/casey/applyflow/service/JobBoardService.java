@@ -78,9 +78,11 @@ public class JobBoardService {
 
         log.info("Fetching applications for job board {} for user {}", jobBoardId, currentUser.getId());
 
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
+        getJobBoardForMember(jobBoardId, currentUser.getId());
         
-        return jobBoard.getApplications().stream()
+        return applicationRepository.findAllByJobBoardId(jobBoardId)
+            .orElse(List.of()) // empty list if no applicaitons on board
+            .stream()
             .map(applicationService::toApplicationResponseDto)
             .toList();
     }
