@@ -29,6 +29,9 @@ public class JobBoard {
     @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobBoardMember> members;
 
+    @OneToMany(mappedBy = "jobBoard")
+    private List<Application> applications;
+
     public JobBoard(String title, JobBoardMember owner, List<JobBoardMember> members) {
         this.title = title;
         this.members = members;
@@ -76,5 +79,15 @@ public class JobBoard {
     public void removeMember(JobBoardMember member) {
         member.setJobBoard(null);
         members.remove(member);
+    }
+
+    public void addApplication(Application application) {
+        application.setJobBoard(this);
+        applications.add(application);
+    }
+
+    public void removeApplication(Application application) {
+        application.setJobBoard(null);
+        applications.remove(application);
     }
 }

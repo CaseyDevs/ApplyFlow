@@ -47,6 +47,10 @@ public class Application {
     private List<Interview> interviews = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_board_id", nullable = true)
+    private JobBoard jobBoard;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -119,5 +123,13 @@ public class Application {
 
     public void setUser(User user) {
         this.user = user;
+    }
+    
+    public JobBoard getJobBoard() {
+        return jobBoard;
+    }
+
+    public void setJobBoard(JobBoard jobBoard) {
+        this.jobBoard = jobBoard;
     }
 }

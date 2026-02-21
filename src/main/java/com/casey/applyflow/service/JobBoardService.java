@@ -2,16 +2,19 @@ package com.casey.applyflow.service;
 
 import org.springframework.stereotype.Service;
 
+import com.casey.applyflow.domain.Application;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
+import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.NotAMemberException;
+import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
@@ -25,17 +28,20 @@ public class JobBoardService {
     private JobBoardRepository jobBoardRepository;
     private JobBoardMemberRepository jobBoardMemberRepository;
     private UserRepository userRepository;
+    private ApplicationRepository applicationRepository;
     private CurrentUserProvider currentUserProvider;
 
     public JobBoardService(
         JobBoardRepository jobBoardRepository, 
         JobBoardMemberRepository jobBoardMemberRepository,
         UserRepository userRepository,
+        ApplicationRepository applicationRepository,
         CurrentUserProvider currentUserProvider
     ) {
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.userRepository = userRepository;
+        this.applicationRepository = applicationRepository;
         this.currentUserProvider = currentUserProvider;
     }
 
@@ -99,6 +105,17 @@ public class JobBoardService {
 
         jobBoard.setOwner(member);
         jobBoardRepository.save(jobBoard);
+    }
+
+    // TODO: ADD APPLICATIONS TO A JOB BOARD
+    @Transactional
+    public void addApplication(Long jobBoardId, Long applicationId, Long userId) {
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
+
+        Application application = applicationRepository.findByIdAndUserId(applicationId, userId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
+
     }
 
     private JobBoardMember toJobBoardMember(User member) {
