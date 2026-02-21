@@ -128,6 +128,7 @@ public class JobBoardService {
 
         if (request.title() != null) {
             validateTitle(request.title());
+            log.info("Updating job board {} title", jobBoard.getId());
             jobBoard.setTitle(request.title());
         }
 
@@ -279,6 +280,8 @@ public class JobBoardService {
         if (member.getRole() == Role.OWNER) {
             throw new InsufficientPermissionException("Owner cannot leave the job board. Transfer ownership first.");
         }
+
+        log.info("Removing member {} from job board {}", member.getId(), jobBoard.getId());
 
         jobBoard.removeMember(member);
         jobBoardMemberRepository.delete(member);
