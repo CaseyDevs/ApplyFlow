@@ -130,7 +130,10 @@ public class JobBoardService {
     
     @Transactional
     public void addMember(Long jobBoardId, Long userId) {
-        if (jobBoardId == null || userId == null) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
         
@@ -157,8 +160,11 @@ public class JobBoardService {
 
     @Transactional
     public void removeMember(Long jobBoardId, Long jobBoardMemberId) {
-        if (jobBoardMemberId == null || jobBoardId == null) {
-            throw new IllegalArgumentException("ID's cannot be null");
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (jobBoardMemberId == null) {
+            throw new IllegalArgumentException("Member ID cannot be null");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
@@ -182,8 +188,11 @@ public class JobBoardService {
 
     @Transactional
     public void setNewOwner(Long jobBoardId, Long jobBoardMemberId) {
-        if (jobBoardMemberId == null || jobBoardId == null) {
-            throw new IllegalArgumentException("ID's cannot be null");
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (jobBoardMemberId == null) {
+            throw new IllegalArgumentException("Member ID cannot be null");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
@@ -205,8 +214,11 @@ public class JobBoardService {
 
     @Transactional
     public void addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
-        if (jobBoardId == null || applicationId == null) {
-            throw new IllegalArgumentException("ID's cannot be null");
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Application ID cannot be null");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
@@ -224,8 +236,11 @@ public class JobBoardService {
 
     @Transactional
     public void removeApplicationFromJobBoard(Long jobBoardId, Long applicationId) {
-        if (jobBoardId == null || applicationId == null) {
-            throw new IllegalArgumentException("ID's cannot be null");
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Application ID cannot be null");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
@@ -245,7 +260,7 @@ public class JobBoardService {
     @Transactional
     public void leaveJobBoard(Long jobBoardId) {
         if (jobBoardId == null) {
-            throw new IllegalArgumentException("ID's cannot be null");
+            throw new IllegalArgumentException("Job board ID cannot be null");
         }
 
         User currentUser = currentUserProvider.getCurrentUser();
