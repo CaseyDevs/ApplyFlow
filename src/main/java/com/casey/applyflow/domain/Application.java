@@ -54,6 +54,9 @@ public class Application {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Version
+    private Long version;
+
     protected Application() {} // JPA constructor
 
     public Application(String title, String url, Company company, Status status) {
@@ -67,9 +70,6 @@ public class Application {
     public Long getId() {
         return id;
     }
-
-    @Version
-    private Long version;
 
     public String getTitle() {
         return title;
