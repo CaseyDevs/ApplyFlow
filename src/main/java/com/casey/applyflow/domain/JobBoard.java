@@ -11,8 +11,12 @@ import com.casey.applyflow.exception.NoOwnerException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -20,6 +24,7 @@ import jakarta.persistence.Version;
 @Entity
 @Table(name="job_board")
 public class JobBoard {
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -28,6 +33,10 @@ public class JobBoard {
 
     @Column(nullable = true)
     private String title;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobBoardMember> members = new ArrayList<>();
@@ -42,6 +51,10 @@ public class JobBoard {
     ) {
         this.title = title;
         this.applications = applications != null ? applications : new HashSet<>();
+        if (owner != null) {
+            this.user = owner.getUser();
+            members.add(owner); // add creator to members list
+        }
     }
 
     protected JobBoard() {}
@@ -56,6 +69,14 @@ public class JobBoard {
 
     public void setTitle(String newTitle) {
         title = newTitle;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public JobBoardMember getOwner() {
