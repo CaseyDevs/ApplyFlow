@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -13,7 +14,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "job_board_member")
 public class JobBoardMember {
-    @Id @GeneratedValue
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @ManyToOne
@@ -29,6 +31,8 @@ public class JobBoardMember {
         this.user = user;
         this.role = role;
     }
+
+    protected JobBoardMember() {}
 
     public Long getId() {
         return id;

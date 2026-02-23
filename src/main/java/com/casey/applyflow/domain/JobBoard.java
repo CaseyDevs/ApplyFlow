@@ -53,6 +53,7 @@ public class JobBoard {
         this.applications = applications != null ? applications : new HashSet<>();
         if (owner != null) {
             this.user = owner.getUser();
+            members.add(owner); // add creator to members list
         }
     }
 
