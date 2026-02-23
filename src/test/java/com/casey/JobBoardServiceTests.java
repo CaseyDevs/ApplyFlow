@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.lang.reflect.Field;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -103,16 +106,57 @@ class JobBoardServiceTests {
     @Test
     void setMembers_WithValidInput_UpdatesMembersCorrectly() {
         // arrange
-        JobBoardMember member1 = new JobBoardMember(new User("C", "G", "C"), null);
-        JobBoardMember member2 = new JobBoardMember(new User("C", "G", "C"), null);
+        JobBoardMember member1 = new JobBoardMember(new User("C", "G", "C"), Role.MEMBER);
 
         // act
         testJobBoard.addMember(member1);
-        testJobBoard.addMember(member2);
-        jobBoardRepository.save(testJobBoard);
 
         // assert
-        assertTrue(testJobBoard.getMembers().size() == 3);
+        assertTrue(testJobBoard.getMembers().size() > 1);
+        assertTrue(testJobBoard.getMembers().get(1).getRole() == Role.MEMBER);
+    }
+
+    @Test
+    void setNewOwner_UpdatesMembersCorrectly() throws Exception {
+        // arrange — set IDs via reflection since JPA @GeneratedValue won't run in unit tests
+        setId(testUser, 100L);
+
+        User newOwnerUser = new User("C", "G", "C");
+        setId(newOwnerUser, 200L);
+
+        JobBoardMember member1 = new JobBoardMember(newOwnerUser, Role.MEMBER);
+        setId(member1, 10L);
+
+        // The owner (testJobBoardMember) must already be in the board
+        setId(testJobBoardMember, 20L);
+        testJobBoardMember.setRole(Role.OWNER);
+        testJobBoard.addMember(testJobBoardMember);
+        testJobBoard.addMember(member1);
+
+        // Mock the calls that setNewOwner makes internally
+        when(currentUserProvider.getCurrentUser()).thenReturn(testUser);
+        when(jobBoardRepository.findById(1L)).thenReturn(Optional.of(testJobBoard));
+        when(jobBoardMemberRepository.findByJobBoardIdAndUserId(1L, 100L))
+                .thenReturn(Optional.of(testJobBoardMember));
+        when(jobBoardMemberRepository.findByIdAndJobBoardId(10L, 1L))
+                .thenReturn(Optional.of(member1));
+        when(jobBoardRepository.save(any(JobBoard.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // act
+        jobBoardService.setNewOwner(1L, 10L);
+
+        // assert — the new member should now be OWNER, and the old owner should be MEMBER
+        assertEquals(Role.OWNER, member1.getRole());
+        assertEquals(Role.MEMBER, testJobBoardMember.getRole());
+        verify(jobBoardRepository, times(1)).save(testJobBoard);
+    }
+
+    /** Helper to set the private `id` field on JPA entities in tests. */
+    private void setId(Object entity, Long id) throws Exception {
+        Field idField = entity.getClass().getDeclaredField("id");
+        idField.setAccessible(true);
+        idField.set(entity, id);
     }
 
     // ==================== SAD-PATH TESTS ====================

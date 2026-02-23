@@ -207,7 +207,6 @@ public class JobBoardService {
         log.info("Transferring ownership of job board {} from member {} to member {}", 
                  jobBoardId, oldOwner.getId(), jobBoardMemberId);
         
-        oldOwner.setRole(Role.MEMBER);
         jobBoard.setOwner(newOwner);
         jobBoardRepository.save(jobBoard);
         
