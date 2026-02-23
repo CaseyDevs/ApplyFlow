@@ -1,5 +1,5 @@
 export async function loginUser(credentials: { email: string; password: string }): Promise<{ token: string }> {
-    const response = await fetch("http://localhost:8080/api/v1/auth/token", {
+    const response = await fetch("http://localhost:8080/api/auth/token", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -8,7 +8,8 @@ export async function loginUser(credentials: { email: string; password: string }
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to login user: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message ?? `Failed to login user: ${response.status}`);
     }
 
     return response.json();

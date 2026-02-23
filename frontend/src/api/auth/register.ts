@@ -8,6 +8,7 @@ export async function registerUser(userData: { name: string; email: string; pass
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to register user: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message ?? `Failed to register user: ${response.status}`);
     }
 }
