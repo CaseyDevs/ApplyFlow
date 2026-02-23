@@ -37,6 +37,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(Customizer.withDefaults())  // Enable CORS in Security filter chain
                 .csrf(AbstractHttpConfigurer::disable)  // Disable CSRF for stateless API
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**").permitAll();  // Public auth endpoints
