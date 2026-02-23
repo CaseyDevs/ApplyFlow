@@ -1,11 +1,19 @@
-import type { Application } from "../types/Application";
+import type { Application, Page } from "../types/Application";
 
-export function getApplication(): Promise<Application[]> {
-    return fetch('/api/v1/applications', {
-        method: 'GET',
+const BASE_URL = "http://localhost:8080";
+
+export async function getApplications(page = 0, size = 10): Promise<Page<Application>> {
+    const response = await fetch(`${BASE_URL}/api/v1/applications?page=${page}&size=${size}`, {
+        method: "GET",
         headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => response.json());
+            "Content-Type": "application/json",
+            // "Authorization": `Bearer ${token}` — add when auth is wired up
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch applications: ${response.status}`);
+    }
+
+    return response.json();
 }

@@ -1,11 +1,11 @@
 import './App.css'
+import ApplicationsPage from './pages/ApplicationsPage'
 
 function App() {
 
   return (
     <>
-      <h1>Applyflow</h1>     
-      <p>Keep track of you job applications</p>
+      <ApplicationsPage />
     </>
   )
 }
