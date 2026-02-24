@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.dto.LoginRequestDto;
@@ -21,6 +23,8 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+
 
 
 @RestController
@@ -48,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<TokenResponseDto> login(
+    public ResponseEntity<?> login(
         @Valid @RequestBody LoginRequestDto request
     ) {
         Authentication authentication = authenticationManager.authenticate(
@@ -58,10 +62,16 @@ public class AuthController {
             )
         );
 
-        // Authenticate user
+        // Generate token
         String token = tokenService.generateToken(authentication);
+        long maxAgeSeconds = expirationMs / 1000;
 
-        return ResponseEntity.ok(new TokenResponseDto(token, expirationMs / 1000));
+        // Create cookie with token
+        ResponseCookie cookie = accessCookie(token, maxAgeSeconds);
+
+        return ResponseEntity.ok()
+        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+        .body("OK");
     }
 
     @PostMapping("/register")
@@ -84,5 +94,15 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
     }
     
+
+private ResponseCookie accessCookie(String jwt, long maxAgeSeconds) {
+    return ResponseCookie.from("ACCESS_TOKEN", jwt)
+            .httpOnly(true)
+            .secure(false)           // TODO: true in prod -- keep false for local dev.
+            .sameSite("Lax")    
+            .path("/api")               
+            .maxAge(maxAgeSeconds)
+            .build();
+}
 
 }
