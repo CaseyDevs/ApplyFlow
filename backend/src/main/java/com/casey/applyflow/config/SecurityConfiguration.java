@@ -24,6 +24,11 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
@@ -47,7 +52,9 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> 
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // No sessions
                 .oauth2ResourceServer(oauth2 -> 
-                    oauth2.jwt(Customizer.withDefaults()))  // Enable JWT validation
+                    oauth2
+                        .bearerTokenResolver(bearerTokenResolver())
+                        .jwt(Customizer.withDefaults()))  // Enable JWT validation
                 .headers(headers -> 
                     headers.frameOptions(frame -> frame.sameOrigin()))  // For H2 console
                 .build();
@@ -57,6 +64,23 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
+    // Read token from cookie
+    @Bean
+    public BearerTokenResolver bearerTokenResolver() {
+        return new BearerTokenResolver() {
+            @Override
+            public String resolve(HttpServletRequest request) {
+                if (request.getCookies() == null) return null;
+                for (Cookie c : request.getCookies()) {
+                    if ("ACCESS_TOKEN".equals(c.getName())) {
+                        return c.getValue();
+                    }
+                }
+                return null;
+            }
+        };
+}
 
     @Bean
     public JwtDecoder jwtDecoder() {
