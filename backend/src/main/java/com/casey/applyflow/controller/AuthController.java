@@ -1,5 +1,7 @@
 package com.casey.applyflow.controller;
 
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +25,6 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-
-
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,7 +50,23 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/token")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        ResponseCookie clear = ResponseCookie.from("ACCESS_TOKEN", "")
+            .httpOnly(true)
+            .secure(false) // TODO: CHANGE TO TRUE AT PROD
+            .sameSite("Lax")
+            .path("/api")
+            .maxAge(Duration.ZERO)
+            .build();
+        
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, clear.toString())
+            .body("Logged out");
+    }
+    
+
+    @PostMapping("/login")
     public ResponseEntity<?> login(
         @Valid @RequestBody LoginRequestDto request
     ) {

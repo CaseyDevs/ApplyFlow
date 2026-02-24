@@ -80,7 +80,7 @@ public class SecurityConfiguration {
                 return null;
             }
         };
-}
+    }
 
     @Bean
     public JwtDecoder jwtDecoder() {
