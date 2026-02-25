@@ -17,14 +17,17 @@ import org.springframework.http.ResponseCookie;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.dto.LoginRequestDto;
 import com.casey.applyflow.dto.RegisterRequestDto;
-import com.casey.applyflow.dto.TokenResponseDto;
 import com.casey.applyflow.repository.UserRepository;
+import com.casey.applyflow.service.CurrentUserProvider;
 import com.casey.applyflow.service.TokenService;
+import com.casey.applyflow.dto.UserResponseDto;
+import com.casey.applyflow.exception.UserNotFoundException;
 
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +37,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+    private final CurrentUserProvider currentUserProvider;
 
     @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
@@ -42,14 +46,33 @@ public class AuthController {
         AuthenticationManager authenticationManager, 
         TokenService tokenService,
         UserRepository userRepository,
-        PasswordEncoder passwordEncoder
+        PasswordEncoder passwordEncoder,
+        CurrentUserProvider currentUserProvider
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.currentUserProvider = currentUserProvider;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getCurrentUser() {
+        User currentUser = currentUserProvider.getCurrentUser();
+    
+        if (currentUser != null) {
+            UserResponseDto response = new UserResponseDto(
+                currentUser.getId(),
+                currentUser.getName(),
+                currentUser.getEmail()
+            );
+
+            return ResponseEntity.ok(response);
+        }
+
+        throw new UserNotFoundException("You must be logged in!");
+    }
+    
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         ResponseCookie clear = ResponseCookie.from("ACCESS_TOKEN", "")
