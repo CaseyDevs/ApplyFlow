@@ -1,10 +1,11 @@
-export async function loginUser(credentials: { email: string; password: string }): Promise<{ token: string }> {
-    const response = await fetch("http://localhost:8080/api/auth/token", {
+export async function loginUser(payload: { email: string; password: string }): Promise< boolean > {
+    const response = await fetch("http://localhost:8080/api/auth/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(credentials),
+        credentials: "include",
+        body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -12,5 +13,5 @@ export async function loginUser(credentials: { email: string; password: string }
         throw new Error(errorData?.message ?? `Failed to login user: ${response.status}`);
     }
 
-    return response.json();
+    return response.ok;
 }
