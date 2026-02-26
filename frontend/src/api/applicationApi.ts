@@ -7,8 +7,8 @@ export async function getApplications(page = 0, size = 10): Promise<Page<Applica
         method: "GET",
         headers: {
             "Content-Type": "application/json",
-            // "Authorization": `Bearer ${token}` — add when auth is wired up
         },
+        credentials: "include",
     });
 
     if (!response.ok) {
