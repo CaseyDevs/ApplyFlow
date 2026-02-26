@@ -59,3 +59,18 @@
     color: #ecf0f1;
     font-size: 0.95rem;
 }
+
+#nav-logo {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+#register-link {
+    color: #0b6ac9;
+}
+
+#register-link:hover {
+    color: #074078;
+    opacity: 40;
+    transition: 300ms;
+}

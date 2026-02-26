@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { loginUser } from "../api/auth/login";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
     const { refreshUser } = useAuth();
@@ -51,6 +52,8 @@ export default function LoginPage() {
                 </div>
                 <button type="submit">Login</button>
             </form>
+
+            <p>Don't have an account ? <Link to="/register" id="register-link">Sign-up here.</Link></p>
 
             {error && <p style={{ color: "red" }}>{error}</p>}
             {success && <p style={{ color: "green" }}>Login successful!</p>}

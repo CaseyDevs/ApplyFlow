@@ -18,7 +18,7 @@ export default function Navbar() {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
-                <h1>ApplyFlow</h1>
+                <h1><Link to="/" id="nav-logo">ApplyFlow</Link></h1>
             </div>
             <ul className="navbar-menu">
                 {isLoggedIn && user ? (
@@ -39,9 +39,6 @@ export default function Navbar() {
                     <>
                         <li>
                             <Link to="/login" className="navbar-link">Login</Link>
-                        </li>
-                        <li>
-                            <Link to="/register" className="navbar-link">Register</Link>
                         </li>
                     </>
                 )}
