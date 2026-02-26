@@ -1,8 +1,4 @@
-interface User {
-    id: null
-    name: string;
-    email: string;
-}
+import type { User } from "../../types/User";
 
 export async function getCurrentUser(): Promise<User | null> {
     const response = await fetch("http://localhost:8080/api/auth/me", {
