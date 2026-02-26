@@ -1,3 +1,4 @@
+import { getCurrentUser } from "../api/auth/me";
 import { useState } from "react";
 import { loginUser } from "../api/auth/login";
 
@@ -14,6 +15,10 @@ export default function LoginPage() {
 
         try {
             await loginUser({ email, password });
+            const currentUser = await getCurrentUser();
+            
+            // Todo: redirect, store user in context, etc.
+
             setSuccess(true);
         } catch (err: any) {
             setError(err.message);
