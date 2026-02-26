@@ -1,15 +1,17 @@
 import { useAuth } from "../context/AuthContext";
 import { logoutUser } from "../api/auth/logout";
 import "./Navbar.css";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
+    const navigate = useNavigate();
     const { user, isLoggedIn, refreshUser } = useAuth();
 
     const handleLogout = async () => {
         try {
             await logoutUser();
             await refreshUser();
+            navigate("/");
         } catch (err) {
             console.error("Logout failed:", err);
         }

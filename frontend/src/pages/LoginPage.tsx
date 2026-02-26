@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { loginUser } from "../api/auth/login";
 import { useAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
+    const navigate = useNavigate();
     const { refreshUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -19,6 +20,7 @@ export default function LoginPage() {
             await loginUser({ email, password }); // set HttpOnly cookie
             await refreshUser(); // update on client side
             setSuccess(true);
+            navigate("/");
         } catch (err: any) {
             setError(err.message);
         }
