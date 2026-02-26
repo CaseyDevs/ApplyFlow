@@ -1,48 +1,30 @@
-import { useEffect, useState } from 'react'
-import './App.css'
-import ApplicationsPage from './pages/ApplicationsPage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import { useAuth } from './context/AuthContext'
-import { logoutUser } from './api/auth/logout'
+import './App.css';
+import Navbar from './components/navbar/Navbar';
+import { Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ApplicationsPage from './pages/ApplicationsPage';
+import { useAuth } from './context/AuthContext';
 
 function App() {
-  const {loading, user, refreshUser } = useAuth();
-  const [isLoggedIn, setIsLoggedIn] = useState<Boolean>(false); 
-
-  useEffect(() => {
-    if (user != null) {
-      setIsLoggedIn(true)
-    }
-  }, [user])
-
-  async function handleLogout() {
-    try {
-      await logoutUser;
-      await refreshUser;
-      setIsLoggedIn(false);
-    } catch (err) {
-      return err;
-    }
-  }
+  const { user } = useAuth();
 
   return (
     <>
-      {loading && <p>Loading...</p>}
-      {isLoggedIn 
-        ? 
-        <>
-          <ApplicationsPage /> 
-          <button onClick={handleLogout}>Logout</button>
-        </>
-        : 
-        <>
-          <RegisterPage />
-          <LoginPage />
-        </>
+      <Navbar />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
+      </Routes>
+
+      {user 
+        ? <p>Welcome {user.email}</p> 
+        : <p>Please log in...</p>
       }
+
     </>
-  )
+  );
 }
 
-export default App
+export default App;
