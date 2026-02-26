@@ -4,37 +4,23 @@ import ApplicationsPage from './pages/ApplicationsPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import { useAuth } from './context/AuthContext'
-import { logoutUser } from './api/auth/logout'
+import Navbar from './components/Navbar'
 
 function App() {
-  const {loading, user, refreshUser } = useAuth();
+  const {loading, user } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState<Boolean>(false); 
 
   useEffect(() => {
-    if (user != null) {
-      setIsLoggedIn(true)
-    }
+    setIsLoggedIn(user != null);
   }, [user])
 
-  async function handleLogout() {
-    try {
-      await logoutUser;
-      await refreshUser;
-      setIsLoggedIn(false);
-    } catch (err) {
-      return err;
-    }
-  }
+  if (loading) return <p>Loading...</p>;
 
   return (
     <>
-      {loading && <p>Loading...</p>}
+      <Navbar />
       {isLoggedIn 
-        ? 
-        <>
-          <ApplicationsPage /> 
-          <button onClick={handleLogout}>Logout</button>
-        </>
+        ? <ApplicationsPage /> 
         : 
         <>
           <RegisterPage />
