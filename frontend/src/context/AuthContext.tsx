@@ -11,7 +11,7 @@ type AuthContextType = {
 // user info will be stored in context
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// 
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(false);

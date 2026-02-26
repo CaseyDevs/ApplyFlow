@@ -1,24 +1,22 @@
-import { getCurrentUser } from "../api/auth/me";
 import { useState } from "react";
 import { loginUser } from "../api/auth/login";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
+    const { refreshUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
         setSuccess(false);
 
         try {
-            await loginUser({ email, password });
-            const currentUser = await getCurrentUser();
-            
-            // Todo: redirect, store user in context, etc.
-
+            await loginUser({ email, password }); // set HttpOnly cookie
+            await refreshUser(); // update on client side
             setSuccess(true);
         } catch (err: any) {
             setError(err.message);
