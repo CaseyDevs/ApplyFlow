@@ -1,6 +1,7 @@
 import { useAuth } from "../context/AuthContext";
 import { logoutUser } from "../api/auth/logout";
 import "./Navbar.css";
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
     const { user, isLoggedIn, refreshUser } = useAuth();
@@ -26,6 +27,9 @@ export default function Navbar() {
                             <span className="navbar-user">Hi, {user.email}</span>
                         </li>
                         <li>
+                            <Link to="/applications" className="navbar-link">Applications</Link>
+                        </li>
+                        <li>
                             <button onClick={handleLogout} className="navbar-button">
                                 Logout
                             </button>
@@ -34,10 +38,10 @@ export default function Navbar() {
                 ) : (
                     <>
                         <li>
-                            <a href="#login" className="navbar-link">Login</a>
+                            <Link to="/login" className="navbar-link">Login</Link>
                         </li>
                         <li>
-                            <a href="#register" className="navbar-link">Register</a>
+                            <Link to="/register" className="navbar-link">Register</Link>
                         </li>
                     </>
                 )}
