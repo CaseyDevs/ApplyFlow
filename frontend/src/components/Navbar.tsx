@@ -3,7 +3,7 @@ import { logoutUser } from "../api/auth/logout";
 import "./Navbar.css";
 
 export default function Navbar() {
-    const { user, refreshUser } = useAuth();
+    const { user, isLoggedIn, refreshUser } = useAuth();
 
     const handleLogout = async () => {
         try {
@@ -20,10 +20,10 @@ export default function Navbar() {
                 <h1>ApplyFlow</h1>
             </div>
             <ul className="navbar-menu">
-                {user ? (
+                {isLoggedIn && user ? (
                     <>
                         <li>
-                            <span className="navbar-user">Hi, {user.username || user.email}</span>
+                            <span className="navbar-user">Hi, {user.email}</span>
                         </li>
                         <li>
                             <button onClick={handleLogout} className="navbar-button">
@@ -43,5 +43,5 @@ export default function Navbar() {
                 )}
             </ul>
         </nav>
-    );
+    )
 }
