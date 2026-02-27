@@ -3,13 +3,16 @@ import { getApplications } from "../api/applicationApi";
 import type { Application } from "../types/Application";
 import { useNavigate } from "react-router-dom";
 
+// TODO: DISPLAY COMPANIES / ADD COMPANY
+
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [applications, setApplications] = useState<Application[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<string[] | null>(null);
 
     useEffect(() => {
+        setLoading(true);
         getApplications()
             .then((page) => setApplications(page.content))
             .catch((err) => setErrors([err.message]))
