@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController
@@ -36,6 +38,16 @@ public class CompanyController {
 
         return ResponseEntity.ok(companyService.getAllCompanies(pageable));
     }
+
+    @GetMapping("/companies/{id}")
+    public ResponseEntity<CompanyResponseDto> getCompanyById(
+        @PathVariable Long companyId
+    ) {
+        CompanyResponseDto response = companyService.getCompanyById(companyId); 
+
+        return ResponseEntity.ok(response);
+    }
+    
 
     @PostMapping("/companies")
     public ResponseEntity<CompanyResponseDto> createCompany(
