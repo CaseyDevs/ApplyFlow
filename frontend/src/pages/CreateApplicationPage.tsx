@@ -61,13 +61,13 @@ export default function CreateApplicationPage() {
             setError("Please select or add a company.");
             return;
         }
-        
+
         try {
             await createApplication({
                 title,
                 url,
                 companyId: selectedCompanyId,
-                interviewId,
+                interviewId, // will always be null *need to remove in backend*
                 status: (e.currentTarget.status.value || "INTERESTED"),
             });
             navigate("/applications");

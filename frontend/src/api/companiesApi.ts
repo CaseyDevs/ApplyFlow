@@ -37,3 +37,39 @@ export async function createCompany(company: CompanyRequest): Promise<CompanyRes
 
     return response.json();
 }
+
+export async function updateCompany({ companyId, request }: { companyId: number, request: CompanyRequest}) {
+    const response = await fetch(`${BASE_URL}/api/v1/companies/${companyId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to update company: ${response.status}`);
+    }
+
+    return response.json();
+}
+
+// admin only
+export async function deleteCompany(companyId: number) {
+    const response = await fetch(`${BASE_URL}/api/v1/companies/${companyId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to delete company: ${response.status}`);
+    }
+
+    return response.json();
+}
