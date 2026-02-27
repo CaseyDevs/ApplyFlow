@@ -1,20 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { getApplications } from "../api/applicationApi";
 import type { Application } from "../types/Application";
 import { useNavigate } from "react-router-dom";
+import { getCompanyById } from "../api/companiesApi";
 
 // TODO: DISPLAY COMPANIES / ADD COMPANY
 
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [applications, setApplications] = useState<Application[]>([]);
+    const [companyNames, setCompanyNames] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<string[] | null>(null);
 
     useEffect(() => {
         setLoading(true);
         getApplications()
-            .then((page) => setApplications(page.content))
+            .then(async (page) => {
+                setApplications(page.content);
+                // Fetch company names for all applications
+                const names: string[] = [];
+                await Promise.all(
+                    page.content.map(async (app: Application) => {
+                        try {
+                            const company = await getCompanyById(app.companyId);
+                            names[app.companyId] = company.name;
+                        } catch (err: any) {
+                            names[app.companyId] = "Unknown Company";
+                        }
+                    })
+                );
+                setCompanyNames(names);
+            })
             .catch((err) => setErrors([err.message]))
             .finally(() => setLoading(false));
     }, []);
@@ -39,7 +56,7 @@ export default function ApplicationsPage() {
         );
     }
 
-    async function handleCreateApplication() {
+    function handleCreateApplication() {
         navigate("/create-application");
     }
 
@@ -51,7 +68,7 @@ export default function ApplicationsPage() {
                 {applications.map((app) => (
                     <li key={app.url}>
                         <a href={app.url}>{app.title}</a>
-                        <span> — {app.status}</span>
+                        <span> — {app.status} - {app.url} - {companyNames[app.companyId] || "Loading..."} </span>
                     </li>
                 ))}
             </ul>
