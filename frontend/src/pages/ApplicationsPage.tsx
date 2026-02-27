@@ -1,26 +1,49 @@
 import { useEffect, useState } from "react";
 import { getApplications } from "../api/applicationApi";
 import type { Application } from "../types/Application";
+import { useNavigate } from "react-router-dom";
 
 export default function ApplicationsPage() {
+    const navigate = useNavigate();
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<string[] | null>(null);
 
     useEffect(() => {
         getApplications()
             .then((page) => setApplications(page.content))
-            .catch((err) => setError(err.message))
+            .catch((err) => setErrors([err.message]))
             .finally(() => setLoading(false));
     }, []);
 
     if (loading) return <p>Loading applications...</p>;
-    if (error) return <p>Error: {error}</p>;
-    if (applications.length === 0) return <p>No applications found.</p>;
+    if (errors && errors.length > 0) {
+        return (
+            <div>
+                {errors.map((error, idx) => (
+                    <p key={idx} style={{ color: "red" }}>{error}</p>
+                ))}
+            </div>
+        );
+    }
+    if (applications.length === 0) {
+        return (
+            <div>
+                <p>You do not have any applications yet!</p>
+                <h2>Applications</h2>
+                <button>Create Application +</button>
+            </div>
+        );
+    }
+
+    async function handleCreateApplication() {
+        navigate("/create-application");
+    }
 
     return (
         <div>
             <h2>Applications</h2>
+            <button onClick={handleCreateApplication}>Create Application +</button>
             <ul>
                 {applications.map((app) => (
                     <li key={app.url}>

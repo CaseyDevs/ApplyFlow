@@ -4,11 +4,9 @@ import { Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ApplicationsPage from './pages/ApplicationsPage';
-import { useAuth } from './context/AuthContext';
+import CreateApplicationPage from './pages/CreateApplicationPage';
 
 function App() {
-  const { user } = useAuth();
-
   return (
     <>
       <Navbar />
@@ -16,13 +14,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="/create-application" element={<CreateApplicationPage />} />
       </Routes>
-
-      {user 
-        ? <p>Welcome {user.email}</p> 
-        : <p>Please log in...</p>
-      }
-
     </>
   );
 }

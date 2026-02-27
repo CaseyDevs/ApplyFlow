@@ -1,4 +1,4 @@
-import type { Application, Page } from "../types/Application";
+import type { Application, ApplicationRequest, Page } from "../types/Application";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -17,3 +17,20 @@ export async function getApplications(page = 0, size = 10): Promise<Page<Applica
 
     return response.json();
 }
+
+export async function createApplication(application: ApplicationRequest): Promise<Application> {
+    const response = await fetch(`${BASE_URL}/api/v1/applications`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(application)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create application: ${response.status}`);
+    }
+
+    return response.json();
+}``
