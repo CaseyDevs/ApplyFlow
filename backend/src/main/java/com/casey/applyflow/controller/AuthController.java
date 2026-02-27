@@ -137,7 +137,7 @@ private ResponseCookie accessCookie(String jwt, long maxAgeSeconds) {
     return ResponseCookie.from("ACCESS_TOKEN", jwt)
             .httpOnly(true)
             .secure(false)           // TODO: true in prod -- keep false for local dev.
-            .sameSite("Lax")    
+            .sameSite("None")    
             .path("/api")               
             .maxAge(maxAgeSeconds)
             .build();
