@@ -26,7 +26,6 @@ import com.nimbusds.jose.proc.SecurityContext;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 
 @Configuration
