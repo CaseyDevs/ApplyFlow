@@ -12,7 +12,8 @@ export async function getApplications(page = 0, size = 10): Promise<Page<Applica
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to fetch applications: ${response.status}`);
+        const error = await response.json();
+        throw new Error(error.message || `Failed to fetch applications: ${response.status}`);
     }
 
     return response.json();
@@ -29,7 +30,8 @@ export async function createApplication(application: ApplicationRequest): Promis
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to create application: ${response.status}`);
+        const error = await response.json();
+        throw new Error(error.message || `Failed to create application: ${response.status}`);
     }
 
     return response.json();
