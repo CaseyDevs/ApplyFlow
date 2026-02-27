@@ -31,6 +31,17 @@ public class CompanyService {
             .map(this::toCompanyResponseDto);
     }
 
+    @Transactional(readOnly = true)
+    public CompanyResponseDto getCompanyById(Long companyId) {
+        if (companyId == null) return null;
+
+        log.debug("Fetching company {}", companyId);
+
+        return companyRepository.findById(companyId)
+            .map(this::toCompanyResponseDto)
+            .orElseThrow(() -> new CompanyNotFoundException("Company does not exist"));
+    }
+
     @Transactional
     public CompanyResponseDto createCompany(CompanyRequestDto request) {
         Company company = new Company(
