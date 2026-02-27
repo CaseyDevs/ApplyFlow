@@ -8,6 +8,14 @@ export type Application = {
     interviewIds: number[];
 };
 
+export type ApplicationRequest = {
+    title: string;
+    url: string;
+    companyId: number;
+    interviewId: number | null;
+    status: ApplicationStatus;
+};
+
 // Matches Spring Boot's Page<T> response
 export type Page<T> = {
     content: T[];
