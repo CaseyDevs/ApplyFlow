@@ -1,9 +1,9 @@
 import type { Page } from "../types/Application";
-import type { Company } from "../types/Company";
+import type { CompanyRequest, CompanyResponse } from "../types/Company";
 
 const BASE_URL = "http://localhost:8080";
 
-export async function getAllCompanies(): Promise<Page<Company>> {
+export async function getAllCompanies(): Promise<Page<CompanyResponse>> {
     const response = await fetch(`${BASE_URL}/api/v1/companies`, {
         method: "GET",
         headers: {
@@ -12,12 +12,15 @@ export async function getAllCompanies(): Promise<Page<Company>> {
         credentials: "include"
     });
 
-    if (!response.ok) throw new Error("Failed to fetch companies" + `${response.status}`);
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to fetch companies: ${response.status}`);
+    }
 
     return response.json();
 }
 
-export async function createCompany(company: Company): Promise<Company> {
+export async function createCompany(company: CompanyRequest): Promise<CompanyResponse> {
     const response = await fetch(`${BASE_URL}/api/v1/companies`, {
         method: "POST",
         headers: {
@@ -27,7 +30,10 @@ export async function createCompany(company: Company): Promise<Company> {
         body: JSON.stringify(company)
     });
 
-    if (!response.ok) throw new Error("Failed to fetch companies" + `${response.status}`);
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to create company: ${response.status}`);
+    }
 
     return response.json();
 }
