@@ -20,6 +20,23 @@ export async function getAllCompanies(): Promise<Page<CompanyResponse>> {
     return response.json();
 }
 
+export async function getCompanyById(companyId: number): Promise<CompanyResponse> {
+    const response = await fetch(`${BASE_URL}/api/v1/companies/${companyId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to fetch companies: ${response.status}`);
+    }
+
+    return response.json();
+}
+
 export async function createCompany(company: CompanyRequest): Promise<CompanyResponse> {
     const response = await fetch(`${BASE_URL}/api/v1/companies`, {
         method: "POST",
