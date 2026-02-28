@@ -1,20 +1,29 @@
 import { useEffect, useState } from "react";
 import { getApplications } from "../api/applicationApi";
+import { getAllCompanies } from "../api/companiesApi";
 import type { Application } from "../types/Application";
 import { useNavigate } from "react-router-dom";
-
-// TODO: DISPLAY COMPANIES / ADD COMPANY
 
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [applications, setApplications] = useState<Application[]>([]);
+    const [companyNames, setCompanyNames] = useState<Record<number, string>>({});
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<string[] | null>(null);
 
     useEffect(() => {
         setLoading(true);
-        getApplications()
-            .then((page) => setApplications(page.content))
+        Promise.all([getApplications(), getAllCompanies()])
+            .then(([appPage, companyPage]) => {
+                setApplications(appPage.content);
+                
+                // Build companyId to name map
+                const names: Record<number, string> = {};
+                companyPage.content.forEach((company) => {
+                    names[company.id] = company.name;
+                });
+                setCompanyNames(names);
+            })
             .catch((err) => setErrors([err.message]))
             .finally(() => setLoading(false));
     }, []);
@@ -34,24 +43,19 @@ export default function ApplicationsPage() {
             <div>
                 <p>You do not have any applications yet!</p>
                 <h2>Applications</h2>
-                <button>Create Application +</button>
+                <button onClick={() => navigate("/create-application")}>Create Application +</button>
             </div>
         );
-    }
-
-    async function handleCreateApplication() {
-        navigate("/create-application");
     }
 
     return (
         <div>
             <h2>Applications</h2>
-            <button onClick={handleCreateApplication}>Create Application +</button>
+            <button onClick={() => navigate("/create-application")}>Create Application +</button>
             <ul>
                 {applications.map((app) => (
                     <li key={app.url}>
-                        <a href={app.url}>{app.title}</a>
-                        <span> — {app.status}</span>
+                        <span><a href={app.url}>{app.title}</a> - {companyNames[app.companyId]} - {app.status}</span>
                     </li>
                 ))}
             </ul>
