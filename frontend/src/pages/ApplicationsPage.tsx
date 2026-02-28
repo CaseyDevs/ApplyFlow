@@ -28,6 +28,10 @@ export default function ApplicationsPage() {
             .finally(() => setLoading(false));
     }, []);
 
+    async function handleDeleteApplication(applicationId: number): Promise<void> {
+        
+    }
+
     if (loading) return <p>Loading applications...</p>;
     if (errors && errors.length > 0) {
         return (
@@ -55,7 +59,7 @@ export default function ApplicationsPage() {
             <ul>
                 {applications.map((app) => (
                     <li key={app.url}>
-                        <span><a href={app.url}>{app.title}</a> - {companyNames[app.companyId]} - {app.status}</span>
+                        <span><a href={app.url}>{app.title}</a> - {companyNames[app.companyId]} - {app.status} - <button type="button" onClick={handleDeleteApplication}>-</button></span>
                     </li>
                 ))}
             </ul>

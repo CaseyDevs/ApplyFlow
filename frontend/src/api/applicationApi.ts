@@ -35,4 +35,16 @@ export async function createApplication(application: ApplicationRequest): Promis
     }
 
     return response.json();
-}``
+}
+
+export async function deleteApplication(applicationId: number): Promise<void> {
+    const response = await fetch(`${BASE_URL}/api/v1/applications/${applicationId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include"
+    })
+
+    return response.json();
+}
