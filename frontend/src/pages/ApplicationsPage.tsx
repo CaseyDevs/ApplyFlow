@@ -4,8 +4,6 @@ import { getAllCompanies } from "../api/companiesApi";
 import type { Application } from "../types/Application";
 import { useNavigate } from "react-router-dom";
 
-// TODO: DISPLAY COMPANIES / ADD COMPANY
-
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [applications, setApplications] = useState<Application[]>([]);
@@ -45,23 +43,19 @@ export default function ApplicationsPage() {
             <div>
                 <p>You do not have any applications yet!</p>
                 <h2>Applications</h2>
-                <button>Create Application +</button>
+                <button onClick={() => navigate("/create-application")}>Create Application +</button>
             </div>
         );
-    }
-
-    async function handleCreateApplication() {
-        navigate("/create-application");
     }
 
     return (
         <div>
             <h2>Applications</h2>
-            <button onClick={handleCreateApplication}>Create Application +</button>
+            <button onClick={() => navigate("/create-application")}>Create Application +</button>
             <ul>
                 {applications.map((app) => (
                     <li key={app.url}>
-                        <span>{app.title} - {companyNames[app.companyId]} - {app.status} - {app.url}</span>
+                        <span><a href={app.url}>{app.title}</a> - {companyNames[app.companyId]} - {app.status}</span>
                     </li>
                 ))}
             </ul>
