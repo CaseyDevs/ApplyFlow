@@ -41,9 +41,9 @@ public class CompanyController {
 
     @GetMapping("/companies/{id}")
     public ResponseEntity<CompanyResponseDto> getCompanyById(
-        @PathVariable Long id
+        @PathVariable Long companyId
     ) {
-        CompanyResponseDto response = companyService.getCompanyById(id); 
+        CompanyResponseDto response = companyService.getCompanyById(companyId); 
 
         return ResponseEntity.ok(response);
     }
