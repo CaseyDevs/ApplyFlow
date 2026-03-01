@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getApplications } from "../api/applicationApi";
+import { deleteApplication, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import type { Application } from "../types/Application";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [applications, setApplications] = useState<Application[]>([]);
-    const [companyNames, setCompanyNames] = useState<Record<number, string>>({});
+    const [companyData, setCompanyData] = useState<Record<number, { name: string; location: string }>>({});
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<string[] | null>(null);
 
@@ -17,22 +17,35 @@ export default function ApplicationsPage() {
             .then(([appPage, companyPage]) => {
                 setApplications(appPage.content);
                 
-                // Build companyId to name map
-                const names: Record<number, string> = {};
+                // Build companyId to data map
+                const companyData: Record<number, { name: string; location: string }> = {};
                 companyPage.content.forEach((company) => {
-                    names[company.id] = company.name;
+                    companyData[company.id] = { name: company.name, location: company.location || "Unknown" };
                 });
-                setCompanyNames(names);
+                setCompanyData(companyData);
             })
             .catch((err) => setErrors([err.message]))
             .finally(() => setLoading(false));
     }, []);
 
     async function handleDeleteApplication(applicationId: number): Promise<void> {
-        
+        try {
+            setLoading(true);
+            console.log(applicationId);
+            await deleteApplication(applicationId);
+            
+            // Refresh applications
+            const appPage = await getApplications();
+            setApplications(appPage.content);
+        } catch (err: any) {
+            setErrors([err.message]);
+        } finally {
+            setLoading(false);
+        }
     }
 
     if (loading) return <p>Loading applications...</p>;
+
     if (errors && errors.length > 0) {
         return (
             <div>
@@ -42,6 +55,7 @@ export default function ApplicationsPage() {
             </div>
         );
     }
+
     if (applications.length === 0) {
         return (
             <div>
@@ -59,8 +73,14 @@ export default function ApplicationsPage() {
             <ul>
                 {applications.map((app) => (
                     <li key={app.url}>
-                        <span><a href={app.url}>{app.title}</a> - {companyNames[app.companyId]} - {app.status} - <button type="button" onClick={handleDeleteApplication}>-</button></span>
-                    </li>
+                        <span>
+                            <a href={app.url}>{app.title}</a> - 
+                            {companyData[app.companyId]?.name || "Unknown Company"} - 
+                            {companyData[app.companyId]?.location || "Unknown Location"} - 
+                            {app.status} - 
+                            <button type="button" onClick={() => handleDeleteApplication(app.id)}>-</button>
+                        </span>
+                    </li> 
                 ))}
             </ul>
         </div>
