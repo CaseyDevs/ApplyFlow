@@ -67,7 +67,7 @@ public class JobBoardService {
     }
 
     @Transactional(readOnly = true)
-    public List<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId) {
+    public Page<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId, Pageable pageable) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
@@ -78,11 +78,8 @@ public class JobBoardService {
 
         getJobBoardForMember(jobBoardId, currentUser.getId());
         
-        return applicationRepository.findAllByJobBoardId(jobBoardId)
-            .orElse(List.of()) // empty list if no applicaitons on board
-            .stream()
-            .map(applicationService::toApplicationResponseDto)
-            .toList();
+        return applicationRepository.findAllByJobBoardId(jobBoardId, pageable)
+            .map(applicationService::toApplicationResponseDto);
     }
 
     @Transactional
