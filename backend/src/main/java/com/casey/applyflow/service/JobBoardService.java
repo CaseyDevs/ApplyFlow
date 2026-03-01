@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,17 +57,13 @@ public class JobBoardService {
     }
 
     @Transactional(readOnly = true)
-    public List<JobBoardResponseDto> getAllJobBoards() {
+    public Page<JobBoardResponseDto> getAllJobBoards(Pageable pageable) {
         User currentUser = currentUserProvider.getCurrentUser();
 
         log.info("Getting job boards for user {}", currentUser.getId());
 
-        List<JobBoard> jobBoards = jobBoardRepository.findAllByUserId(currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("You are not a member of any job boards"));
-    
-        return jobBoards.stream()
-            .map(this::toJobBoardResponseDto)
-            .toList();
+        return jobBoardRepository.findAllByUserId(currentUser.getId(), pageable)
+            .map(this::toJobBoardResponseDto);
     }
 
     @Transactional(readOnly = true)
