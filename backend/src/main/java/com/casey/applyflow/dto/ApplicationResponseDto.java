@@ -5,6 +5,7 @@ import java.util.List;
 import com.casey.applyflow.domain.enums.Status;
 
 public record ApplicationResponseDto(
+    Long id,
     String title,
     String url,
     Status status,
