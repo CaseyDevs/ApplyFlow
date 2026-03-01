@@ -1,6 +1,7 @@
 import type { ApplicationStatus } from "./ApplicationStatus";
 
 export type Application = {
+    id: number,
     title: string;
     url: string;
     status: ApplicationStatus;
