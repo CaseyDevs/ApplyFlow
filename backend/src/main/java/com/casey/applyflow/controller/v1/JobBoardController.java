@@ -9,6 +9,7 @@ import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.service.JobBoardService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -66,11 +67,42 @@ public class JobBoardController {
     }
     
     @DeleteMapping("/job-boards/{jobBoardId")
-        public ResponseEntity<Void> deleteJobBoard(
-            @PathVariable Long jobBoardId
-        ) {
+    public ResponseEntity<Void> deleteJobBoard(
+        @PathVariable Long jobBoardId
+    ) {
 
-            jobBoardService.deleteJobBoard(jobBoardId);
-            return ResponseEntity.noContent().build();
-        }
+        jobBoardService.deleteJobBoard(jobBoardId);
+        return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/job-boards/{jobBoardId}/members")
+    public ResponseEntity<Void> addJobBoardMember(
+        @PathVariable Long jobBoardId,
+        @RequestBody String userEmail
+    ) {
+
+        jobBoardService.addMember(jobBoardId, userEmail);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/job-boards/{jobBoardId}/members/{jobBoardMemberId}")
+    public ResponseEntity<Void> removeJobBoardMember(
+        @PathVariable @Min(1) Long jobBoardId,
+        @PathVariable @Min(1) Long jobBoardMemberId
+    ) {
+
+        jobBoardService.removeMember(jobBoardId, jobBoardMemberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/job-boards/{jobBoardId}/members/{jobBoardMemberId}")
+    public ResponseEntity<Void> setNewJobBoardOwner(
+        @PathVariable @Min(1) Long jobBoardId,
+        @PathVariable @Min(1) Long jobBoardMemberId
+    ) {
+
+        jobBoardService.setNewOwner(jobBoardId, jobBoardMemberId);
+        return ResponseEntity.noContent().build();
+    }
+    
+}

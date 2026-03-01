@@ -1,7 +1,5 @@
 package com.casey.applyflow.service;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -126,33 +124,33 @@ public class JobBoardService {
     }
     
     @Transactional
-    public void addMember(Long jobBoardId, Long userId) {
+    public void addMember(Long jobBoardId, String userEmail) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        if (userId == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
+        if (userEmail.isEmpty()) { // TODO: verify email is valid
+            throw new IllegalArgumentException("User email can not be empty");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new UserNotFoundException("User does not exist."));
         
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, user.getId())
             .ifPresent(m -> {
                 throw new MemberAlreadyExistsException("This user is already a member.");
             });
         
-        log.info("Adding user {} to job board {}", userId, jobBoardId);
+        log.info("Adding user {} to job board {}", user.getId(), jobBoardId);
         JobBoardMember member = toJobBoardMember(user);
         
         jobBoard.addMember(member);
         jobBoardMemberRepository.save(member);
         jobBoardRepository.save(jobBoard);
         
-        log.info("User {} added to job board {} successfully", userId, jobBoardId);
+        log.info("User {} added to job board {} successfully", user.getId(), jobBoardId);
     }
 
     @Transactional
