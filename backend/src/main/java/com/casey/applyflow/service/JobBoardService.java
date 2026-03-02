@@ -8,21 +8,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Application;
+import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
+import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
+import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.repository.ApplicationRepository;
+import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
@@ -35,6 +39,7 @@ public class JobBoardService {
     private JobBoardMemberRepository jobBoardMemberRepository;
     private UserRepository userRepository;
     private ApplicationRepository applicationRepository;
+    private CompanyRepository companyRepository;
     private CurrentUserProvider currentUserProvider;
     private ApplicationService applicationService;
 
@@ -43,6 +48,7 @@ public class JobBoardService {
         JobBoardMemberRepository jobBoardMemberRepository,
         UserRepository userRepository,
         ApplicationRepository applicationRepository,
+        CompanyRepository companyRepository,
         CurrentUserProvider currentUserProvider,
         ApplicationService applicationService
     ) {
@@ -50,6 +56,7 @@ public class JobBoardService {
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
+        this.companyRepository = companyRepository;
         this.currentUserProvider = currentUserProvider;
         this.applicationService = applicationService;
     }
@@ -207,25 +214,26 @@ public class JobBoardService {
     }
 
     @Transactional
-    public void addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
+    public void addApplicationToJobBoard(Long jobBoardId, ApplicationRequestDto request) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
-        }
+
+        Company company = companyRepository.findById(request.companyId())
+            .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
+        // Create & save application
+        Application application = new Application(request.title(), request.url(), company, request.status());
+        Application savedApplication = applicationRepository.save(application);
         
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-
-        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
-            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
         
-        log.info("Adding application {} to job board {}", applicationId, jobBoardId);
-        jobBoard.addApplication(application);
+        log.info("Adding application {} to job board {}", savedApplication.getId(), jobBoardId);
+        jobBoard.addApplication(savedApplication);
         jobBoardRepository.save(jobBoard);
         
-        log.info("Application {} added to job board {} successfully", applicationId, jobBoardId);
+        log.info("Application {} added to job board {} successfully", savedApplication.getId(), jobBoardId);
     }
 
     @Transactional

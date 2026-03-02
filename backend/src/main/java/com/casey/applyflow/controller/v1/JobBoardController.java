@@ -3,6 +3,7 @@ package com.casey.applyflow.controller.v1;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
@@ -104,5 +105,16 @@ public class JobBoardController {
         jobBoardService.setNewOwner(jobBoardId, jobBoardMemberId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/job-boards/{jobBoardId}/applications")
+    public ResponseEntity<Void> addApplicationToJobBoard(
+        @PathVariable @Min(1) Long jobBoardId,
+        @Valid @RequestBody ApplicationRequestDto request
+    ) {
+
+        jobBoardService.addApplicationToJobBoard(jobBoardId, request);
+        return ResponseEntity.noContent().build();
+    }
+    
     
 }
