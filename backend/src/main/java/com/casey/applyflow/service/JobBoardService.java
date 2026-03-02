@@ -1,28 +1,32 @@
 package com.casey.applyflow.service;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Application;
+import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
+import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
+import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.repository.ApplicationRepository;
+import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
@@ -35,6 +39,7 @@ public class JobBoardService {
     private JobBoardMemberRepository jobBoardMemberRepository;
     private UserRepository userRepository;
     private ApplicationRepository applicationRepository;
+    private CompanyRepository companyRepository;
     private CurrentUserProvider currentUserProvider;
     private ApplicationService applicationService;
 
@@ -43,6 +48,7 @@ public class JobBoardService {
         JobBoardMemberRepository jobBoardMemberRepository,
         UserRepository userRepository,
         ApplicationRepository applicationRepository,
+        CompanyRepository companyRepository,
         CurrentUserProvider currentUserProvider,
         ApplicationService applicationService
     ) {
@@ -50,26 +56,23 @@ public class JobBoardService {
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
+        this.companyRepository = companyRepository;
         this.currentUserProvider = currentUserProvider;
         this.applicationService = applicationService;
     }
 
     @Transactional(readOnly = true)
-    public List<JobBoardResponseDto> getAllJobBoards() {
+    public Page<JobBoardResponseDto> getAllJobBoards(Pageable pageable) {
         User currentUser = currentUserProvider.getCurrentUser();
 
         log.info("Getting job boards for user {}", currentUser.getId());
 
-        List<JobBoard> jobBoards = jobBoardRepository.findAllByUserId(currentUser.getId())
-            .orElseThrow(() -> new NotAMemberException("You are not a member of any job boards"));
-    
-        return jobBoards.stream()
-            .map(this::toJobBoardResponseDto)
-            .toList();
+        return jobBoardRepository.findAllByUserId(currentUser.getId(), pageable)
+            .map(this::toJobBoardResponseDto);
     }
 
     @Transactional(readOnly = true)
-    public List<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId) {
+    public Page<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId, Pageable pageable) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
@@ -80,11 +83,8 @@ public class JobBoardService {
 
         getJobBoardForMember(jobBoardId, currentUser.getId());
         
-        return applicationRepository.findAllByJobBoardId(jobBoardId)
-            .orElse(List.of()) // empty list if no applicaitons on board
-            .stream()
-            .map(applicationService::toApplicationResponseDto)
-            .toList();
+        return applicationRepository.findAllByJobBoardId(jobBoardId, pageable)
+            .map(applicationService::toApplicationResponseDto);
     }
 
     @Transactional
@@ -131,33 +131,33 @@ public class JobBoardService {
     }
     
     @Transactional
-    public void addMember(Long jobBoardId, Long userId) {
+    public void addMember(Long jobBoardId, String userEmail) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        if (userId == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
+        if (userEmail.isEmpty()) { // TODO: verify email is valid
+            throw new IllegalArgumentException("User email can not be empty");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new UserNotFoundException("User does not exist."));
         
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, user.getId())
             .ifPresent(m -> {
                 throw new MemberAlreadyExistsException("This user is already a member.");
             });
         
-        log.info("Adding user {} to job board {}", userId, jobBoardId);
+        log.info("Adding user {} to job board {}", user.getId(), jobBoardId);
         JobBoardMember member = toJobBoardMember(user);
         
         jobBoard.addMember(member);
         jobBoardMemberRepository.save(member);
         jobBoardRepository.save(jobBoard);
         
-        log.info("User {} added to job board {} successfully", userId, jobBoardId);
+        log.info("User {} added to job board {} successfully", user.getId(), jobBoardId);
     }
 
     @Transactional
@@ -214,25 +214,26 @@ public class JobBoardService {
     }
 
     @Transactional
-    public void addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
+    public void addApplicationToJobBoard(Long jobBoardId, ApplicationRequestDto request) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
-        }
+
+        Company company = companyRepository.findById(request.companyId())
+            .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
+        // Create & save application
+        Application application = new Application(request.title(), request.url(), company, request.status());
+        Application savedApplication = applicationRepository.save(application);
         
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-
-        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
-            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
         
-        log.info("Adding application {} to job board {}", applicationId, jobBoardId);
-        jobBoard.addApplication(application);
+        log.info("Adding application {} to job board {}", savedApplication.getId(), jobBoardId);
+        jobBoard.addApplication(savedApplication);
         jobBoardRepository.save(jobBoard);
         
-        log.info("Application {} added to job board {} successfully", applicationId, jobBoardId);
+        log.info("Application {} added to job board {} successfully", savedApplication.getId(), jobBoardId);
     }
 
     @Transactional
@@ -317,6 +318,8 @@ public class JobBoardService {
             jobBoard.getMembers()
         );
     }
+
+    // HELPER METHODS
 
     private JobBoardMember toJobBoardMember(User member) {
         return new JobBoardMember(member, Role.MEMBER);
