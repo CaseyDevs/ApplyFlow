@@ -319,6 +319,8 @@ public class JobBoardService {
         );
     }
 
+    // HELPER METHODS
+
     private JobBoardMember toJobBoardMember(User member) {
         return new JobBoardMember(member, Role.MEMBER);
     }

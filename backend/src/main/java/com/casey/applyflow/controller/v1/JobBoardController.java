@@ -7,6 +7,7 @@ import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
+import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.service.JobBoardService;
 
 import jakarta.validation.Valid;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/v1")
@@ -114,6 +117,33 @@ public class JobBoardController {
 
         jobBoardService.addApplicationToJobBoard(jobBoardId, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/job-boards/{jobBoardId}/applications/{applicationId}")
+    public ResponseEntity<Void> removeApplicationFromJobBoard(
+        @PathVariable @Min(1) Long jobBoardId,
+        @PathVariable @Min(1) Long applicationId
+    ) {
+
+        jobBoardService.removeApplicationFromJobBoard(jobBoardId, applicationId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/job-boards/{jobBoardId}")
+    public ResponseEntity<Void> leaveJobBoard(
+        @PathVariable @Min(1) Long jobBoardId
+    ) {
+
+        jobBoardService.leaveJobBoard(jobBoardId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/job-boards/{jobBoardId}")
+    public ResponseEntity<JobBoardStatsDto> getJobBoardStats(
+        @PathVariable @Min(1) Long jobBoardId
+    ) {
+
+        return ResponseEntity.ok(jobBoardService.getJobBoardStats(jobBoardId));
     }
     
     
