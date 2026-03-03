@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import CreateApplicationPage from './pages/CreateApplicationPage';
+import JobBoardPage from './pages/JobBoardPage';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/create-application" element={<CreateApplicationPage />} />
+        <Route path="/job-boards" element={<JobBoardPage />} />
       </Routes>
     </>
   );

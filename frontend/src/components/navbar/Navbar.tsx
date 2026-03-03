@@ -27,7 +27,7 @@ export default function Navbar() {
                 {isLoggedIn ? (
                     <>
                         <NavLink path="/applications">Applications</NavLink>
-                        <NavLink path="/">Job Boards</NavLink>
+                        <NavLink path="/job-boards">Job Boards</NavLink>
                         <NavLink path="/">About</NavLink>
                         <li><button onClick={handleLogout} className="navbar-button">Logout</button></li>
                     </>
