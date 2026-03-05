@@ -1,35 +1,38 @@
 import { useEffect, useState } from "react"
 import { getJobBoards } from "../api/jobBoardApi";
 import type { JobBoardResponse } from "../types/JobBoard";
+import { useNavigate } from "react-router-dom";
 
 
 export default function JobBoardPage() {
+    const navigate = useNavigate();
     const [jobBoards, setJobBoards] = useState<JobBoardResponse[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [errors, setErrors] = useState<string[]>([]);
     
     useEffect(() => {
         setLoading(true);
+        setErrors([]);
 
-        Promise.all([getJobBoards()])
-            .then(([jobBoard]) => {
-                setJobBoards(jobBoard);
+        getJobBoards()
+            .then((jobBoardPage) => {
+                setJobBoards(jobBoardPage.content ?? []);
             })
-            .catch((err: any) => setErrors([err.messge]))
+            .catch((err: any) => setErrors([err?.message ?? "Failed to fetch job boards"]))
             .finally(() => setLoading(false));
     }, [])
     
     return (
         <>
-            {loading ?? <p>Loading...</p>}
-            {errors.length ?? errors.forEach((err: any) => <p>{err}</p>)}
+            {loading && <p>Loading...</p>}
+            {errors.length > 0 && errors.map((err, index) => <p key={index}>{err}</p>)}
 
             <h1>Job Boards</h1>
-            {jobBoards.length > 0 ? jobBoards.forEach((jb) => 
-                <div>{jb.title}</div>
-            ) :
-            <p>You are not assigned to any job boards!</p>
-            } 
+            {jobBoards.length > 0
+                ? jobBoards.map((jb) => <div key={jb.id}>{jb.title}</div>)
+                : !loading && <p>You are not assigned to any job boards!</p>}
+
+            <button onClick={() => navigate("/create-job-board")}>Create Job Board</button> 
         </>
     )
 }

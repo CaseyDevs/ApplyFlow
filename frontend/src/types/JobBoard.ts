@@ -1,5 +1,11 @@
 import type { User } from "./User"
 
+export type JobBoardRequest = {
+    title: string,
+    userId: number | null
+    members: JobBoardMember[] | null
+}
+
 export type JobBoardResponse = {
     id: number,
     title: string,
