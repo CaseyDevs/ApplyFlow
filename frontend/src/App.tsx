@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import CreateApplicationPage from './pages/CreateApplicationPage';
 import JobBoardPage from './pages/JobBoardPage';
+import CreateJobBoardPage from './pages/CreateJobBoardPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/create-application" element={<CreateApplicationPage />} />
         <Route path="/job-boards" element={<JobBoardPage />} />
+        <Route path="/create-job-board" element={<CreateJobBoardPage />} />
       </Routes>
     </>
   );
