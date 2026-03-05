@@ -12,26 +12,25 @@ export default function JobBoardPage() {
     
     useEffect(() => {
         setLoading(true);
+        setErrors([]);
 
-        Promise.all([getJobBoards()])
-            .then(([jobBoard]) => {
-                setJobBoards(jobBoard.content);
+        getJobBoards()
+            .then((jobBoardPage) => {
+                setJobBoards(jobBoardPage.content ?? []);
             })
-            .catch((err: any) => setErrors([err.messge]))
+            .catch((err: any) => setErrors([err?.message ?? "Failed to fetch job boards"]))
             .finally(() => setLoading(false));
     }, [])
     
     return (
         <>
-            {loading ?? <p>Loading...</p>}
-            {errors && errors.forEach((err: any) => <p>{err}</p>)}
+            {loading && <p>Loading...</p>}
+            {errors.length > 0 && errors.map((err, index) => <p key={index}>{err}</p>)}
 
             <h1>Job Boards</h1>
-            {jobBoards.length > 0 ? jobBoards.forEach((jb) => 
-                <div>{jb.title}</div>
-            ) :
-            <p>You are not assigned to any job boards!</p>
-            }
+            {jobBoards.length > 0
+                ? jobBoards.map((jb) => <div key={jb.id}>{jb.title}</div>)
+                : !loading && <p>You are not assigned to any job boards!</p>}
 
             <button onClick={() => navigate("/create-job-board")}>Create Job Board</button> 
         </>
