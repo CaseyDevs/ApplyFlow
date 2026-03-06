@@ -8,5 +8,6 @@ public record JobBoardResponseDto(
     Long id,
     String title,
     Long ownerId,
-    List<JobBoardMember> members // TODO: CHANGE TO DTO
+    List<JobBoardMember> members, // TODO: CHANGE TO DTO
+    List<ApplicationResponseDto> applications
 ) {}

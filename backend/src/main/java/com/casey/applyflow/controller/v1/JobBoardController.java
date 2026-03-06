@@ -70,7 +70,7 @@ public class JobBoardController {
         return ResponseEntity.ok(jobBoardService.updateJobBoard(jobBoardId, request));
     }
     
-    @DeleteMapping("/job-boards/{jobBoardId")
+    @DeleteMapping("/job-boards/{jobBoardId}")
     public ResponseEntity<Void> deleteJobBoard(
         @PathVariable Long jobBoardId
     ) {
