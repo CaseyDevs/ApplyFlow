@@ -17,9 +17,11 @@ import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
+import com.casey.applyflow.dto.JobBoardMemberDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
+import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
@@ -332,8 +334,24 @@ public class JobBoardService {
             jobBoard.getId(),
             jobBoard.getTitle(),
             jobBoard.getOwner().getId(),
-            jobBoard.getMembers(),
+            jobBoard.getMembers().stream().map(this::toJobBoardMemberDto).toList(),
             jobBoard.getApplications().stream().map(applicationService::toApplicationResponseDto).toList()
+        );
+    }
+
+    private JobBoardMemberDto toJobBoardMemberDto(JobBoardMember member) {        
+        return new JobBoardMemberDto(
+            member.getId(),
+            toUserResponseDto(member.getUser()),
+            member.getRole()
+        );
+    }
+
+    private UserResponseDto toUserResponseDto(User user) {
+        return new UserResponseDto(
+            user.getId(),
+            user.getName(),
+            user.getEmail()
         );
     }
     
