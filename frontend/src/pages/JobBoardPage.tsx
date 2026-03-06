@@ -27,12 +27,16 @@ export default function JobBoardPage() {
             {loading && <p>Loading...</p>}
             {errors.length > 0 && errors.map((err, index) => <p key={index}>{err}</p>)}
 
-            <h1>Job Boards</h1>
+            <h1>Your Job Boards</h1>
             {jobBoards.length > 0
-                ? jobBoards.map((jb) => <div key={jb.id}>{jb.title}</div>)
+                ? jobBoards.map((jb) => 
+                    <div key={jb.id}>
+                        {jb.title} 
+                        {jb.applications.map((app) => app.title)}
+                    </div>)
                 : !loading && <p>You are not assigned to any job boards!</p>}
 
-            <button onClick={() => navigate("/create-job-board")}>Create Job Board</button> 
+            <button onClick={() => navigate("/create-job-board")}>Create a Job Board</button> 
         </>
     )
 }

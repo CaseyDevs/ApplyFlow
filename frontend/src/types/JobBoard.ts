@@ -1,3 +1,4 @@
+import type { Application } from "./Application"
 import type { User } from "./User"
 
 export type JobBoardRequest = {
@@ -10,7 +11,8 @@ export type JobBoardResponse = {
     id: number,
     title: string,
     ownerId: number,
-    members: JobBoardMember[]
+    members: JobBoardMember[],
+    applications: Application[]
 }
 
 export type JobBoardMember = {
