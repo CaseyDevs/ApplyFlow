@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getJobBoards } from "../api/jobBoardApi";
+import { deleteJobBoard, getJobBoards } from "../api/jobBoardApi";
 import type { JobBoardResponse } from "../types/JobBoard";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +21,20 @@ export default function JobBoardPage() {
             .catch((err: any) => setErrors([err?.message ?? "Failed to fetch job boards"]))
             .finally(() => setLoading(false));
     }, [])
+
+    async function handleDeleteJobBoard(jobBoardId: number) {
+        try {
+            setLoading(true);
+            await deleteJobBoard(jobBoardId);
+            
+            const jobBoardPage = await getJobBoards();
+            setJobBoards(jobBoardPage.content);
+        } catch (err: any) {
+            setErrors([err.message]);
+        } finally {
+            setLoading(false);
+        }
+    }
     
     return (
         <>
@@ -32,6 +46,7 @@ export default function JobBoardPage() {
                 ? jobBoards.map((jb) => 
                     <div key={jb.id}>
                         {jb.title} 
+                        <button onClick={() => handleDeleteJobBoard(jb.id)}>Delete Job Board</button>
                         {jb.applications.map((app) => app.title)}
                     </div>)
                 : !loading && <p>You are not assigned to any job boards!</p>}

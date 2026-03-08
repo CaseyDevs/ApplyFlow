@@ -65,9 +65,13 @@ export async function deleteJobBoard(jobBoardId: number): Promise<void> {
     });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `Failed to delete job board: ${jobBoardId}`);
+        let errorMsg = `Failed to delete job board: ${jobBoardId}`;
+        try {
+            const error = await response.json();
+            errorMsg = error.message || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
     }
-
-    return response.json();
+    // No need to return anything for DELETE
+    return;
 }
