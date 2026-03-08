@@ -65,13 +65,27 @@ export async function deleteJobBoard(jobBoardId: number): Promise<void> {
     });
 
     if (!response.ok) {
-        let errorMsg = `Failed to delete job board: ${jobBoardId}`;
-        try {
-            const error = await response.json();
-            errorMsg = error.message || errorMsg;
-        } catch {}
-        throw new Error(errorMsg);
+        const error = await response.json();
+        throw new Error(error.message || `Failed to delete job board: ${response.status}`)
     }
-    // No need to return anything for DELETE
+
+    return;
+}
+
+export async function addJobBoardMember(jobBoardId: number, userEmail: string) {
+    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/members`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: userEmail
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to create job board: ${response.status}`)
+    }
+
     return;
 }
