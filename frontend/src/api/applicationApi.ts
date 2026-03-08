@@ -44,7 +44,12 @@ export async function deleteApplication(applicationId: number): Promise<void> {
             "Content-Type": "application/json",
         },
         credentials: "include"
-    })
+    });
 
-    return response.json();
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to delete application: ${response.status}`);
+    }
+
+    return;
 }

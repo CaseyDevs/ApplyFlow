@@ -13,6 +13,7 @@ import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.ContactNotInCompanyException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
+import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.NoOwnerException;
 import com.casey.applyflow.exception.NoteNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
@@ -22,6 +23,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MemberAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleMemberAlreadyExists(MemberAlreadyExistsException ex) {
+    ErrorResponse error = new ErrorResponse(
+        HttpStatus.CONFLICT.value(),
+        ex.getMessage()
+    );
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+}
 
     @ExceptionHandler(JobBoardNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleJobBoardNotFound(JobBoardNotFoundException ex) {
