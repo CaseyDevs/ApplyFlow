@@ -1,3 +1,4 @@
+import type { Application, ApplicationRequest } from "../types/Application";
 import type { JobBoardRequest, JobBoardResponse } from "../types/JobBoard";
 
 const BASE_URL = "http://localhost:8080";
@@ -84,8 +85,26 @@ export async function addJobBoardMember(jobBoardId: number, userEmail: string) {
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || `Failed to create job board: ${response.status}`)
+        throw new Error(error.message || `Failed to add job board member: ${response.status}`)
     }
 
     return;
+}
+
+export async function addApplicationToJobBoard(jobBoardId: number, request: ApplicationRequest): Promise<Application> {
+    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/applications`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to add job board member: ${response.status}`)
+    }
+
+    return response.json();
 }

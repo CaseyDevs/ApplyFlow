@@ -67,9 +67,10 @@ public class JobBoardService {
     public Page<JobBoardResponseDto> getAllJobBoards(Pageable pageable) {
         User currentUser = currentUserProvider.getCurrentUser();
 
-        log.info("Getting job boards for user {}", currentUser.getId());
+        log.info("Getting job boards for user {} (as member)", currentUser.getId());
 
-        return jobBoardRepository.findAllByUserId(currentUser.getId(), pageable)
+        // Fetch job boards where user is a member (not just owner)
+        return jobBoardRepository.findAllByMembersUserId(currentUser.getId(), pageable)
             .map(this::toJobBoardResponseDto);
     }
 

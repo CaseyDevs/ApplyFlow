@@ -38,7 +38,7 @@ export default function JobBoardPage() {
         }
     }
 
-    async function handleAddJobBoardMember(jobBoardId: number, userEmail: string) {
+    async function handleAddJobBoardMember(jobBoardId: number, userEmail: string) {        
         try {
             setLoading(true);
             await addJobBoardMember(jobBoardId, userEmail)
