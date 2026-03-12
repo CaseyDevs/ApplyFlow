@@ -75,6 +75,18 @@ public class JobBoardService {
     }
 
     @Transactional(readOnly = true)
+    public JobBoardResponseDto getJobBoardById(Long jobBoardId) {
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        log.info("Getting job board {} for user {}", jobBoardId, currentUser.getId());
+
+        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new JobBoardNotFoundException("Job Board does not exist."));
+        
+        return toJobBoardResponseDto(jobBoard);
+    }
+
+    @Transactional(readOnly = true)
     public Page<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId, Pageable pageable) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
