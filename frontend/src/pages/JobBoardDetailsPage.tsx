@@ -11,7 +11,7 @@ export default function JobBoardDetailsPage() {
     const [displayInput, setDisplayInput] = useState<boolean>(false);
 
     const navigate = useNavigate();
-    const { jobBoardId } = useParams();
+    const { jobBoardId } = useParams(); // get the job board id from url
 
     // Fetch job board
     useEffect(() => {
