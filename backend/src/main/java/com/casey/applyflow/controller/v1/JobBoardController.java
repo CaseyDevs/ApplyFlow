@@ -44,6 +44,15 @@ public class JobBoardController {
         return ResponseEntity.ok(jobBoardService.getAllJobBoards(pageable));
     }
 
+    @GetMapping("/job-boards/{jobBoardId}")
+    public ResponseEntity<JobBoardResponseDto> getJobBoardById(
+        @PathVariable @Min(1) Long jobBoardId
+    ) {
+        
+        return ResponseEntity.ok(jobBoardService.getJobBoardById(jobBoardId));
+    }
+    
+
     @GetMapping("/job-boards/{jobBoardId}/applications")
     public ResponseEntity<Page<ApplicationResponseDto>> getJobBoardApplications(
         Pageable pageable,
