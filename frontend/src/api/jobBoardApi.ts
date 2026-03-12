@@ -14,7 +14,24 @@ export async function getJobBoards() {
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || `Failed to fetch job-boards: ${response.status}`)
+        throw new Error(error.message || `Failed to fetch job boards: ${response.status}`)
+    }
+
+    return response.json();
+}
+
+export async function getJobBoardById(jobBoardId: number): Promise<JobBoardResponse> {
+    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to fetch job board: ${error.status}`)
     }
 
     return response.json();

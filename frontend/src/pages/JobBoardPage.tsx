@@ -59,7 +59,8 @@ export default function JobBoardPage() {
             {jobBoards.length > 0
                 ? jobBoards.map((jb) => 
                     <div key={jb.id}>
-                        {jb.title} 
+                        <button onClick={() => navigate(`/job-board/${jb.id}`)}>{jb.title}</button>
+                        {jb.applications.map((app) => app.title)}
                         <button onClick={() => handleDeleteJobBoard(jb.id)}>Delete Job Board</button>
                         <button onClick={() => setDisplayInput(!displayInput)}>Add member to job board</button>
                        
