@@ -50,7 +50,7 @@ public class ApplicationController {
         ));
     }
 
-    @GetMapping("/applications/{title}")
+    @GetMapping("/applications/{id}")
     public ResponseEntity<ApplicationResponseDto> getApplicationById(
         @PathVariable Long id
     ) {
