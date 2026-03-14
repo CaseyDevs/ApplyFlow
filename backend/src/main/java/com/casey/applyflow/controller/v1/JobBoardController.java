@@ -116,13 +116,13 @@ public class JobBoardController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/job-boards/{jobBoardId}/applications")
+    @PostMapping("/job-boards/{jobBoardId}/applications/{applicationId}")
     public ResponseEntity<Void> addApplicationToJobBoard(
         @PathVariable @Min(1) Long jobBoardId,
-        @Valid @RequestBody ApplicationRequestDto request
+        @PathVariable @Min(1) Long applicationId
     ) {
 
-        jobBoardService.addApplicationToJobBoard(jobBoardId, request);
+        jobBoardService.addApplicationToJobBoard(jobBoardId, applicationId);
         return ResponseEntity.noContent().build();
     }
 
