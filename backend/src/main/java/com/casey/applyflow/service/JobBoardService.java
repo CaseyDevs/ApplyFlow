@@ -8,12 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Application;
-import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
-import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardMemberDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
@@ -21,14 +19,12 @@ import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
-import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.repository.ApplicationRepository;
-import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
@@ -41,7 +37,6 @@ public class JobBoardService {
     private JobBoardMemberRepository jobBoardMemberRepository;
     private UserRepository userRepository;
     private ApplicationRepository applicationRepository;
-    private CompanyRepository companyRepository;
     private CurrentUserProvider currentUserProvider;
     private ApplicationService applicationService;
 
@@ -50,7 +45,6 @@ public class JobBoardService {
         JobBoardMemberRepository jobBoardMemberRepository,
         UserRepository userRepository,
         ApplicationRepository applicationRepository,
-        CompanyRepository companyRepository,
         CurrentUserProvider currentUserProvider,
         ApplicationService applicationService
     ) {
@@ -58,7 +52,6 @@ public class JobBoardService {
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
-        this.companyRepository = companyRepository;
         this.currentUserProvider = currentUserProvider;
         this.applicationService = applicationService;
     }
@@ -80,8 +73,7 @@ public class JobBoardService {
 
         log.info("Getting job board {} for user {}", jobBoardId, currentUser.getId());
 
-        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new JobBoardNotFoundException("Job Board does not exist."));
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
         
         return toJobBoardResponseDto(jobBoard);
     }
@@ -374,13 +366,8 @@ public class JobBoardService {
             throw new IllegalArgumentException("User ID cannot be null");
         }
 
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+        return jobBoardRepository.findByIdAndMembersUserId(jobBoardId, userId)
             .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
-
-        return jobBoard;
     }
 
     private JobBoard getJobBoardForOwner(Long jobBoardId, Long userId) {
