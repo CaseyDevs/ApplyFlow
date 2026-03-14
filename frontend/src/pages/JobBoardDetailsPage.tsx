@@ -7,7 +7,6 @@ import { getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 
 /* TODO: 
-    => DISPLAY APPLICATION COMPANIES 
     => REFRESH ON APPLICATION UPDATES
     => PREVENT QUERYING THE SAME APPLICATIONS
     => FIX JOB BOARDS DISPLAYING INCORRECTLY FOR OTHER MEMBERS
@@ -33,11 +32,10 @@ export default function JobBoardDetailsPage() {
         setLoading(true);
         setError(null);
 
-        Promise.all([getJobBoardById(Number(jobBoardId)), getApplications(), getAllCompanies()])
-            .then(([jobBoardRes, applicationsRes, companiesRes]) => {
+        // Fetch current job board and companies
+        Promise.all([getJobBoardById(Number(jobBoardId)), getAllCompanies()])
+            .then(([jobBoardRes, companiesRes]) => {
                 setJobBoard(jobBoardRes ?? null);
-                const apps = applicationsRes?.content ?? [];
-                setApplications(apps);
 
                 const companies: Record<number, { name: string; location: string }> = {};
                 (companiesRes?.content ?? []).forEach((company) => {
@@ -47,8 +45,6 @@ export default function JobBoardDetailsPage() {
                     };
                 });
                 setCompanyById(companies);
-
-                if (apps.length > 0) setSelectedApplicationId(apps[0].id);
             })
             .catch((err) => setError(err?.message ?? "Failed to fetch job board"))
             .finally(() => setLoading(false));
@@ -86,6 +82,8 @@ export default function JobBoardDetailsPage() {
         try {
             setLoading(true);
             await addApplicationToJobBoard(Number(jobBoardId), selectedApplicationId);
+            const updated = await getJobBoardById(Number(jobBoardId));
+            setJobBoard(updated ?? null);
             setSelectedApplicationId(null);
             setDisplayApplications(false);
         } catch (err: any) {
@@ -113,7 +111,19 @@ export default function JobBoardDetailsPage() {
             })}
 
 
-            <button onClick={() => setDisplayApplications(!displayApplications)}>+ Application</button>
+            <button onClick={() => {
+                // Fetch applications on click if no applications exist in current state
+                if (!displayApplications && applications.length === 0) {
+                    getApplications()
+                        .then((page) => {
+                            const apps = page?.content ?? [];
+                            setApplications(apps);  // store applications in state (cached)
+                            if (apps.length > 0) setSelectedApplicationId(apps[0].id);
+                        })
+                        .catch((err) => setError(err?.message ?? "Failed to fetch applications"));
+                }
+                setDisplayApplications(!displayApplications);
+            }}>+ Application</button>
 
             {/* Add existing applications */}
             {displayApplications && applications ?
