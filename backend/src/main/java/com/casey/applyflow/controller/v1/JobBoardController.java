@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
 
 @RestController
 @RequestMapping("/api/v1")
@@ -147,7 +145,7 @@ public class JobBoardController {
         return ResponseEntity.noContent().build();
     }
     
-    @GetMapping("/job-boards/{jobBoardId}")
+    @GetMapping("/job-boards/{jobBoardId}/stats")
     public ResponseEntity<JobBoardStatsDto> getJobBoardStats(
         @PathVariable @Min(1) Long jobBoardId
     ) {
