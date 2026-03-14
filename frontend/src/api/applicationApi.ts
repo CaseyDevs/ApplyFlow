@@ -19,6 +19,23 @@ export async function getApplications(page = 0, size = 10): Promise<Page<Applica
     return response.json();
 }
 
+export async function getApplicationById(applicationId: number): Promise<Application> {
+    const response = await fetch(`${BASE_URL}/api/v1/applications/${applicationId}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+        if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to fetch application: ${response.status}`);
+    }
+
+    return response.json();
+}
+
 export async function createApplication(application: ApplicationRequest): Promise<Application> {
     const response = await fetch(`${BASE_URL}/api/v1/applications`, {
         method: "POST",
