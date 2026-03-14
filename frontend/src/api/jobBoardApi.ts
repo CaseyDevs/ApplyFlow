@@ -121,3 +121,18 @@ export async function addApplicationToJobBoard(jobBoardId: number, applicationId
         throw new Error(error.message || `Failed to add application to job board: ${response.status}`)
     }
 }
+
+export async function removeApplicationFromJobBoard(jobBoardId: number, applicationId: number): Promise<void> {
+    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/applications/${applicationId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to remove application from job board: ${response.status}`)
+    }
+}
