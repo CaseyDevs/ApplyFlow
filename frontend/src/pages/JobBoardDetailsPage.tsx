@@ -7,7 +7,6 @@ import { getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 
 /* TODO: 
-    => REFRESH ON APPLICATION UPDATES
     => PREVENT QUERYING THE SAME APPLICATIONS
     => FIX JOB BOARDS DISPLAYING INCORRECTLY FOR OTHER MEMBERS
 */
@@ -81,6 +80,14 @@ export default function JobBoardDetailsPage() {
         if (!jobBoardId || selectedApplicationId == null) return;
         try {
             setLoading(true);
+            const alreadyAdded = jobBoard?.applications?.some((app) => app.id === selectedApplicationId); // check for first match
+            
+            // prevent application duplicates
+            if (alreadyAdded) {
+                setError("This application is already in the job board!");
+                return;
+            }
+
             await addApplicationToJobBoard(Number(jobBoardId), selectedApplicationId);
             const updated = await getJobBoardById(Number(jobBoardId));
             setJobBoard(updated ?? null);
