@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react"
-import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById } from "../api/jobBoardApi";
+import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { JobBoardResponse } from "../types/JobBoard";
 import type { Application } from "../types/Application";
 import { getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
-
-/* TODO: 
-    => PREVENT QUERYING THE SAME APPLICATIONS
-    => FIX JOB BOARDS DISPLAYING INCORRECTLY FOR OTHER MEMBERS
-*/
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -23,16 +18,18 @@ export default function JobBoardDetailsPage() {
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
 
     const navigate = useNavigate();
-    const { jobBoardId } = useParams(); // get the job board id from url
+    const { jobBoardId: jobBoardIdParam } = useParams(); // get the job board id from url
+    const thisJobBoardId = jobBoardIdParam ? Number(jobBoardIdParam) : null;
+    const hasValidJobBoardId = thisJobBoardId !== null && Number.isFinite(thisJobBoardId); // ensure job board id is always valid
 
     // Fetch job board & users applications
     useEffect(() => {
-        if (!jobBoardId) return;
+        if (!hasValidJobBoardId) return;
         setLoading(true);
         setError(null);
 
         // Fetch current job board and companies
-        Promise.all([getJobBoardById(Number(jobBoardId)), getAllCompanies()])
+        Promise.all([getJobBoardById(thisJobBoardId), getAllCompanies()])
             .then(([jobBoardRes, companiesRes]) => {
                 setJobBoard(jobBoardRes ?? null);
 
@@ -48,13 +45,13 @@ export default function JobBoardDetailsPage() {
             .catch((err) => setError(err?.message ?? "Failed to fetch job board"))
             .finally(() => setLoading(false));
 
-    }, [jobBoardId]);
+    }, [thisJobBoardId]);
 
-    async function handleAddJobBoardMember(jobBoardId: string | undefined, userEmail: string) {
-        if (!jobBoardId) return;
+    async function handleAddJobBoardMember(userEmail: string) {
+        if (!hasValidJobBoardId) return;
         try {
             setLoading(true);
-            await addJobBoardMember(Number(jobBoardId), userEmail);
+            await addJobBoardMember(thisJobBoardId, userEmail);
             setMemberEmail("");
         } catch (err: any) {
             setError(err.message);
@@ -63,11 +60,11 @@ export default function JobBoardDetailsPage() {
         }
     }
 
-    async function handleDeleteJobBoard(jobBoardId: string | undefined) {
-        if (!jobBoardId) return;
+    async function handleDeleteJobBoard() {
+        if (!hasValidJobBoardId) return;
         try {
             setLoading(true);
-            await deleteJobBoard(Number(jobBoardId));
+            await deleteJobBoard(thisJobBoardId);
             navigate("/");  // navigate to home page upon deletion
         } catch (err: any) {
             setError(err.message);
@@ -76,8 +73,8 @@ export default function JobBoardDetailsPage() {
         }
     }
 
-    async function handleAddApplication(jobBoardId: string | undefined) {
-        if (!jobBoardId || selectedApplicationId == null) return;
+    async function handleAddApplication() {
+        if (!hasValidJobBoardId || selectedApplicationId == null) return;
         try {
             setLoading(true);
             const alreadyAdded = jobBoard?.applications?.some((app) => app.id === selectedApplicationId); // check for first match
@@ -88,8 +85,8 @@ export default function JobBoardDetailsPage() {
                 return;
             }
 
-            await addApplicationToJobBoard(Number(jobBoardId), selectedApplicationId);
-            const updated = await getJobBoardById(Number(jobBoardId));
+            await addApplicationToJobBoard(thisJobBoardId, selectedApplicationId);
+            const updated = await getJobBoardById(thisJobBoardId);
             setJobBoard(updated ?? null);
             setSelectedApplicationId(null);
             setDisplayApplications(false);
@@ -100,10 +97,25 @@ export default function JobBoardDetailsPage() {
         }
     }
 
+    async function handleRemoveApplication(applicationId: number) {
+        if (!applicationId || !hasValidJobBoardId) return;
+
+        try {
+            setLoading(true);
+            await removeApplicationFromJobBoard(thisJobBoardId, applicationId);
+            const updated = await getJobBoardById(thisJobBoardId);
+            setJobBoard(updated ?? null);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div>
             {loading && <p>Loading</p>}
-            {error ?? <p style={{ color: "red" }}>{error}</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
 
             <h1>{jobBoard?.title}</h1>
             {/* Output applications */}
@@ -113,6 +125,7 @@ export default function JobBoardDetailsPage() {
                 return (
                     <div key={app.id}>
                         {app.title} - {company?.name ?? "Unknown Company"} - {app.status} - {app.url}
+                        <button onClick={() => handleRemoveApplication(app.id)}>Remove Application</button>
                     </div>
                 );
             })}
@@ -141,7 +154,7 @@ export default function JobBoardDetailsPage() {
                                 <option value={app.id}>{app.title}</option>
                             )}
                     </select>
-                    <button onClick={() => handleAddApplication(jobBoardId)}>Add application</button>
+                    <button onClick={handleAddApplication}>Add application</button>
                 </div>
             : null}
 
@@ -158,12 +171,12 @@ export default function JobBoardDetailsPage() {
                         placeholder="Enter email..."
                         required
                     />
-                    <button onClick={() => handleAddJobBoardMember(jobBoardId, memberEmail)}>Send Invite</button>
+                    <button onClick={() => handleAddJobBoardMember(memberEmail)}>Send Invite</button>
                 </div>
             ) : <p></p>}
 
             {/* Job board deletion  */}
-            <button onClick={() => handleDeleteJobBoard(jobBoardId)}>Delete Job Board</button>
+            <button onClick={handleDeleteJobBoard}>Delete Job Board</button>
         </div>
     )
 }
