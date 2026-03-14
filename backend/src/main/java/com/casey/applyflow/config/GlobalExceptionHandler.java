@@ -1,8 +1,10 @@
 package com.casey.applyflow.config;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -11,6 +13,7 @@ import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.ContactNotInCompanyException;
+import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
@@ -24,14 +27,23 @@ import jakarta.persistence.OptimisticLockException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(InsufficientPermissionException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientPermission(InsufficientPermissionException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(MemberAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleMemberAlreadyExists(MemberAlreadyExistsException ex) {
-    ErrorResponse error = new ErrorResponse(
-        HttpStatus.CONFLICT.value(),
-        ex.getMessage()
-    );
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-}
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.CONFLICT.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 
     @ExceptionHandler(JobBoardNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleJobBoardNotFound(JobBoardNotFoundException ex) {
