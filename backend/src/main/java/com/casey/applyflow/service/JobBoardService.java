@@ -229,26 +229,26 @@ public class JobBoardService {
     }
 
     @Transactional
-    public void addApplicationToJobBoard(Long jobBoardId, ApplicationRequestDto request) {
+    public void addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
+        if (applicationId == null) {
+            throw new IllegalArgumentException("Application ID cannot be null");
+        }
 
-        Company company = companyRepository.findById(request.companyId())
-            .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
-
-        // Create & save application
-        Application application = new Application(request.title(), request.url(), company, request.status());
-        Application savedApplication = applicationRepository.save(application);
-        
         User currentUser = currentUserProvider.getCurrentUser();
+
+        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
+
         JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-        
-        log.info("Adding application {} to job board {}", savedApplication.getId(), jobBoardId);
-        jobBoard.addApplication(savedApplication);
+
+        log.info("Adding application {} to job board {}", applicationId, jobBoardId);
+        jobBoard.addApplication(application);
         jobBoardRepository.save(jobBoard);
-        
-        log.info("Application {} added to job board {} successfully", savedApplication.getId(), jobBoardId);
+
+        log.info("Application {} added to job board {} successfully", applicationId, jobBoardId);
     }
 
     @Transactional
