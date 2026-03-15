@@ -8,12 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Application;
-import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.domain.enums.Role;
-import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardMemberDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
@@ -21,7 +19,6 @@ import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
-import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
@@ -41,7 +38,6 @@ public class JobBoardService {
     private JobBoardMemberRepository jobBoardMemberRepository;
     private UserRepository userRepository;
     private ApplicationRepository applicationRepository;
-    private CompanyRepository companyRepository;
     private CurrentUserProvider currentUserProvider;
     private ApplicationService applicationService;
 
@@ -58,7 +54,6 @@ public class JobBoardService {
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.userRepository = userRepository;
         this.applicationRepository = applicationRepository;
-        this.companyRepository = companyRepository;
         this.currentUserProvider = currentUserProvider;
         this.applicationService = applicationService;
     }
@@ -267,10 +262,12 @@ public class JobBoardService {
         
         User currentUser = currentUserProvider.getCurrentUser();
 
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
+        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
 
-        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
-            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist"));
+        Application application = jobBoard.getApplications().stream()
+            .filter(app -> app.getId().equals(applicationId))
+            .findFirst()
+            .orElseThrow(() -> new ApplicationNotFoundException("Application is not on this job board"));
         
         log.info("Removing application {} from job board {}", applicationId, jobBoardId);
         jobBoard.removeApplication(application);
