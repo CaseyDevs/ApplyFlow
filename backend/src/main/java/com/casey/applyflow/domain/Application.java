@@ -1,7 +1,9 @@
 package com.casey.applyflow.domain;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.casey.applyflow.domain.enums.Status;
 
@@ -15,6 +17,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -46,9 +50,13 @@ public class Application {
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Interview> interviews = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_board_id", nullable = true)
-    private JobBoard jobBoard;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "job_board_application",
+        joinColumns = @JoinColumn(name = "application_id"),
+        inverseJoinColumns = @JoinColumn(name = "job_board_id")
+    )
+    private Set<JobBoard> jobBoards = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -125,12 +133,16 @@ public class Application {
         this.user = user;
     }
     
-    public JobBoard getJobBoard() {
-        return jobBoard;
+    public Set<JobBoard> getJobBoards() {
+        return jobBoards;
     }
 
-    public void setJobBoard(JobBoard jobBoard) {
-        this.jobBoard = jobBoard;
+    public void addJobBoard(JobBoard jobBoard) {
+        jobBoards.add(jobBoard);
+    }
+
+    public void removeJobBoard(JobBoard jobBoard) {
+        jobBoards.remove(jobBoard);
     }
 
     @Override
