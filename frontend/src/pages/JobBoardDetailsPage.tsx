@@ -53,6 +53,8 @@ export default function JobBoardDetailsPage() {
             setLoading(true);
             await addJobBoardMember(thisJobBoardId, userEmail);
             setMemberEmail("");
+            const updated = await getJobBoardById(thisJobBoardId);
+            setJobBoard(updated ?? null);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -118,6 +120,17 @@ export default function JobBoardDetailsPage() {
             {error && <p style={{ color: "red" }}>{error}</p>}
 
             <h1>{jobBoard?.title}</h1>
+            
+            <div>
+                <h3>Members:</h3>
+                {/* Display members */}
+                {jobBoard?.members.map((member) => {
+                    return (                    
+                        <p>{member.user.email}</p>
+                    );
+                })}
+            </div>
+
             {/* Output applications */}
             {jobBoard?.applications?.map((app) => {
                 const company = companyById[app.companyId];
