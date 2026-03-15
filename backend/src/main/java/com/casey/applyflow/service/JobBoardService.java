@@ -80,7 +80,7 @@ public class JobBoardService {
 
         log.info("Getting job board {} for user {}", jobBoardId, currentUser.getId());
 
-        JobBoard jobBoard = jobBoardRepository.findByIdAndUserId(jobBoardId, currentUser.getId())
+        JobBoard jobBoard = jobBoardRepository.findByIdAndMembersUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new JobBoardNotFoundException("Job Board does not exist."));
         
         return toJobBoardResponseDto(jobBoard);
