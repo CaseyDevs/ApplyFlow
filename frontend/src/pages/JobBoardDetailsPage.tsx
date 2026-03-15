@@ -125,8 +125,8 @@ export default function JobBoardDetailsPage() {
                 <h3>Members:</h3>
                 {/* Display members */}
                 {jobBoard?.members.map((member) => {
-                    return (                    
-                        <p>{member.user.email}</p>
+                    return (
+                            <p>{member.user.email} - {member.role}</p>
                     );
                 })}
             </div>
@@ -159,17 +159,18 @@ export default function JobBoardDetailsPage() {
             }}>+ Application</button>
 
             {/* Add existing applications */}
-            {displayApplications && applications ?
+            {displayApplications &&
                 <div>
                     <label htmlFor="your-applications">Your Applications:</label>
                     <select name="your-applications" id="application-select" value={selectedApplicationId ?? ""} onChange={(e) => setSelectedApplicationId(Number(e.target.value))}>
                         {applications?.map((app) => 
                                 <option value={app.id}>{app.title}</option>
-                            )}
+                        )}
                     </select>
+                    {/* <button onClick={() => navigate("/create-application")}>Create new applicaiton</button> */}
                     <button onClick={handleAddApplication}>Add application</button>
                 </div>
-            : null}
+            }
 
             {/* Adding a job board member logic */}
             <button onClick={() => setDisplayInput(!displayInput)}>Add member to job board</button>

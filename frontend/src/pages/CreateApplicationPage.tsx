@@ -3,6 +3,8 @@ import { createApplication } from "../api/applicationApi";
 import { useNavigate } from "react-router-dom";
 import { getAllCompanies, createCompany } from "../api/companiesApi";
 import type { CompanyResponse } from "../types/Company";
+import type { JobBoardResponse } from "../types/JobBoard";
+import { addApplicationToJobBoard, getJobBoards } from "../api/jobBoardApi";
 
 export default function CreateApplicationPage() {
     const navigate = useNavigate();
@@ -15,16 +17,25 @@ export default function CreateApplicationPage() {
     const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [location, setLocation] = useState<string | null>(null);
     const interviewId = null;
+    const [jobBoards, setJobBoards] = useState<JobBoardResponse[] | null>();
+    const [selectedJobBoardId, setSelectedJobBoardId] = useState<number | null>(null);
 
 
     // load companies on mount
     useEffect(() => {
         setLoading(true);
-        getAllCompanies()
-            .then((page) => {
-                setCompanies(page.content);
-                if (page.content.length > 0) {
-                    setSelectedCompanyId(page.content[0].id); // set the curr id to first compnay
+        Promise.all([getAllCompanies(), getJobBoards()])
+            .then(([companiesPage, jobBoardPage]) => {
+                // handle companies
+                setCompanies(companiesPage.content);
+                if (companiesPage.content.length > 0) {
+                    setSelectedCompanyId(companiesPage.content[0].id); // set the curr id to first compnay
+                }
+
+                // handle job boards
+                setJobBoards(jobBoardPage.content);
+                if (jobBoardPage.content.length > 0) {
+                    setSelectedJobBoardId(jobBoardPage.content[0].id);
                 }
             })
             .catch((err) => setError(err.message))
@@ -63,13 +74,17 @@ export default function CreateApplicationPage() {
         }
 
         try {
-            await createApplication({
+            const application = await createApplication({
                 title,
                 url,
                 companyId: selectedCompanyId,
                 interviewId, // will always be null *need to remove in backend*
                 status: (e.currentTarget.status.value || "INTERESTED"),
             });
+
+            // add this new application to the chosen job board
+            if (selectedJobBoardId) await addApplicationToJobBoard(selectedJobBoardId, application.id);
+
             navigate("/applications");
         } catch (err: any) {
             setError(err.message);
@@ -145,6 +160,23 @@ export default function CreateApplicationPage() {
                         value={location ?? ""}
                         onChange={e => setLocation(e.target.value)}
                     />
+                </div>
+
+                {/* Adding new application to members job board  */}
+                <div>
+                    <span>Would you like to add this application to a job board ?</span>
+                    {jobBoards ?
+                        <div>
+                            <label htmlFor="">Your Job Boards</label>
+                            <select onChange={(e) => setSelectedJobBoardId(Number(e.target.value))}>
+                                {jobBoards.map((jb) => {
+                                     return (
+                                        <option value={jb.id}>{jb.title}</option>
+                                     )
+                                })}
+                            </select>
+                        </div> 
+                    : <p>You are not yet a member of any job boards!</p> }
                 </div>
                 <button type="submit" disabled={loading}>Create Application</button>
             </form>
