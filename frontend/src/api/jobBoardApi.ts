@@ -1,4 +1,3 @@
-import type { Application, ApplicationRequest } from "../types/Application";
 import type { JobBoardRequest, JobBoardResponse } from "../types/JobBoard";
 
 const BASE_URL = "http://localhost:8080";
@@ -108,20 +107,32 @@ export async function addJobBoardMember(jobBoardId: number, userEmail: string) {
     return;
 }
 
-export async function addApplicationToJobBoard(jobBoardId: number, request: ApplicationRequest): Promise<Application> {
-    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/applications`, {
+export async function addApplicationToJobBoard(jobBoardId: number, applicationId: number): Promise<void> {
+    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/applications/${applicationId}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        credentials: "include",
-        body: JSON.stringify(request)
+        credentials: "include"
     });
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || `Failed to add job board member: ${response.status}`)
+        throw new Error(error.message || `Failed to add application to job board: ${response.status}`)
     }
+}
 
-    return response.json();
+export async function removeApplicationFromJobBoard(jobBoardId: number, applicationId: number): Promise<void> {
+    const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/applications/${applicationId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to remove application from job board: ${response.status}`)
+    }
 }

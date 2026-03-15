@@ -16,6 +16,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -41,7 +42,7 @@ public class JobBoard {
     @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobBoardMember> members = new ArrayList<>();
 
-    @OneToMany(mappedBy = "jobBoard")
+    @ManyToMany(mappedBy = "jobBoards")
     private Set<Application> applications = new HashSet<>();
 
     public JobBoard(
@@ -114,12 +115,12 @@ public class JobBoard {
     }
 
     public void addApplication(Application application) {
-        application.setJobBoard(this);
+        application.addJobBoard(this);
         applications.add(application);
     }
 
     public void removeApplication(Application application) {
-        application.setJobBoard(null);
+        application.removeJobBoard(this);
         applications.remove(application);
     }
 }
