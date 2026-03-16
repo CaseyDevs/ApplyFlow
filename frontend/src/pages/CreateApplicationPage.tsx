@@ -34,9 +34,6 @@ export default function CreateApplicationPage() {
 
                 // handle job boards
                 setJobBoards(jobBoardPage.content);
-                if (jobBoardPage.content.length > 0) {
-                    setSelectedJobBoardId(jobBoardPage.content[0].id);
-                }
             })
             .catch((err) => setError(err.message))
             .finally(() => setLoading(false));
@@ -169,6 +166,7 @@ export default function CreateApplicationPage() {
                         <div>
                             <label htmlFor="">Your Job Boards</label>
                             <select onChange={(e) => setSelectedJobBoardId(Number(e.target.value))}>
+                                <option value={undefined}></option>
                                 {jobBoards.map((jb) => {
                                      return (
                                         <option value={jb.id}>{jb.title}</option>
