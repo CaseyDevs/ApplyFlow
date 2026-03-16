@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, removeApplicationFromJobBoard } from "../api/jobBoardApi";
+import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { JobBoardResponse } from "../types/JobBoard";
 import type { Application } from "../types/Application";
@@ -114,6 +114,20 @@ export default function JobBoardDetailsPage() {
         }
     }
 
+    async function handleLeaveJobBoard() {
+        if (!hasValidJobBoardId) return;
+
+        try {
+            setLoading(true);
+            await leaveJobBoard(thisJobBoardId);
+            navigate("/job-boards")
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div>
             {loading && <p>Loading</p>}
@@ -188,6 +202,9 @@ export default function JobBoardDetailsPage() {
                     <button onClick={() => handleAddJobBoardMember(memberEmail)}>Send Invite</button>
                 </div>
             ) : <p></p>}
+
+            {/* Leave a job board  */}
+            <button onClick={handleLeaveJobBoard}>Leave Job Board</button>
 
             {/* Job board deletion  */}
             <button onClick={handleDeleteJobBoard}>Delete Job Board</button>
