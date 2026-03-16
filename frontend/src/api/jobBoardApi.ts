@@ -89,7 +89,7 @@ export async function deleteJobBoard(jobBoardId: number): Promise<void> {
     return;
 }
 
-export async function addJobBoardMember(jobBoardId: number, userEmail: string) {
+export async function addJobBoardMember(jobBoardId: number, userEmail: string): Promise<void> {
     const response = await fetch(`${BASE_URL}/api/v1/job-boards/${jobBoardId}/members`, {
         method: "POST",
         headers: {
@@ -120,6 +120,8 @@ export async function addApplicationToJobBoard(jobBoardId: number, applicationId
         const error = await response.json();
         throw new Error(error.message || `Failed to add application to job board: ${response.status}`)
     }
+
+    return;
 }
 
 export async function removeApplicationFromJobBoard(jobBoardId: number, applicationId: number): Promise<void> {
@@ -135,4 +137,23 @@ export async function removeApplicationFromJobBoard(jobBoardId: number, applicat
         const error = await response.json();
         throw new Error(error.message || `Failed to remove application from job board: ${response.status}`)
     }
+
+    return;
+}
+
+export async function leaveJobBoard(jobBoardId: number): Promise<void> {
+    const response = await fetch (`${BASE_URL}/api/v1/job-boards/${jobBoardId}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `There was an error when attempting to leave this job board, please try again later: ${response.status}`);
+    }
+    
+    return;
 }
