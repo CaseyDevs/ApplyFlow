@@ -131,7 +131,9 @@ export default function JobBoardDetailsPage() {
     return (
         <div>
             {loading && <p>Loading</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            {error && 
+            <p style={{ color: "red" }}>{error}</p>
+            }
 
             <h1>{jobBoard?.title}</h1>
             

@@ -1,4 +1,4 @@
-import type { Application, ApplicationRequest, Page } from "../types/Application";
+import type { Application, ApplicationRequest, Page, UpdateApplicationRequest } from "../types/Application";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -49,6 +49,24 @@ export async function createApplication(application: ApplicationRequest): Promis
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || `Failed to create application: ${response.status}`);
+    }
+
+    return response.json();
+}
+
+export async function updateApplication(applicationId: number, request: UpdateApplicationRequest) {
+    const response = await fetch(`${BASE_URL}/api/v1/applications/${applicationId},`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Failed to update job board: ${response.status}`)
     }
 
     return response.json();
