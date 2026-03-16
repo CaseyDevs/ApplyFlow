@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, removeApplicationFromJobBoard } from "../api/jobBoardApi";
+import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { JobBoardResponse } from "../types/JobBoard";
 import type { Application } from "../types/Application";
@@ -53,6 +53,8 @@ export default function JobBoardDetailsPage() {
             setLoading(true);
             await addJobBoardMember(thisJobBoardId, userEmail);
             setMemberEmail("");
+            const updated = await getJobBoardById(thisJobBoardId);
+            setJobBoard(updated ?? null);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -112,12 +114,37 @@ export default function JobBoardDetailsPage() {
         }
     }
 
+    async function handleLeaveJobBoard() {
+        if (!hasValidJobBoardId) return;
+
+        try {
+            setLoading(true);
+            await leaveJobBoard(thisJobBoardId);
+            navigate("/job-boards")
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div>
             {loading && <p>Loading</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
 
             <h1>{jobBoard?.title}</h1>
+            
+            <div>
+                <h3>Members:</h3>
+                {/* Display members */}
+                {jobBoard?.members.map((member) => {
+                    return (
+                            <p>{member.user.email} - {member.role}</p>
+                    );
+                })}
+            </div>
+
             {/* Output applications */}
             {jobBoard?.applications?.map((app) => {
                 const company = companyById[app.companyId];
@@ -146,17 +173,18 @@ export default function JobBoardDetailsPage() {
             }}>+ Application</button>
 
             {/* Add existing applications */}
-            {displayApplications && applications ?
+            {displayApplications &&
                 <div>
                     <label htmlFor="your-applications">Your Applications:</label>
                     <select name="your-applications" id="application-select" value={selectedApplicationId ?? ""} onChange={(e) => setSelectedApplicationId(Number(e.target.value))}>
                         {applications?.map((app) => 
                                 <option value={app.id}>{app.title}</option>
-                            )}
+                        )}
                     </select>
+                    {/* <button onClick={() => navigate("/create-application")}>Create new applicaiton</button> */}
                     <button onClick={handleAddApplication}>Add application</button>
                 </div>
-            : null}
+            }
 
             {/* Adding a job board member logic */}
             <button onClick={() => setDisplayInput(!displayInput)}>Add member to job board</button>
@@ -174,6 +202,9 @@ export default function JobBoardDetailsPage() {
                     <button onClick={() => handleAddJobBoardMember(memberEmail)}>Send Invite</button>
                 </div>
             ) : <p></p>}
+
+            {/* Leave a job board  */}
+            <button onClick={handleLeaveJobBoard}>Leave Job Board</button>
 
             {/* Job board deletion  */}
             <button onClick={handleDeleteJobBoard}>Delete Job Board</button>
