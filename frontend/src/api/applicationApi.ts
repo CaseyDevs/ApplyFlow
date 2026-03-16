@@ -55,8 +55,8 @@ export async function createApplication(application: ApplicationRequest): Promis
 }
 
 export async function updateApplication(applicationId: number, request: UpdateApplicationRequest) {
-    const response = await fetch(`${BASE_URL}/api/v1/applications/${applicationId},`, {
-        method: "GET",
+    const response = await fetch(`${BASE_URL}/api/v1/applications/${applicationId}`, {
+        method: "PUT",
         headers: {
             "Content-Type": "application/json"
         },
@@ -66,7 +66,7 @@ export async function updateApplication(applicationId: number, request: UpdateAp
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || `Failed to update job board: ${response.status}`)
+        throw new Error(error.message || `Failed to update application: ${response.status}`)
     }
 
     return response.json();
