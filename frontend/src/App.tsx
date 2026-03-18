@@ -19,7 +19,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/create-application" element={<CreateApplicationPage />} />
-        <Route path="/applications/:applicationId" element={<UpdateApplicationPage />} />
+        <Route path="/job-board/:jobBoardId/applications/:applicationId" element={<UpdateApplicationPage />} />
         <Route path="/job-boards" element={<JobBoardPage />} />
         <Route path="/job-board/:jobBoardId" element={<JobBoardDetailsPage />} />
         <Route path="/create-job-board" element={<CreateJobBoardPage />} />
