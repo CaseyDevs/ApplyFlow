@@ -32,11 +32,11 @@ export default function JobBoardPage() {
             {jobBoards.length > 0
                 ? jobBoards.map((jb) => 
                     <div key={jb.id}>
-                        <button onClick={() => navigate(`/job-board/${jb.id}`)}>{jb.title}</button>
+                        <button onClick={() => navigate(`/job-boards/${jb.id}`)}>{jb.title}</button>
                     </div>)
                 : !loading && <p>You are not assigned to any job boards!</p>}
 
-            <button onClick={() => navigate("/create-job-board")}>Create a Job Board</button> 
+            <button onClick={() => navigate("/job-boards/create")}>Create a Job Board</button> 
         </>
     )
 }

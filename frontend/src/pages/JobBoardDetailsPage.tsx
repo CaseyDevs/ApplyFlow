@@ -3,7 +3,7 @@ import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoar
 import { useNavigate, useParams } from "react-router-dom";
 import type { JobBoardResponse } from "../types/JobBoard";
 import type { Application } from "../types/Application";
-import { getApplications } from "../api/applicationApi";
+import { getApplicationById, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 
 export default function JobBoardDetailsPage() {
@@ -114,6 +114,18 @@ export default function JobBoardDetailsPage() {
         }
     }
 
+    async function handleUpdateJobBoardApplication(applicationId: number) {
+        try {
+            setLoading(true);
+            await getApplicationById(applicationId); // ensure user owns application before navigating to update page
+            navigate(`/job-boards/${thisJobBoardId}/applications/${applicationId}`);
+        } catch (err: any) {
+            setError("You cannot update applications that you do not own!");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function handleLeaveJobBoard() {
         if (!hasValidJobBoardId) return;
 
@@ -122,7 +134,7 @@ export default function JobBoardDetailsPage() {
             await leaveJobBoard(thisJobBoardId);
             navigate("/job-boards")
         } catch (err: any) {
-            setError(err.message);
+            setError(`Failed to update application`);
         } finally {
             setLoading(false);
         }
@@ -154,7 +166,7 @@ export default function JobBoardDetailsPage() {
                 return (
                     <div key={app.id}>
                         {app.title} - {company?.name ?? "Unknown Company"} - {app.status} - {app.url}
-                        <button onClick={() => navigate(`/job-boards/${thisJobBoardId}/applications/${app.id}`)}>Update Application</button>
+                        <button onClick={() => handleUpdateJobBoardApplication(app.id)}>Update Application</button>
                         <button onClick={() => handleRemoveApplication(app.id)}>Remove Application</button>
                     </div>
                 );
