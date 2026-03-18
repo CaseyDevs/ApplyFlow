@@ -154,6 +154,7 @@ export default function JobBoardDetailsPage() {
                 return (
                     <div key={app.id}>
                         {app.title} - {company?.name ?? "Unknown Company"} - {app.status} - {app.url}
+                        <button onClick={() => navigate(`/job-boards/${thisJobBoardId}/applications/${app.id}`)}>Update Application</button>
                         <button onClick={() => handleRemoveApplication(app.id)}>Remove Application</button>
                     </div>
                 );
