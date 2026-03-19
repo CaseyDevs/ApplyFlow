@@ -17,6 +17,13 @@ export type ApplicationRequest = {
     status: ApplicationStatus;
 };
 
+export type UpdateApplicationRequest = {
+    title: string | null;
+    url: string | null;
+    companyId: number | null;
+    status: ApplicationStatus | null;
+}
+
 // Matches Spring Boot's Page<T> response
 export type Page<T> = {
     content: T[];
