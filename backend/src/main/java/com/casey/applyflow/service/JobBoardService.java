@@ -22,6 +22,7 @@ import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
+import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.repository.ApplicationRepository;
@@ -156,6 +157,10 @@ public class JobBoardService {
         
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
+
+        if (jobBoard.getMembers().size() >= 4) {
+            throw new MemberLimitException("Job Board Full! You cannot have more than 4 members.");
+        }
 
         User user = userRepository.findByEmail(userEmail)
             .orElseThrow(() -> new UserNotFoundException("User does not exist."));
