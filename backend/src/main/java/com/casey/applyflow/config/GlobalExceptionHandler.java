@@ -18,6 +18,7 @@ import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NoOwnerException;
 import com.casey.applyflow.exception.NoteNotFoundException;
+import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -25,6 +26,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.CONFLICT.value(), 
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 
     @ExceptionHandler(MemberLimitException.class)
     public ResponseEntity<ErrorResponse> handleExceededMemberLimit(MemberLimitException ex) {
