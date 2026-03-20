@@ -29,6 +29,9 @@ public class User {
     @Column(nullable = false)
     private String password;  // must be hashed later
 
+    @Column(nullable = false)
+    private boolean isVerified = false;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Application> applications = new ArrayList<>();
 
@@ -80,5 +83,9 @@ public class User {
 
     public Long getId() {
         return id;
+    }
+
+    public void setIsVerified() {
+        isVerified = true;
     }
 }
