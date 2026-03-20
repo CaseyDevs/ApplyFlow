@@ -21,6 +21,7 @@ import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.service.CurrentUserProvider;
 import com.casey.applyflow.service.TokenService;
 import com.casey.applyflow.dto.UserResponseDto;
+import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
 import jakarta.validation.Valid;
@@ -116,8 +117,7 @@ public class AuthController {
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDto request) {
         // Check if email already exists
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Email already registered");
+            throw new UserAlreadyExistsException("A user is already signed up with this email");
         }
 
         // Create new user with hashed password
