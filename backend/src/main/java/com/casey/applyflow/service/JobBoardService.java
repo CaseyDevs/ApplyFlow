@@ -25,11 +25,13 @@ import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
+import com.casey.applyflow.exception.InvalidEmailException;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
+import com.casey.applyflow.utils.EmailValidationProvider;
 
 @Service
 public class JobBoardService {
@@ -41,6 +43,7 @@ public class JobBoardService {
     private ApplicationRepository applicationRepository;
     private CurrentUserProvider currentUserProvider;
     private ApplicationService applicationService;
+    private EmailValidationProvider emailValidationProvider;
 
     public JobBoardService(
         JobBoardRepository jobBoardRepository, 
@@ -49,7 +52,8 @@ public class JobBoardService {
         ApplicationRepository applicationRepository,
         CompanyRepository companyRepository,
         CurrentUserProvider currentUserProvider,
-        ApplicationService applicationService
+        ApplicationService applicationService,
+        EmailValidationProvider emailValidationProvider
     ) {
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
@@ -57,6 +61,7 @@ public class JobBoardService {
         this.applicationRepository = applicationRepository;
         this.currentUserProvider = currentUserProvider;
         this.applicationService = applicationService;
+        this.emailValidationProvider = emailValidationProvider;
     }
 
     @Transactional(readOnly = true)
@@ -151,8 +156,8 @@ public class JobBoardService {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        if (userEmail.isEmpty()) { // TODO: verify email is valid
-            throw new IllegalArgumentException("User email can not be empty");
+        if (emailValidationProvider.validateEmail(userEmail)) {
+            throw new InvalidEmailException("Email invalid, please enter a valid email");
         }
         
         User currentUser = currentUserProvider.getCurrentUser();

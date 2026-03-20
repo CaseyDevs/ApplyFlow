@@ -1,5 +1,8 @@
 package com.casey.applyflow.utils;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class EmailValidationProvider {
     
     public boolean validateEmail(String email) {

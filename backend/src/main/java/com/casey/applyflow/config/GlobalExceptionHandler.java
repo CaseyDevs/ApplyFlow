@@ -13,6 +13,7 @@ import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.ContactNotInCompanyException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
+import com.casey.applyflow.exception.InvalidEmailException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
@@ -26,6 +27,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(InvalidEmailException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidEmail(InvalidEmailException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_ACCEPTABLE.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(error);
+    }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
