@@ -29,6 +29,9 @@ public class User {
     @Column(nullable = false)
     private String password;  // must be hashed later
 
+    @Column(name = "enabled")
+    private boolean enabled;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Application> applications = new ArrayList<>();
 
@@ -38,6 +41,7 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.enabled = false;
     }
     
     public String getName() {
@@ -76,6 +80,14 @@ public class User {
 
     public List<Application> getApplications() {
         return applications;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean status) {
+        enabled = status;
     }
 
     public Long getId() {
