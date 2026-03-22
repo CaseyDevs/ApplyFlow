@@ -1,5 +1,6 @@
 package com.casey.applyflow.domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,12 @@ public class User {
 
     @Column(nullable = false)
     private String password;  // must be hashed later
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(nullable = true)
+    private LocalDateTime emailVerifiedAt = null;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Application> applications = new ArrayList<>();
@@ -80,5 +87,18 @@ public class User {
 
     public Long getId() {
         return id;
+    }
+
+    public boolean getEmailIsVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailIsVerified(LocalDateTime verificationDate) {
+        emailVerified = true;
+        emailVerifiedAt = verificationDate;
+    }
+
+    public LocalDateTime getEmailVerifiedAt() {
+        return emailVerifiedAt;
     }
 }

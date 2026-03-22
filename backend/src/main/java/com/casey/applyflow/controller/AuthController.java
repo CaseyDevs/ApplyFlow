@@ -20,7 +20,10 @@ import com.casey.applyflow.dto.RegisterRequestDto;
 import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.service.CurrentUserProvider;
 import com.casey.applyflow.service.TokenService;
+import com.casey.applyflow.utils.EmailValidationProvider;
 import com.casey.applyflow.dto.UserResponseDto;
+import com.casey.applyflow.exception.InvalidEmailException;
+import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
 import jakarta.validation.Valid;
@@ -38,6 +41,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final CurrentUserProvider currentUserProvider;
+    private final EmailValidationProvider emailValidationProvider;
 
     @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
@@ -47,13 +51,15 @@ public class AuthController {
         TokenService tokenService,
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        CurrentUserProvider currentUserProvider
+        CurrentUserProvider currentUserProvider,
+        EmailValidationProvider emailValidationProvider
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.currentUserProvider = currentUserProvider;
+        this.emailValidationProvider = emailValidationProvider;
     }
 
     @GetMapping("/me")
@@ -116,8 +122,12 @@ public class AuthController {
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDto request) {
         // Check if email already exists
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Email already registered");
+            throw new UserAlreadyExistsException("A user is already signed up with this email");
+        }
+
+        // validate email before registration
+        if (!emailValidationProvider.validateEmail(request.email())) {
+            throw new InvalidEmailException("Failed to register. Please enter a valid email address");
         }
 
         // Create new user with hashed password
