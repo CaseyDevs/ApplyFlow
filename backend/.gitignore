@@ -41,6 +41,7 @@ src/main/resources/certs/*.pem
 !src/main/resources/certs/*.example
 !src/main/resources/certs/README.md
 certs/*.pem
+.env
 
 ### OS
 .DS_Stores
