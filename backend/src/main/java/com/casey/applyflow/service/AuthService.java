@@ -19,9 +19,10 @@ public class AuthService {
     private final EmailService emailService;
 
     public AuthService(
-            UserRepository userRepository,
-            EmailTokenRepository emailTokenRepository,
-            EmailService emailService) {
+        UserRepository userRepository,
+        EmailTokenRepository emailTokenRepository,
+        EmailService emailService
+    ) {
         this.userRepository = userRepository;
         this.emailTokenRepository = emailTokenRepository;
         this.emailService = emailService;

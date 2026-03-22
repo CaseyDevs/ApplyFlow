@@ -2,11 +2,14 @@ package com.casey.applyflow.service;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import com.casey.applyflow.domain.User;
 
 @Service
+@EnableAsync
 public class EmailService {
     
     private final JavaMailSender mailSender;
@@ -16,6 +19,7 @@ public class EmailService {
     }
 
     // send email via java mail sender
+    @Async
     public void sendVerificationEmail(User user, String token) {
         String link = "http://localhost:8080/api/auth/verify?token=" + token;
 

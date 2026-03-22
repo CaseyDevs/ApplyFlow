@@ -97,7 +97,7 @@ class JobBoardServiceTests {
         assertEquals(title, response.title(), "The title in the response should match what we sent");
         assertNotNull(response.members(), "Members list should not be null");
         assertFalse(response.members().isEmpty(), "The creator should be in the members list");
-        assertTrue(response.members().stream().anyMatch(m -> m.getRole() == Role.OWNER), "The creator should be the owner");
+        assertTrue(response.members().stream().anyMatch(m -> m.role() == Role.OWNER), "The creator should be the owner");
 
         // verify that the repository's save method was actually called once
         verify(jobBoardRepository, times(1)).save(any(JobBoard.class));
