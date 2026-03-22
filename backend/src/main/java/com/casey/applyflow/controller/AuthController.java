@@ -1,6 +1,9 @@
 package com.casey.applyflow.controller;
 
+import com.casey.applyflow.repository.EmailTokenRepository;
+import com.casey.applyflow.service.AuthService;
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -9,11 +12,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
+import com.casey.applyflow.domain.EmailVerificationToken;
 import com.casey.applyflow.domain.User;
 import com.casey.applyflow.dto.LoginRequestDto;
 import com.casey.applyflow.dto.RegisterRequestDto;
@@ -22,6 +27,7 @@ import com.casey.applyflow.service.CurrentUserProvider;
 import com.casey.applyflow.service.TokenService;
 import com.casey.applyflow.utils.EmailValidationProvider;
 import com.casey.applyflow.dto.UserResponseDto;
+import com.casey.applyflow.exception.EmailNotVerifiedException;
 import com.casey.applyflow.exception.InvalidEmailException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
@@ -36,6 +42,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/api/auth")
 public class AuthController {
     
+    private final EmailTokenRepository emailTokenRepository;
+    private final AuthService authService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -52,7 +60,9 @@ public class AuthController {
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         CurrentUserProvider currentUserProvider,
-        EmailValidationProvider emailValidationProvider
+        EmailValidationProvider emailValidationProvider, 
+        AuthService authService, 
+        EmailTokenRepository emailTokenRepository
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
@@ -60,6 +70,8 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
         this.currentUserProvider = currentUserProvider;
         this.emailValidationProvider = emailValidationProvider;
+        this.authService = authService;
+        this.emailTokenRepository = emailTokenRepository;
     }
 
     @GetMapping("/me")
@@ -99,6 +111,13 @@ public class AuthController {
     public ResponseEntity<?> login(
         @Valid @RequestBody LoginRequestDto request
     ) {
+        User user = userRepository.findByEmail(request.email())
+            .orElseThrow(() -> new UserNotFoundException("User not found!"));
+
+        if (!user.isEnabled()) {
+            throw new EmailNotVerifiedException("Please verify your email!");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 request.email(), 
@@ -139,7 +158,35 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+        // handle registration
+        authService.register(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Account created! Please verify you email.");
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verify(@RequestParam String token) {
+        // check token exists
+        EmailVerificationToken vt = emailTokenRepository.findByToken(token)
+            .orElseThrow(() -> new RuntimeException("Invalid token"));
+
+        // check token has not expired
+        if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("Token expired");
+        }
+
+        // verify user
+        User user = vt.getUser();
+
+        // ensure user is not already verified
+        if (user.isEnabled()) {
+            return ResponseEntity.badRequest().body("This account is already verified");
+        }
+
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Account verified!");
     }
     
 

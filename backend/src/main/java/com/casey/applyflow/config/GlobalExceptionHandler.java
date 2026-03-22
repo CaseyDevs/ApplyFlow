@@ -11,6 +11,7 @@ import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.ContactNotInCompanyException;
+import com.casey.applyflow.exception.EmailNotVerifiedException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.InvalidEmailException;
@@ -27,6 +28,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNotVerified(EmailNotVerifiedException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
 
     @ExceptionHandler(InvalidEmailException.class)
     public ResponseEntity<ErrorResponse> handleInvalidEmail(InvalidEmailException ex) {
