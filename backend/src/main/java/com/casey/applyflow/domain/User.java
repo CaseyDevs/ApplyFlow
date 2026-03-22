@@ -1,5 +1,6 @@
 package com.casey.applyflow.domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,5 +93,18 @@ public class User {
 
     public Long getId() {
         return id;
+    }
+
+    public boolean getEmailIsVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailIsVerified(LocalDateTime verificationDate) {
+        emailVerified = true;
+        emailVerifiedAt = verificationDate;
+    }
+
+    public LocalDateTime getEmailVerifiedAt() {
+        return emailVerifiedAt;
     }
 }
