@@ -4,6 +4,8 @@ import com.casey.applyflow.repository.EmailTokenRepository;
 import com.casey.applyflow.service.AuthService;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.casey.applyflow.domain.EmailVerificationToken;
 import com.casey.applyflow.domain.User;
@@ -28,6 +31,10 @@ import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.service.CurrentUserProvider;
 import com.casey.applyflow.service.TokenService;
 import com.casey.applyflow.utils.EmailValidationProvider;
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+
 import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.EmailNotVerifiedException;
 import com.casey.applyflow.exception.InvalidEmailException;
@@ -54,6 +61,10 @@ public class AuthController {
     private final TokenService tokenService;
     private final CurrentUserProvider currentUserProvider;
     private final EmailValidationProvider emailValidationProvider;
+    private final Bandwidth loginLimit;
+    private final Bandwidth registerLimit;
+    private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> registerBuckets = new ConcurrentHashMap<>();
 
     @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
@@ -76,6 +87,16 @@ public class AuthController {
         this.emailValidationProvider = emailValidationProvider;
         this.authService = authService;
         this.emailTokenRepository = emailTokenRepository;
+        
+        this.loginLimit = Bandwidth.builder()
+            .capacity(5)
+            .refillGreedy(2, Duration.ofMinutes(1))
+            .build();
+
+        this.registerLimit = Bandwidth.builder()
+            .capacity(3)
+            .refillGreedy(1, Duration.ofMinutes(1))
+            .build();
     }
 
     @GetMapping("/me")
@@ -113,8 +134,19 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
+        HttpServletRequest httpRequest,
         @Valid @RequestBody LoginRequestDto request
     ) {
+        String clientIp = clientIp(httpRequest);
+        Bucket loginBucket = loginBuckets.computeIfAbsent(
+            clientIp,
+            ip -> Bucket.builder().addLimit(loginLimit).build()
+        );
+
+        if (!loginBucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many requests, try again later");
+        }
+
         User user = userRepository.findByEmail(request.email())
             .orElseThrow(() -> new UserNotFoundException("User not found!"));
 
@@ -142,8 +174,21 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<String> register(
+        HttpServletRequest httpRequest,
+        @Valid @RequestBody RegisterRequestDto request
+    ) {
         log.warn("REGISTER_START email={}", request.email());
+
+        String clientIp = clientIp(httpRequest);
+        Bucket registerBucket = registerBuckets.computeIfAbsent(
+            clientIp,
+            ip -> Bucket.builder().addLimit(registerLimit).build()
+        );
+
+        if (!registerBucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many requests, try again later");
+        }
 
         // Check if email already exists
         if (userRepository.findByEmail(request.email()).isPresent()) {
@@ -206,6 +251,14 @@ private ResponseCookie accessCookie(String jwt, long maxAgeSeconds) {
             .path("/api")               
             .maxAge(maxAgeSeconds)
             .build();
+}
+
+private String clientIp(HttpServletRequest request) {
+    String forwardedFor = request.getHeader("X-Forwarded-For");
+    if (forwardedFor != null && !forwardedFor.isBlank()) {
+        return forwardedFor.split(",")[0].trim();
+    }
+    return request.getRemoteAddr();
 }
 
 }
