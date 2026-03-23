@@ -14,7 +14,17 @@ public class ApplyFlowApplication {
     public static void main(String[] args) {
         // Load .env file if it exists and set as system properties
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
+        dotenv.entries().forEach(entry -> {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            // Gmail app passwords are often copied as 4 groups separated by spaces.
+            if ("MAIL_PASSWORD".equals(key) && value != null) {
+                value = value.replace(" ", "").trim();
+            }
+
+            System.setProperty(key, value);
+        });
         
         SpringApplication.run(ApplyFlowApplication.class, args);
     }

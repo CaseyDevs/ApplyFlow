@@ -4,6 +4,8 @@ import com.casey.applyflow.repository.EmailTokenRepository;
 import com.casey.applyflow.service.AuthService;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     
     private final EmailTokenRepository emailTokenRepository;
     private final AuthService authService;
@@ -139,6 +143,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequestDto request) {
+        log.warn("REGISTER_START email={}", request.email());
+
         // Check if email already exists
         if (userRepository.findByEmail(request.email()).isPresent()) {
             throw new UserAlreadyExistsException("A user is already signed up with this email");
@@ -157,9 +163,11 @@ public class AuthController {
         );
 
         userRepository.save(user);
+        log.warn("REGISTER_USER_SAVED email={} id={}", user.getEmail(), user.getId());
 
         // handle registration
         authService.register(user);
+        log.warn("REGISTER_AUTH_SERVICE_COMPLETED email={}", user.getEmail());
 
         return ResponseEntity.status(HttpStatus.OK).body("Account created! Please verify you email.");
     }
