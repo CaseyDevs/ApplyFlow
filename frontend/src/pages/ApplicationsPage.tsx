@@ -1,52 +1,75 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { deleteApplication, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
-import type { Application } from "../types/Application";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ApplicationsPage() {
     const navigate = useNavigate();
-    const [applications, setApplications] = useState<Application[]>([]);
-    const [companyData, setCompanyData] = useState<Record<number, { name: string; location: string }>>({});
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState<string[] | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
-    useEffect(() => {
-        setLoading(true);
-        Promise.all([getApplications(), getAllCompanies()])
-            .then(([appPage, companyPage]) => {
-                setApplications(appPage.content);
-                
-                // Build companyId to data map
-                const companyData: Record<number, { name: string; location: string }> = {};
-                companyPage.content.forEach((company) => {
-                    companyData[company.id] = { name: company.name, location: company.location || "Unknown" };
-                });
-                setCompanyData(companyData);
-            })
-            .catch((err) => setErrors([err.message]))
-            .finally(() => setLoading(false));
-    }, []);
+    // applications query
+    const { 
+        data: applicationData, 
+        isPending: isApplicationsPending, 
+        error: applicationError, 
+        refetch: refetchApplications 
+    } = useQuery({
+        queryKey: ['applications'],
+        queryFn: () => getApplications(0, 10) // first page, 10 elements
+    });
+
+    // company data query
+    const {
+        data: companyData,
+        isPending: isCompaniesPending,
+        error: companyError,
+    } = useQuery({
+        queryKey: ["companies"],
+        queryFn: getAllCompanies,
+        select: (companyPage) => {
+            // select and map company data
+            const map: Record<number, { name: string; location: string }> = {};
+            companyPage.content.forEach((company) => {
+                map[company.id] = {
+                    name: company.name,
+                    location: company.location || "Unknown",
+                };
+            });
+
+            return map;
+        },
+    });
+
+    const apps = applicationData?.content ?? []; // keep applications empty if no data passed
 
     async function handleDeleteApplication(applicationId: number): Promise<void> {
         try {
-            setLoading(true);
-            console.log(applicationId);
+            setDeleteError(null);
+            setDeleting(true);
             await deleteApplication(applicationId);
             
             // Refresh applications
-            const appPage = await getApplications();
-            setApplications(appPage.content);
+            await refetchApplications();
         } catch (err: any) {
-            setErrors([err.message]);
+            setDeleteError(err.message ?? "Failed to delete application");
         } finally {
-            setLoading(false);
+            setDeleting(false);
         }
     }
 
-    if (loading) return <p>Loading applications...</p>;
+    // check loading state
+    if (isApplicationsPending || isCompaniesPending || deleting) return <p>Loading applications...</p>;
 
-    if (errors && errors.length > 0) {
+    const errors = [
+        applicationError instanceof Error ? applicationError.message : null,
+        companyError instanceof Error ? companyError.message : null,
+        deleteError,
+    ].filter((e): e is string => Boolean(e));
+
+    // output errors
+    if (errors.length > 0) {
         return (
             <div>
                 {errors.map((error, idx) => (
@@ -56,7 +79,8 @@ export default function ApplicationsPage() {
         );
     }
 
-    if (applications.length === 0) {
+    // handle empty application list
+    if (apps.length === 0) {
         return (
             <div>
                 <p>You do not have any applications yet!</p>
@@ -71,12 +95,13 @@ export default function ApplicationsPage() {
             <h2>Applications</h2>
             <button onClick={() => navigate("/create-application")}>Create Application +</button>
             <ul>
-                {applications.map((app) => (
+                {/* Output application and company data */}
+                {apps.map((app) => (
                     <li key={app.url}>
                         <span>
                             <a href={app.url}>{app.title}</a> - 
-                            {companyData[app.companyId]?.name || "Unknown Company"} - 
-                            {companyData[app.companyId]?.location || "Unknown Location"} - 
+                            {companyData?.[app.companyId]?.name || "Unknown Company"} - 
+                            {companyData?.[app.companyId]?.location || "Unknown Location"} - 
                             {app.status} - 
                             <button type="button" onClick={() => handleDeleteApplication(app.id)}>-</button>
                         </span>
