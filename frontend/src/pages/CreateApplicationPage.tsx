@@ -5,9 +5,11 @@ import { getAllCompanies, createCompany } from "../api/companiesApi";
 import type { CompanyResponse } from "../types/Company";
 import type { JobBoardResponse } from "../types/JobBoard";
 import { addApplicationToJobBoard, getJobBoards } from "../api/jobBoardApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CreateApplicationPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [companies, setCompanies] = useState<CompanyResponse[]>([]);
     const [title, setTitle] = useState<string>("");
     const [url, setUrl] = useState<string>("");
@@ -81,6 +83,9 @@ export default function CreateApplicationPage() {
 
             // add this new application to the chosen job board
             if (selectedJobBoardId) await addApplicationToJobBoard(selectedJobBoardId, application.id);
+
+            // Ensure applications list refetches after create.
+            await queryClient.invalidateQueries({ queryKey: ["applications"] });
 
             navigate("/applications");
         } catch (err: any) {
