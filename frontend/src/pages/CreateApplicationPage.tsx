@@ -2,15 +2,13 @@ import { useEffect, useState } from "react"
 import { createApplication } from "../api/applicationApi";
 import { useNavigate } from "react-router-dom";
 import { getAllCompanies, createCompany } from "../api/companiesApi";
-import type { CompanyResponse } from "../types/Company";
 import type { JobBoardResponse } from "../types/JobBoard";
 import { addApplicationToJobBoard, getJobBoards } from "../api/jobBoardApi";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function CreateApplicationPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const [companies, setCompanies] = useState<CompanyResponse[]>([]);
     const [title, setTitle] = useState<string>("");
     const [url, setUrl] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
@@ -19,43 +17,54 @@ export default function CreateApplicationPage() {
     const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [location, setLocation] = useState<string | null>(null);
     const interviewId = null;
-    const [jobBoards, setJobBoards] = useState<JobBoardResponse[] | null>();
     const [selectedJobBoardId, setSelectedJobBoardId] = useState<number | null>(null);
 
+    // fetch company data
+    const { 
+        data: companyData, 
+        isPending: isCompaniesPending,
+        error: companyError,
+        refetch: refetchCompanies
+    } = useQuery({
+        queryKey: ["companies"],
+        queryFn: getAllCompanies,
+    });
 
-    // load companies on mount
+    // fetch job board data
+    const { 
+        data: jobBoardData,
+        isPending: isJobBoardsPending,
+        error: jobBoardError,
+    } = useQuery({
+        queryKey: ["job-boards"],
+        queryFn: getJobBoards
+    });
+
+    const companies = companyData?.content ?? [];
+    const jobBoards = jobBoardData?.content ?? [];
+
+    const queryError = companyError ?? jobBoardError;
+    const isQueryLoading = isCompaniesPending || isJobBoardsPending;
+
+    // set selected company id when data arrives
     useEffect(() => {
-        setLoading(true);
-        Promise.all([getAllCompanies(), getJobBoards()])
-            .then(([companiesPage, jobBoardPage]) => {
-                // handle companies
-                setCompanies(companiesPage.content);
-                if (companiesPage.content.length > 0) {
-                    setSelectedCompanyId(companiesPage.content[0].id); // set the curr id to first compnay
-                }
-
-                // handle job boards
-                setJobBoards(jobBoardPage.content);
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => setLoading(false));
-    }, []);
-
+        if (selectedCompanyId === null && companies.length > 0) {
+            setSelectedCompanyId(companies[0].id);
+        }
+    }, [companies, selectedCompanyId]);
 
     async function handleAddCompany() {
-        if (!newCompanyName) return;
-        
+        if (!newCompanyName) return;        
         setLoading(true);
         setError(null);
 
         try {
             // add company to db and refresh company list
             const newCompany = await createCompany({ name: newCompanyName, location: location, rating: null });
-            const page = await getAllCompanies();
-
-            setCompanies(page.content); 
+            
             setSelectedCompanyId(newCompany.id);
             setNewCompanyName("");
+            await refetchCompanies();
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -95,6 +104,8 @@ export default function CreateApplicationPage() {
 
     return (
         <div>
+            {isQueryLoading && <p>Loading form data...</p>}
+            {queryError instanceof Error && <p style={{color: "red"}}>{queryError.message}</p>}
             <form onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="title">Job Title:</label>
@@ -167,12 +178,15 @@ export default function CreateApplicationPage() {
                 {/* Adding new application to members job board  */}
                 <div>
                     <span>Would you like to add this application to a job board ?</span>
-                    {jobBoards ?
+                    {jobBoards.length > 0 ?
                         <div>
                             <label htmlFor="">Your Job Boards</label>
-                            <select onChange={(e) => setSelectedJobBoardId(Number(e.target.value))}>
-                                <option value={undefined}></option>
-                                {jobBoards.map((jb) => {
+                            <select
+                                value={selectedJobBoardId ?? ""}
+                                onChange={(e) => setSelectedJobBoardId(e.target.value ? Number(e.target.value) : null)}
+                            >
+                                <option value=""></option>
+                                {jobBoards.map((jb: JobBoardResponse) => {
                                      return (
                                         <option value={jb.id}>{jb.title}</option>
                                      )
