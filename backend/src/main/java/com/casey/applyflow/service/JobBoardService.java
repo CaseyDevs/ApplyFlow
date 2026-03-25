@@ -1,13 +1,17 @@
 package com.casey.applyflow.service;
 
+import java.time.LocalDateTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.domain.Application;
+import com.casey.applyflow.domain.EmailVerificationToken;
 import com.casey.applyflow.domain.JobBoard;
 import com.casey.applyflow.domain.JobBoardMember;
 import com.casey.applyflow.domain.User;
@@ -28,6 +32,7 @@ import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.exception.InvalidEmailException;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.CompanyRepository;
+import com.casey.applyflow.repository.EmailTokenRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
@@ -43,7 +48,8 @@ public class JobBoardService {
     private ApplicationRepository applicationRepository;
     private CurrentUserProvider currentUserProvider;
     private ApplicationService applicationService;
-    private EmailValidationProvider emailValidationProvider;
+    private EmailService emailService;
+    private EmailTokenRepository emailTokenRepository;
 
     public JobBoardService(
         JobBoardRepository jobBoardRepository, 
@@ -53,7 +59,8 @@ public class JobBoardService {
         CompanyRepository companyRepository,
         CurrentUserProvider currentUserProvider,
         ApplicationService applicationService,
-        EmailValidationProvider emailValidationProvider
+        EmailService emailService,
+        EmailTokenRepository emailTokenRepository
     ) {
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
@@ -61,7 +68,8 @@ public class JobBoardService {
         this.applicationRepository = applicationRepository;
         this.currentUserProvider = currentUserProvider;
         this.applicationService = applicationService;
-        this.emailValidationProvider = emailValidationProvider;
+        this.emailService = emailService;
+        this.emailTokenRepository = emailTokenRepository;
     }
 
     @Transactional(readOnly = true)
@@ -171,15 +179,46 @@ public class JobBoardService {
             .ifPresent(m -> {
                 throw new MemberAlreadyExistsException("This user is already a member.");
             });
-        
-        log.info("Adding user {} to job board {}", user.getId(), jobBoardId);
-        JobBoardMember member = toJobBoardMember(user);
-        
-        jobBoard.addMember(member);
-        jobBoardMemberRepository.save(member);
+
+        // send invitation email
+        emailService.sendInvitationEmail(user, jobBoardId);
+        log.info("Sending invitation to {} for job board {}", user.getEmail(), jobBoardId);
+    }
+
+    @Transactional
+    public void acceptInvitation(Long jobBoardId, String token) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        EmailVerificationToken verificationToken = emailTokenRepository.findByToken(token)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+
+        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expired");
+        }
+
+        User user = verificationToken.getUser();
+
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board not found!"));
+
+        // ensure member is not already a user
+        if (jobBoard.getMembers().stream().anyMatch(member -> member.getUser().getId().equals(user.getId()))) {
+            throw new MemberAlreadyExistsException("This user is already a member.");
+        }
+
+        // prevent job board member count > 4
+        if (jobBoard.getMembers().size() >= 4) {
+            throw new MemberLimitException("Job Board Full! You cannot have more than 4 members.");
+        }
+
+        jobBoard.addMember(toJobBoardMember(user));
         jobBoardRepository.save(jobBoard);
-        
-        log.info("User {} added to job board {} successfully", user.getId(), jobBoardId);
+        emailTokenRepository.delete(verificationToken); // remove temp token
     }
 
     @Transactional
@@ -345,7 +384,7 @@ public class JobBoardService {
 
     // HELPER METHODS
 
-    private JobBoardMember toJobBoardMember(User member) {
+    public JobBoardMember toJobBoardMember(User member) {
         return new JobBoardMember(member, Role.MEMBER);
     }
 
