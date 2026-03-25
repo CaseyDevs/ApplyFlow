@@ -3,15 +3,18 @@ import { logoutUser } from "../../api/auth/logout";
 import "./Navbar.css";
 import { Link, useNavigate } from 'react-router-dom';
 import NavLink from "../NavLink";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navbar() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { isLoggedIn, refreshUser } = useAuth();
 
     const handleLogout = async () => {
         try {
             await logoutUser();
             await refreshUser();
+            queryClient.clear(); // clear cache
             navigate("/");
         } catch (err) {
             console.error("Logout failed:", err);

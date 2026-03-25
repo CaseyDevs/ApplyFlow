@@ -53,7 +53,7 @@ public class ApplicationService {
             .and(ApplicationSpecification.companyId(companyId))
             .and(ApplicationSpecification.hasInterview(hasInterview));
 
-        log.debug("Fetching applications for user {}", user);
+        log.info("Fetching applications for user {}", user.getEmail());
  
         return applicationRepository.findAll(spec, pageable)
             .map(this::toApplicationResponseDto);

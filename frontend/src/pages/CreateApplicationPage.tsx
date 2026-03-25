@@ -91,7 +91,10 @@ export default function CreateApplicationPage() {
             });
 
             // add this new application to the chosen job board
-            if (selectedJobBoardId) await addApplicationToJobBoard(selectedJobBoardId, application.id);
+            if (selectedJobBoardId) { 
+                await addApplicationToJobBoard(selectedJobBoardId, application.id);
+                queryClient.invalidateQueries({ queryKey: ["job-board", selectedJobBoardId]}); // refresh cache for chosen job board
+            }
 
             // Ensure applications list refetches after create.
             await queryClient.invalidateQueries({ queryKey: ["applications"] });

@@ -1,51 +1,64 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
-import type { JobBoardResponse } from "../types/JobBoard";
 import type { Application } from "../types/Application";
 import { getApplicationById, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>();
-    const [jobBoard, setJobBoard] = useState<JobBoardResponse | null>(null);
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [displayInput, setDisplayInput] = useState<boolean>(false);
     const [applications, setApplications] = useState<Application[]>([]);
-    const [companyById, setCompanyById] = useState<Record<number, { name: string; location: string }>>({});
     const [displayApplications, setDisplayApplications] = useState<boolean>(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
 
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { jobBoardId: jobBoardIdParam } = useParams(); // get the job board id from url
     const thisJobBoardId = jobBoardIdParam ? Number(jobBoardIdParam) : null;
     const hasValidJobBoardId = thisJobBoardId !== null && Number.isFinite(thisJobBoardId); // ensure job board id is always valid
 
-    // Fetch job board & users applications
-    useEffect(() => {
-        if (!hasValidJobBoardId) return;
-        setLoading(true);
-        setError(null);
+    // fetch job board
+    const { 
+        data: jobBoard, 
+        isPending: isJobBoardPending,
+        error: jobBoardError,
+        refetch: refetchJobBoardData
+    } = useQuery({
+        queryKey: ["job-board", thisJobBoardId],
+        queryFn: () => getJobBoardById(thisJobBoardId as number),
+        enabled: hasValidJobBoardId,
+    });
 
-        // Fetch current job board and companies
-        Promise.all([getJobBoardById(thisJobBoardId), getAllCompanies()])
-            .then(([jobBoardRes, companiesRes]) => {
-                setJobBoard(jobBoardRes ?? null);
+    // fetch companies
+    const {
+        data: companyData,
+        isPending: isCompaniesPending,
+        error: companyError,
+    } = useQuery({
+        queryKey: ["companies"],
+        queryFn: getAllCompanies,
+        select: (companyPage) => {
+            // select and map company data
+            const map: Record<number, { name: string; location: string }> = {};
+            companyPage.content.forEach((company) => {
+                map[company.id] = {
+                    name: company.name,
+                    location: company.location || "Unknown",
+                };
+            });
 
-                const companies: Record<number, { name: string; location: string }> = {};
-                (companiesRes?.content ?? []).forEach((company) => {
-                    companies[company.id] = {
-                        name: company.name,
-                        location: company.location ?? "Unknown",
-                    };
-                });
-                setCompanyById(companies);
-            })
-            .catch((err) => setError(err?.message ?? "Failed to fetch job board"))
-            .finally(() => setLoading(false));
+            return map;
+        },
+    });
 
-    }, [thisJobBoardId]);
+    // store query error / loading state
+    const queryError = companyError ?? jobBoardError;
+    const isQueryLoading = isCompaniesPending || isJobBoardPending;
+
 
     async function handleAddJobBoardMember(userEmail: string) {
         if (!hasValidJobBoardId) return;
@@ -53,8 +66,7 @@ export default function JobBoardDetailsPage() {
             setLoading(true);
             await addJobBoardMember(thisJobBoardId, userEmail);
             setMemberEmail("");
-            const updated = await getJobBoardById(thisJobBoardId);
-            setJobBoard(updated ?? null);
+            refetchJobBoardData(); // refresh job board data
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -67,7 +79,8 @@ export default function JobBoardDetailsPage() {
         try {
             setLoading(true);
             await deleteJobBoard(thisJobBoardId);
-            navigate("/");  // navigate to home page upon deletion
+            queryClient.invalidateQueries({ queryKey: ["job-boards"]});
+            navigate("/job-boards");  // navigate to home page upon deletion
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -88,10 +101,9 @@ export default function JobBoardDetailsPage() {
             }
 
             await addApplicationToJobBoard(thisJobBoardId, selectedApplicationId);
-            const updated = await getJobBoardById(thisJobBoardId);
-            setJobBoard(updated ?? null);
             setSelectedApplicationId(null);
             setDisplayApplications(false);
+            refetchJobBoardData();
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -105,8 +117,7 @@ export default function JobBoardDetailsPage() {
         try {
             setLoading(true);
             await removeApplicationFromJobBoard(thisJobBoardId, applicationId);
-            const updated = await getJobBoardById(thisJobBoardId);
-            setJobBoard(updated ?? null);
+            refetchJobBoardData();
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -143,9 +154,10 @@ export default function JobBoardDetailsPage() {
     return (
         <div>
             {loading && <p>Loading</p>}
-            {error && 
-            <p style={{ color: "red" }}>{error}</p>
-            }
+            {error && <p style={{ color: "red" }}>{error}</p>}
+
+            {isQueryLoading && <p>Loading form data...</p>}
+            {queryError instanceof Error && <p style={{color: "red"}}>{queryError.message}</p>}
 
             <h1>{jobBoard?.title}</h1>
             
@@ -161,7 +173,7 @@ export default function JobBoardDetailsPage() {
 
             {/* Output applications */}
             {jobBoard?.applications?.map((app) => {
-                const company = companyById[app.companyId];
+                const company = companyData ? companyData[app.companyId] : null;
 
                 return (
                     <div key={app.id}>

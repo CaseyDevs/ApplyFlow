@@ -2,14 +2,15 @@ import { useState } from "react"
 import { createJobBoard } from "../api/jobBoardApi";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CreateJobBoardPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [title, setTitle] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const { user } = useAuth();
-
 
     async function handleCreateJobBoard(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -24,6 +25,7 @@ export default function CreateJobBoardPage() {
         try {
             setLoading(true);
             await createJobBoard({ title: trimmedTitle, userId: user?.id ?? null, members: null });
+            await queryClient.invalidateQueries({ queryKey: ["job-boards"] }); // refresh cache
             navigate("/job-boards");
         } catch (err: any) {
             setError(err.message || String(err));

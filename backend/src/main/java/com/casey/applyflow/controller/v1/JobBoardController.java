@@ -1,9 +1,11 @@
 package com.casey.applyflow.controller.v1;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.casey.applyflow.dto.ApplicationResponseDto;
+import com.casey.applyflow.dto.AddJobBoardMemberRequestDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
@@ -88,12 +90,27 @@ public class JobBoardController {
     @PostMapping("/job-boards/{jobBoardId}/members")
     public ResponseEntity<Void> addJobBoardMember(
         @PathVariable Long jobBoardId,
-        @RequestBody String userEmail
+        @Valid @RequestBody AddJobBoardMemberRequestDto request
     ) {
 
-        jobBoardService.addMember(jobBoardId, userEmail);
+        jobBoardService.addMember(jobBoardId, request.email());
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/job-boards/{jobBoardId}/invitation")
+    public ResponseEntity<String> handleInvitation(
+        @PathVariable @Min(1) Long jobBoardId,
+        @RequestParam String token
+    ) {
+
+        try {
+            jobBoardService.acceptInvitation(jobBoardId, token);
+            return ResponseEntity.ok("Job board invitation accepted!");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+    
 
     @DeleteMapping("/job-boards/{jobBoardId}/members/{jobBoardMemberId}")
     public ResponseEntity<Void> removeJobBoardMember(

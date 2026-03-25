@@ -2,14 +2,17 @@ import { getJobBoards } from "../api/jobBoardApi";
 import type { JobBoardResponse } from "../types/JobBoard";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../context/AuthContext";
 
 export default function JobBoardPage() {
     const navigate = useNavigate();
+    const { user, isLoggedIn, loading } = useAuth();
 
     // fetch job board data
     const { data, isPending, error } = useQuery({
-        queryKey: ["job-boards"],
-        queryFn: getJobBoards
+        queryKey: ["job-boards", "list", user?.id ?? "anonymous"],
+        queryFn: getJobBoards,
+        enabled: isLoggedIn && !loading,
     });
 
     const jobBoards = data?.content ?? [];
@@ -17,7 +20,7 @@ export default function JobBoardPage() {
     return (
         <>
             {isPending && <p>Loading...</p>}
-            {error ?? <p>{error}</p>}
+            {error instanceof Error && <p style={{ color: "red" }}>{error.message}</p>}
 
             <h1>Your Job Boards</h1>
             {jobBoards.length > 0

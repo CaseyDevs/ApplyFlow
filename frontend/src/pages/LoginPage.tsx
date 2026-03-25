@@ -2,9 +2,11 @@ import { useState } from "react";
 import { loginUser } from "../api/auth/login";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { refreshUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -19,6 +21,7 @@ export default function LoginPage() {
         try {
             await loginUser({ email, password }); // set HttpOnly cookie
             await refreshUser(); // update on client side
+            await queryClient.invalidateQueries({ queryKey: ["job-boards"] });
             setSuccess(true);
             navigate("/");
         } catch (err: any) {
