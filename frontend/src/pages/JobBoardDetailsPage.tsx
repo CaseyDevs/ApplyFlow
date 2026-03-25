@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
 import { getApplicationById, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -12,10 +12,10 @@ export default function JobBoardDetailsPage() {
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [displayInput, setDisplayInput] = useState<boolean>(false);
     const [applications, setApplications] = useState<Application[]>([]);
-
     const [displayApplications, setDisplayApplications] = useState<boolean>(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
 
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { jobBoardId: jobBoardIdParam } = useParams(); // get the job board id from url
     const thisJobBoardId = jobBoardIdParam ? Number(jobBoardIdParam) : null;
@@ -59,7 +59,7 @@ export default function JobBoardDetailsPage() {
     const queryError = companyError ?? jobBoardError;
     const isQueryLoading = isCompaniesPending || isJobBoardPending;
 
-    
+
     async function handleAddJobBoardMember(userEmail: string) {
         if (!hasValidJobBoardId) return;
         try {
@@ -79,7 +79,8 @@ export default function JobBoardDetailsPage() {
         try {
             setLoading(true);
             await deleteJobBoard(thisJobBoardId);
-            navigate("/");  // navigate to home page upon deletion
+            queryClient.invalidateQueries({ queryKey: ["job-boards"]});
+            navigate("/job-boards");  // navigate to home page upon deletion
         } catch (err: any) {
             setError(err.message);
         } finally {
