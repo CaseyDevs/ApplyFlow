@@ -238,6 +238,7 @@ public class AuthController {
 
         user.setEnabled(true);
         userRepository.save(user);
+        emailTokenRepository.delete(vt);
 
         return ResponseEntity.ok("Account verified!");
     }
