@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react"
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
-import type { JobBoardResponse } from "../types/JobBoard";
 import type { Application } from "../types/Application";
 import { getApplicationById, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
+import { useQuery } from "@tanstack/react-query";
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>();
-    const [jobBoard, setJobBoard] = useState<JobBoardResponse | null>(null);
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [displayInput, setDisplayInput] = useState<boolean>(false);
     const [applications, setApplications] = useState<Application[]>([]);
@@ -22,6 +21,12 @@ export default function JobBoardDetailsPage() {
     const thisJobBoardId = jobBoardIdParam ? Number(jobBoardIdParam) : null;
     const hasValidJobBoardId = thisJobBoardId !== null && Number.isFinite(thisJobBoardId); // ensure job board id is always valid
 
+    const { data: jobBoard, refetch: refetchJobBoardData} = useQuery({
+        queryKey: ["job-board", thisJobBoardId],
+        queryFn: () => getJobBoardById(thisJobBoardId as number),
+        enabled: hasValidJobBoardId,
+    });
+
     // Fetch job board & users applications
     useEffect(() => {
         if (!hasValidJobBoardId) return;
@@ -29,10 +34,8 @@ export default function JobBoardDetailsPage() {
         setError(null);
 
         // Fetch current job board and companies
-        Promise.all([getJobBoardById(thisJobBoardId), getAllCompanies()])
-            .then(([jobBoardRes, companiesRes]) => {
-                setJobBoard(jobBoardRes ?? null);
-
+        Promise.all([getAllCompanies()])
+            .then(([companiesRes]) => {
                 const companies: Record<number, { name: string; location: string }> = {};
                 (companiesRes?.content ?? []).forEach((company) => {
                     companies[company.id] = {
@@ -53,8 +56,7 @@ export default function JobBoardDetailsPage() {
             setLoading(true);
             await addJobBoardMember(thisJobBoardId, userEmail);
             setMemberEmail("");
-            const updated = await getJobBoardById(thisJobBoardId);
-            setJobBoard(updated ?? null);
+            refetchJobBoardData(); // refresh job board data
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -88,10 +90,9 @@ export default function JobBoardDetailsPage() {
             }
 
             await addApplicationToJobBoard(thisJobBoardId, selectedApplicationId);
-            const updated = await getJobBoardById(thisJobBoardId);
-            setJobBoard(updated ?? null);
             setSelectedApplicationId(null);
             setDisplayApplications(false);
+            refetchJobBoardData();
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -105,8 +106,7 @@ export default function JobBoardDetailsPage() {
         try {
             setLoading(true);
             await removeApplicationFromJobBoard(thisJobBoardId, applicationId);
-            const updated = await getJobBoardById(thisJobBoardId);
-            setJobBoard(updated ?? null);
+            refetchJobBoardData();
         } catch (err: any) {
             setError(err.message);
         } finally {
