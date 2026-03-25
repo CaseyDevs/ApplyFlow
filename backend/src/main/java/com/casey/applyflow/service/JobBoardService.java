@@ -156,9 +156,6 @@ public class JobBoardService {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
-        if (emailValidationProvider.validateEmail(userEmail)) {
-            throw new InvalidEmailException("Email invalid, please enter a valid email");
-        }
         
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
