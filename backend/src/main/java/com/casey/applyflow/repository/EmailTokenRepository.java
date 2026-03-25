@@ -8,4 +8,5 @@ import com.casey.applyflow.domain.EmailVerificationToken;
 
 public interface EmailTokenRepository extends JpaRepository<EmailVerificationToken, Long> {
     Optional<EmailVerificationToken> findByToken(String token);
+    Optional<EmailVerificationToken> findByUserId(Long userId);
 }
