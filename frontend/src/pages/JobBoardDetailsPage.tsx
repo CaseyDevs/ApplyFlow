@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
@@ -12,7 +12,7 @@ export default function JobBoardDetailsPage() {
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [displayInput, setDisplayInput] = useState<boolean>(false);
     const [applications, setApplications] = useState<Application[]>([]);
-    const [companyById, setCompanyById] = useState<Record<number, { name: string; location: string }>>({});
+
     const [displayApplications, setDisplayApplications] = useState<boolean>(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
 
@@ -21,35 +21,45 @@ export default function JobBoardDetailsPage() {
     const thisJobBoardId = jobBoardIdParam ? Number(jobBoardIdParam) : null;
     const hasValidJobBoardId = thisJobBoardId !== null && Number.isFinite(thisJobBoardId); // ensure job board id is always valid
 
-    const { data: jobBoard, refetch: refetchJobBoardData} = useQuery({
+    // fetch job board
+    const { 
+        data: jobBoard, 
+        isPending: isJobBoardPending,
+        error: jobBoardError,
+        refetch: refetchJobBoardData
+    } = useQuery({
         queryKey: ["job-board", thisJobBoardId],
         queryFn: () => getJobBoardById(thisJobBoardId as number),
         enabled: hasValidJobBoardId,
     });
 
-    // Fetch job board & users applications
-    useEffect(() => {
-        if (!hasValidJobBoardId) return;
-        setLoading(true);
-        setError(null);
+    // fetch companies
+    const {
+        data: companyData,
+        isPending: isCompaniesPending,
+        error: companyError,
+    } = useQuery({
+        queryKey: ["companies"],
+        queryFn: getAllCompanies,
+        select: (companyPage) => {
+            // select and map company data
+            const map: Record<number, { name: string; location: string }> = {};
+            companyPage.content.forEach((company) => {
+                map[company.id] = {
+                    name: company.name,
+                    location: company.location || "Unknown",
+                };
+            });
 
-        // Fetch current job board and companies
-        Promise.all([getAllCompanies()])
-            .then(([companiesRes]) => {
-                const companies: Record<number, { name: string; location: string }> = {};
-                (companiesRes?.content ?? []).forEach((company) => {
-                    companies[company.id] = {
-                        name: company.name,
-                        location: company.location ?? "Unknown",
-                    };
-                });
-                setCompanyById(companies);
-            })
-            .catch((err) => setError(err?.message ?? "Failed to fetch job board"))
-            .finally(() => setLoading(false));
+            return map;
+        },
+    });
 
-    }, [thisJobBoardId]);
+    // store query error / loading state
+    const queryError = companyError ?? jobBoardError;
+    const isQueryLoading = isCompaniesPending || isJobBoardPending;
 
+    
     async function handleAddJobBoardMember(userEmail: string) {
         if (!hasValidJobBoardId) return;
         try {
@@ -143,9 +153,10 @@ export default function JobBoardDetailsPage() {
     return (
         <div>
             {loading && <p>Loading</p>}
-            {error && 
-            <p style={{ color: "red" }}>{error}</p>
-            }
+            {error && <p style={{ color: "red" }}>{error}</p>}
+
+            {isQueryLoading && <p>Loading form data...</p>}
+            {queryError instanceof Error && <p style={{color: "red"}}>{queryError.message}</p>}
 
             <h1>{jobBoard?.title}</h1>
             
@@ -161,7 +172,7 @@ export default function JobBoardDetailsPage() {
 
             {/* Output applications */}
             {jobBoard?.applications?.map((app) => {
-                const company = companyById[app.companyId];
+                const company = companyData ? companyData[app.companyId] : null;
 
                 return (
                     <div key={app.id}>
