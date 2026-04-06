@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.casey.applyflow.dto.JobBoardStatusResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.model.JobBoardApplicationStatus;
@@ -34,9 +35,8 @@ public class JobBoardApplicationStatusService {
         this.jobBoardRepository = jobBoardRepository;
     }
 
-    // TODO: RETURN A DTO
     @Transactional(readOnly = true)
-    public List<JobBoardApplicationStatus> getAllJobBoardApplicationStatuses(Long jobBoardId, Long applicationId) {
+    public List<JobBoardStatusResponseDto> getAllJobBoardApplicationStatuses(Long jobBoardId, Long applicationId) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
@@ -64,6 +64,23 @@ public class JobBoardApplicationStatusService {
 
         return jobBoardApplicationStatusRepository
             .findAllByJobBoardIdAndApplicationId(jobBoardId, applicationId)
-            .orElseGet(List::of); // Empty list 
+            .orElseGet(List::of)
+            .stream()
+            .map(this::toJobBoardStatusResponseDto)
+            .toList();
+    }
+
+    // dto mapper
+    private JobBoardStatusResponseDto toJobBoardStatusResponseDto(JobBoardApplicationStatus status) {
+        return new JobBoardStatusResponseDto (
+            status.getId(),
+            status.getJobBoard().getId(),
+            status.getApplication().getId(),
+            status.getUser().getId(),
+            status.getUser().getEmail(),
+            status.getStatus(),
+            status.getUpdatedAt(),
+            status.getUpdatedBy()
+        );
     }
 }
