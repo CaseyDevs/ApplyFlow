@@ -1,4 +1,4 @@
-package com.casey.applyflow.domain;
+package com.casey.applyflow.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

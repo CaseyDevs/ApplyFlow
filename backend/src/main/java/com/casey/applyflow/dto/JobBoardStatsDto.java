@@ -2,7 +2,7 @@ package com.casey.applyflow.dto;
 
 import java.util.List;
 
-import com.casey.applyflow.domain.JobBoardMember;
+import com.casey.applyflow.model.JobBoardMember;
 
 public record JobBoardStatsDto(
     JobBoardMember owner,

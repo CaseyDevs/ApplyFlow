@@ -1,12 +1,12 @@
-package com.casey.applyflow.domain;
+package com.casey.applyflow.model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.exception.NoOwnerException;
+import com.casey.applyflow.model.enums.Role;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

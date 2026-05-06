@@ -6,8 +6,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import com.casey.applyflow.domain.User;
 import com.casey.applyflow.exception.UserNotFoundException;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.UserRepository;
 
 @Service

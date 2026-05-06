@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.casey.applyflow.domain.EmailVerificationToken;
+import com.casey.applyflow.model.EmailVerificationToken;
 
 public interface EmailTokenRepository extends JpaRepository<EmailVerificationToken, Long> {
     Optional<EmailVerificationToken> findByToken(String token);

@@ -1,4 +1,4 @@
-package com.casey.applyflow.domain.enums;
+package com.casey.applyflow.model.enums;
 
 public enum Status {
     INTERESTED,

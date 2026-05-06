@@ -13,13 +13,13 @@ import com.casey.applyflow.dto.InterviewResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.InterviewNotFoundException;
+import com.casey.applyflow.model.Application;
+import com.casey.applyflow.model.Contact;
+import com.casey.applyflow.model.Interview;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.ContactRepository;
 import com.casey.applyflow.repository.InterviewRepository;
-import com.casey.applyflow.domain.Application;
-import com.casey.applyflow.domain.Contact;
-import com.casey.applyflow.domain.Interview;
-import com.casey.applyflow.domain.User;
 
 @Service
 public class InterviewService {

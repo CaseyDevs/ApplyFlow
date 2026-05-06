@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.casey.applyflow.domain.Contact;
+import com.casey.applyflow.model.Contact;
 
 public interface ContactRepository extends JpaRepository<Contact, Long> {
     Optional<Contact> findByName(String name);

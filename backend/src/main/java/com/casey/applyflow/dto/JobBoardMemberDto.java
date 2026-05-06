@@ -1,6 +1,6 @@
 package com.casey.applyflow.dto;
 
-import com.casey.applyflow.domain.enums.Role;
+import com.casey.applyflow.model.enums.Role;
 
 public record JobBoardMemberDto(
     Long id,

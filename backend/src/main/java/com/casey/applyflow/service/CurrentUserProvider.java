@@ -4,8 +4,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.casey.applyflow.domain.User;
 import com.casey.applyflow.exception.UserNotFoundException;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.UserRepository;
 
 @Service

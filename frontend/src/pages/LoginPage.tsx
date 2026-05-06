@@ -23,7 +23,7 @@ export default function LoginPage() {
             await refreshUser(); // update on client side
             await queryClient.invalidateQueries({ queryKey: ["job-boards"] });
             setSuccess(true);
-            navigate("/");
+            navigate("/job-boards");
         } catch (err: any) {
             setError(err.message);
         }

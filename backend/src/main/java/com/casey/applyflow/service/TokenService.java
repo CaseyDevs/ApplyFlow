@@ -10,8 +10,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import com.casey.applyflow.domain.User;
 import com.casey.applyflow.exception.UserNotFoundException;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.UserRepository;
 
 @Service

@@ -7,15 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.casey.applyflow.domain.Application;
-import com.casey.applyflow.domain.EmailVerificationToken;
-import com.casey.applyflow.domain.JobBoard;
-import com.casey.applyflow.domain.JobBoardMember;
-import com.casey.applyflow.domain.User;
-import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardMemberDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
@@ -25,6 +20,12 @@ import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.UserNotFoundException;
+import com.casey.applyflow.model.Application;
+import com.casey.applyflow.model.EmailVerificationToken;
+import com.casey.applyflow.model.JobBoard;
+import com.casey.applyflow.model.JobBoardMember;
+import com.casey.applyflow.model.User;
+import com.casey.applyflow.model.enums.Role;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NotAMemberException;
@@ -158,7 +159,7 @@ public class JobBoardService {
 
         return toJobBoardResponseDto(jobBoard);
     }
-    
+
     @Transactional
     public void addMember(Long jobBoardId, String userEmail) {
         if (jobBoardId == null) {

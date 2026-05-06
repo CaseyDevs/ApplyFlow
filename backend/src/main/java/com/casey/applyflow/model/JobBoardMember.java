@@ -1,6 +1,6 @@
-package com.casey.applyflow.domain;
+package com.casey.applyflow.model;
 
-import com.casey.applyflow.domain.enums.Role;
+import com.casey.applyflow.model.enums.Role;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

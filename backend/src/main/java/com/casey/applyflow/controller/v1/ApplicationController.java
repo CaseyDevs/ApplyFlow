@@ -65,7 +65,7 @@ public class ApplicationController {
 
         ApplicationResponseDto response = applicationService.createApplication(request);
 
-        String uri = "/api/applications/" + request.title().toLowerCase().replaceAll(" ", "-");
+        String uri = "/api/v1/applications/" + request.title().toLowerCase().replaceAll(" ", "-");
 
         return ResponseEntity.created(URI.create(uri)).body(response); 
 

@@ -7,11 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.casey.applyflow.domain.Company;
 import com.casey.applyflow.dto.CompanyRequestDto;
 import com.casey.applyflow.dto.CompanyResponseDto;
 import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
+import com.casey.applyflow.model.Company;
 import com.casey.applyflow.repository.CompanyRepository;
 
 @Service

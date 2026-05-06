@@ -26,10 +26,10 @@ dependencies {
     // JPA
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-
-    // H2 - TEMP
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'com.h2database:h2'
+
+    // PostgreSQL
+    runtimeOnly 'org.postgresql:postgresql'
 
     // BCrypt encoding & JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -41,6 +41,9 @@ dependencies {
 
     // Dotenv for .env file loading
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
+    // Rate limiting
+    implementation("com.bucket4j:bucket4j-core:8.7.0")
 }
 
 tasks.named('test') {

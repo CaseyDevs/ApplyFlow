@@ -2,7 +2,7 @@ package com.casey.applyflow.dto;
 
 import java.util.List;
 
-import com.casey.applyflow.domain.enums.Status;
+import com.casey.applyflow.model.enums.Status;
 
 public record ApplicationResponseDto(
     Long id,

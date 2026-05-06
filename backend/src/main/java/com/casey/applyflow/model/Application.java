@@ -1,11 +1,11 @@
-package com.casey.applyflow.domain;
+package com.casey.applyflow.model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.casey.applyflow.domain.enums.Status;
+import com.casey.applyflow.model.enums.Status;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

@@ -7,13 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.casey.applyflow.domain.Interview;
-import com.casey.applyflow.domain.Note;
-import com.casey.applyflow.domain.User;
 import com.casey.applyflow.dto.NoteRequestDto;
 import com.casey.applyflow.dto.NoteResponseDto;
 import com.casey.applyflow.exception.InterviewNotFoundException;
 import com.casey.applyflow.exception.NoteNotFoundException;
+import com.casey.applyflow.model.Interview;
+import com.casey.applyflow.model.Note;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.repository.NoteRepository;
 

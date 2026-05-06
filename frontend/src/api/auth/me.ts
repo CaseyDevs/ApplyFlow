@@ -9,5 +9,14 @@ export async function getCurrentUser(): Promise<User | null> {
         credentials: "include",
     });
 
-    return await response.json(); // throws user not found excpetion if not logged in
+    if (response.status === 401 || response.status === 404) {
+        return null;
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message ?? `Failed to fetch current user: ${response.status}`);
+    }
+
+    return await response.json();
 }
