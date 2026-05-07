@@ -96,7 +96,7 @@ export async function addJobBoardMember(jobBoardId: number, userEmail: string): 
             "Content-Type": "application/json"
         },
         credentials: "include",
-        body: userEmail
+        body: JSON.stringify({ email: userEmail })
     });
 
     if (!response.ok) {

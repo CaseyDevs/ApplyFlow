@@ -23,8 +23,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import jakarta.servlet.http.HttpServletRequest;
 
-import com.casey.applyflow.domain.EmailVerificationToken;
-import com.casey.applyflow.domain.User;
 import com.casey.applyflow.dto.LoginRequestDto;
 import com.casey.applyflow.dto.RegisterRequestDto;
 import com.casey.applyflow.repository.UserRepository;
@@ -40,6 +38,8 @@ import com.casey.applyflow.exception.EmailNotVerifiedException;
 import com.casey.applyflow.exception.InvalidEmailException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
+import com.casey.applyflow.model.EmailVerificationToken;
+import com.casey.applyflow.model.User;
 
 import jakarta.validation.Valid;
 
@@ -113,7 +113,7 @@ public class AuthController {
             return ResponseEntity.ok(response);
         }
 
-        throw new UserNotFoundException("You must be logged in!");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
     
     @PostMapping("/logout")

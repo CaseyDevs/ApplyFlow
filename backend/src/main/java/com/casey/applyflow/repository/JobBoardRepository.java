@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.casey.applyflow.domain.JobBoard;
+import com.casey.applyflow.model.JobBoard;
 
 public interface JobBoardRepository extends JpaRepository<JobBoard, Long> {
     Page<JobBoard> findAllByUserId(Long userId, Pageable pageable);

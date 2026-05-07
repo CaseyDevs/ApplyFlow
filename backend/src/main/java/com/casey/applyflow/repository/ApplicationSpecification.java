@@ -2,8 +2,8 @@ package com.casey.applyflow.repository;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.casey.applyflow.domain.Application;
-import com.casey.applyflow.domain.User;
+import com.casey.applyflow.model.Application;
+import com.casey.applyflow.model.User;
 
 public class ApplicationSpecification {
     public static Specification<Application> companyName(String companyName) {

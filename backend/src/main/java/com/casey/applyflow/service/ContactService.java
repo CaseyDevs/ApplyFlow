@@ -7,13 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.casey.applyflow.domain.Company;
-import com.casey.applyflow.domain.Contact;
 import com.casey.applyflow.dto.ContactRequestDto;
 import com.casey.applyflow.dto.ContactResponseDto;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.exception.ContactNotFoundException;
 import com.casey.applyflow.exception.ContactNotInCompanyException;
+import com.casey.applyflow.model.Company;
+import com.casey.applyflow.model.Contact;
 import com.casey.applyflow.repository.ContactRepository;
 
 import com.casey.applyflow.repository.CompanyRepository;

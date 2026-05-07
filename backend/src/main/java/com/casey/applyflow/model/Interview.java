@@ -1,4 +1,4 @@
-package com.casey.applyflow.domain;
+package com.casey.applyflow.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

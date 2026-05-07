@@ -2,7 +2,8 @@ package com.casey.applyflow.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.casey.applyflow.domain.Interview;
+import com.casey.applyflow.model.Interview;
+
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;

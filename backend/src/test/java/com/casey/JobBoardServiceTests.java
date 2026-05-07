@@ -14,12 +14,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.casey.applyflow.domain.JobBoard;
-import com.casey.applyflow.domain.JobBoardMember;
-import com.casey.applyflow.domain.User;
-import com.casey.applyflow.domain.enums.Role;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
+import com.casey.applyflow.model.JobBoard;
+import com.casey.applyflow.model.JobBoardMember;
+import com.casey.applyflow.model.User;
+import com.casey.applyflow.model.enums.Role;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;

@@ -1,6 +1,8 @@
-import './App.css';
+import '../src/styles/global.css';
 import Navbar from './components/navbar/Navbar';
 import { Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ApplicationsPage from './pages/ApplicationsPage';
@@ -15,9 +17,12 @@ function App() {
     <>
       <Navbar />
       <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="/applications/:applicationId" element={<UpdateApplicationPage />} />
         <Route path="/create-application" element={<CreateApplicationPage />} />
         <Route path="/job-boards/:jobBoardId/applications/:applicationId" element={<UpdateApplicationPage />} />
         <Route path="/job-boards/:jobBoardId" element={<JobBoardDetailsPage />} />

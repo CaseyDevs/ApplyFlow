@@ -3,6 +3,8 @@ import { loginUser } from "../api/auth/login";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import styles from "./Auth.module.css";
+import { useTimedError } from "../hooks/useTimedError";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -10,7 +12,7 @@ export default function LoginPage() {
     const { refreshUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useTimedError(3000);
     const [success, setSuccess] = useState(false);
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -23,45 +25,61 @@ export default function LoginPage() {
             await refreshUser(); // update on client side
             await queryClient.invalidateQueries({ queryKey: ["job-boards"] });
             setSuccess(true);
-            navigate("/");
+            navigate("/job-boards");
         } catch (err: any) {
             setError(err.message);
         }
     };
 
     return (
-        <div>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="email">Email:</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <h1>Welcome Back</h1>
+                    <p>Sign in to your ApplyFlow account</p>
                 </div>
-                <div>
-                    <label htmlFor="password">Password:</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
+
+                <form className={styles.form} onSubmit={handleSubmit}>
+                    <div className={styles.formGroup}>
+                        <label htmlFor="email" className={styles.label}>Email Address</label>
+                        <input
+                            className={styles.input}
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="password" className={styles.label}>Password</label>
+                        <input
+                            className={styles.input}
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    {error && <div className={styles.error}>{error}</div>}
+                    {success && <div className={styles.success}>Login successful!</div>}
+
+                    <button type="submit" className={styles.button}>
+                        Sign In
+                    </button>
+                </form>
+
+                <div className={styles.footer}>
+                    Don't have an account? <Link to="/register">Sign up here</Link>
                 </div>
-                <button type="submit">Login</button>
-            </form>
-
-            <p>Don't have an account ? <Link to="/register" id="register-link">Sign-up here.</Link></p>
-
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {success && <p style={{ color: "green" }}>Login successful!</p>}
+            </div>
         </div>
     );
 }

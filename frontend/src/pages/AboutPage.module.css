@@ -1,0 +1,170 @@
+.container {
+  min-height: calc(100vh - 70px);
+}
+
+/* Header Section */
+.header {
+  padding: var(--space-20) var(--space-8);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-white);
+  text-align: center;
+}
+
+.header h1 {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  margin-bottom: var(--space-4);
+  color: var(--color-white);
+}
+
+.subtitle {
+  font-size: var(--font-size-xl);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0;
+}
+
+/* Section Styles */
+.section {
+  padding: var(--space-16) var(--space-8);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.sectionAlt {
+  background-color: var(--bg-secondary);
+}
+
+.contentWrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.section h2 {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.section p {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.section p:last-child {
+  margin-bottom: 0;
+}
+
+/* Highlights Grid */
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+.highlight {
+  padding: var(--space-6);
+  background-color: var(--bg-primary);
+  border-bottom: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+}
+
+.highlight h3 {
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
+}
+
+.highlight p {
+  font-size: var(--font-size-sm);
+  margin-bottom: 0;
+}
+
+/* Values Grid */
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+.valueCard {
+  padding: var(--space-8);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-normal);
+}
+
+.valueCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.valueCard h3 {
+  margin-bottom: var(--space-3);
+}
+
+.valueCard p {
+  font-size: var(--font-size-sm);
+  margin-bottom: 0;
+}
+
+/* CTA Section */
+.cta {
+  padding: var(--space-12);
+  background-color: var(--bg-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.cta h2 {
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.cta p {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-6);
+}
+
+.ctaButton {
+  padding: var(--space-3) var(--space-8);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+}
+
+.ctaButton:hover {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .header h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .section {
+    padding: var(--space-12) var(--space-4);
+  }
+
+  .highlightGrid,
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta {
+    padding: var(--space-8);
+  }
+}

@@ -10,10 +10,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.casey.applyflow.domain.Application;
-import com.casey.applyflow.domain.Company;
-import com.casey.applyflow.domain.Interview;
-import com.casey.applyflow.domain.User;
+
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.ApplicationSpecification;
 import com.casey.applyflow.repository.CompanyRepository;
@@ -23,6 +20,10 @@ import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
+import com.casey.applyflow.model.Application;
+import com.casey.applyflow.model.Company;
+import com.casey.applyflow.model.Interview;
+import com.casey.applyflow.model.User;
 
 @Service
 public class ApplicationService {

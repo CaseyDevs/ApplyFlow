@@ -5,6 +5,7 @@ import { getApplicationById, updateApplication } from "../api/applicationApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CompanyResponse } from "../types/Company";
 import type { ApplicationStatus } from "../types/ApplicationStatus";
+import styles from "./Forms.module.css";
 
 export default function UpdateApplicationPage() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -16,6 +17,7 @@ export default function UpdateApplicationPage() {
     const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [newCompanyName, setNewCompanyName] = useState<string>("");
     const [location, setLocation] = useState<string | null>(null);
+    const [showNewCompanyForm, setShowNewCompanyForm] = useState(false);
 
     const navigate = useNavigate();
 
@@ -57,6 +59,8 @@ export default function UpdateApplicationPage() {
                 setCompanies(page.content); 
                 setSelectedCompanyId(newCompany.id);
                 setNewCompanyName("");
+                setLocation(null);
+                setShowNewCompanyForm(false);
             } catch (err: any) {
                 setError(err.message);
             } finally {
@@ -93,87 +97,147 @@ export default function UpdateApplicationPage() {
         }
     }
 
-    return (
-        <div>
-            
-            {error && <p>{error}</p>}
+    if (loading && !updatedTitle) {
+        return (
+            <div className={styles.container}>
+                <div style={{textAlign: 'center'}}>Loading application...</div>
+            </div>
+        );
+    }
 
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="title">Job Title:</label>
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={updatedTitle ?? ''}
-                        onChange={(e) => setUpdatedTitle(e.target.value)}
-                        required
-                    />
+    return (
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <h1>Update Application</h1>
+                    <p>Modify your job application details</p>
                 </div>
-                <div>
-                    <label htmlFor="url">URL:</label>
-                    <input
-                        type="url"
-                        id="url"
-                        name="url"
-                        value={updatedUrl ?? ''}
-                        onChange={(e) => setUpdatedUrl(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="status">Status:</label>
-                    <select
-                        name="status"
-                        id="status"
-                        onChange={(e) => setUpdatesStatus(e.target.value as ApplicationStatus)}
-                    >
-                        <option value="INTERESTED">Interested</option>
-                        <option value="APPLIED">Applied</option>
-                        <option value="INTERVIEWING">Interviewing</option>
-                        <option value="OFFER">Offer</option>
-                        <option value="REJECTED">Rejected</option>
-                        <option value="WITHDRAWN">Withdrawn</option>
-                        <option value="ACCEPTED">Accepted</option>
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="company">Company:</label>
-                    {companies ? (
+
+                {error && <div className={styles.error}>{error}</div>}
+
+                <form className={styles.form} onSubmit={handleSubmit}>
+                    <div className={styles.formGroup}>
+                        <label htmlFor="title" className={styles.label}>Job Title</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            id="title"
+                            name="title"
+                            value={updatedTitle ?? ''}
+                            onChange={(e) => setUpdatedTitle(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="url" className={styles.label}>Job URL</label>
+                        <input
+                            className={styles.input}
+                            type="url"
+                            id="url"
+                            name="url"
+                            value={updatedUrl ?? ''}
+                            onChange={(e) => setUpdatedUrl(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="status" className={styles.label}>Application Status</label>
                         <select
-                            name="company"
-                            id="company"
-                            value={selectedCompanyId ?? ''}
-                            onChange={e => setSelectedCompanyId(Number(e.target.value))}
+                            className={styles.select}
+                            name="status"
+                            id="status"
+                            value={updatedStatus ?? ''}
+                            onChange={(e) => setUpdatesStatus(e.target.value as ApplicationStatus)}
                         >
-                            {companies.map(company => (
-                                <option key={company.id} value={company.id}>{company.name}</option>
-                            ))}
+                            <option value="INTERESTED">Interested</option>
+                            <option value="APPLIED">Applied</option>
+                            <option value="INTERVIEWING">Interviewing</option>
+                            <option value="OFFER">Offer</option>
+                            <option value="REJECTED">Rejected</option>
+                            <option value="WITHDRAWN">Withdrawn</option>
+                            <option value="ACCEPTED">Accepted</option>
                         </select>
-                    ) : (
-                        <div>
-                            <p>No companies found!</p>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="company" className={styles.label}>Company</label>
+                        {companies && companies.length > 0 ? (
+                            <select
+                                className={styles.select}
+                                name="company"
+                                id="company"
+                                value={selectedCompanyId ?? ''}
+                                onChange={e => setSelectedCompanyId(Number(e.target.value))}
+                            >
+                                {companies.map(company => (
+                                    <option key={company.id} value={company.id}>{company.name}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <p style={{color: 'var(--color-error)'}}>No companies found. Please add a company.</p>
+                        )}
+                    </div>
+
+                    <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        onClick={() => setShowNewCompanyForm(!showNewCompanyForm)}
+                        style={{marginBottom: 'var(--space-4)'}}
+                    >
+                        {showNewCompanyForm ? "Cancel" : "+ Add New Company"}
+                    </button>
+
+                    {showNewCompanyForm && (
+                        <div style={{padding: 'var(--space-4)', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-4)'}}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="newCompanyName" className={styles.label}>Company Name</label>
+                                <input
+                                    className={styles.input}
+                                    type="text"
+                                    id="newCompanyName"
+                                    placeholder="e.g., Google, Meta, Microsoft"
+                                    value={newCompanyName}
+                                    onChange={e => setNewCompanyName(e.target.value)}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="location" className={styles.label}>Location (Optional)</label>
+                                <input
+                                    className={styles.input}
+                                    type="text"
+                                    id="location"
+                                    placeholder="e.g., San Francisco, CA"
+                                    value={location ?? ""}
+                                    onChange={e => setLocation(e.target.value)}
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                className={styles.button}
+                                onClick={handleAddCompany}
+                                disabled={loading || !newCompanyName}
+                            >
+                                {loading ? "Adding..." : "Add Company"}
+                            </button>
                         </div>
                     )}
-                                
-                    <span>Company not on the list ?<button type="button" id="create-company" onClick={handleAddCompany}>Add a company here!</button></span>
-                    <input
-                        type="text"
-                        placeholder="New company name"
-                        value={newCompanyName}
-                        onChange={e => setNewCompanyName(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Location"
-                        value={location ?? ""}
-                        onChange={e => setLocation(e.target.value)}
-                    />
-                </div>
 
-                <button type="submit" disabled={loading}>Update Application</button>
-            </form>
-            {error && <p style={{color: "red"}}>{error}</p>}
+                    <div className={styles.formFooter}>
+                        <button 
+                            type="button" 
+                            className={styles.secondaryButton}
+                            onClick={() => navigate("/applications")}
+                        >
+                            Cancel
+                        </button>
+                        <button type="submit" className={styles.button} disabled={loading || !selectedCompanyId}>
+                            {loading ? "Updating..." : "Update Application"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     )
 }

@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.casey.applyflow.domain.JobBoardMember;
+import com.casey.applyflow.model.JobBoardMember;
 
 public interface JobBoardMemberRepository extends JpaRepository<JobBoardMember, Long> {
     Optional<JobBoardMember> findByIdAndJobBoardId(Long jobBoardMemberId, Long jobBoardId);

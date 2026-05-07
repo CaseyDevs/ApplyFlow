@@ -1,14 +1,16 @@
 import { useState } from "react"
+import { useTimedError } from "../hooks/useTimedError";
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
 import { getApplicationById, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import styles from "./Details.module.css";
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>();
+    const [error, setError] = useTimedError(3000);
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [displayInput, setDisplayInput] = useState<boolean>(false);
     const [applications, setApplications] = useState<Application[]>([]);
@@ -59,13 +61,13 @@ export default function JobBoardDetailsPage() {
     const queryError = companyError ?? jobBoardError;
     const isQueryLoading = isCompaniesPending || isJobBoardPending;
 
-
     async function handleAddJobBoardMember(userEmail: string) {
         if (!hasValidJobBoardId) return;
         try {
             setLoading(true);
             await addJobBoardMember(thisJobBoardId, userEmail);
             setMemberEmail("");
+            setDisplayInput(false);
             refetchJobBoardData(); // refresh job board data
         } catch (err: any) {
             setError(err.message);
@@ -75,7 +77,7 @@ export default function JobBoardDetailsPage() {
     }
 
     async function handleDeleteJobBoard() {
-        if (!hasValidJobBoardId) return;
+        if (!hasValidJobBoardId || !window.confirm("Are you sure you want to delete this job board?")) return;
         try {
             setLoading(true);
             await deleteJobBoard(thisJobBoardId);
@@ -138,103 +140,237 @@ export default function JobBoardDetailsPage() {
     }
 
     async function handleLeaveJobBoard() {
-        if (!hasValidJobBoardId) return;
+        if (!window.confirm("Are you sure you want to leave this job board?")) return;
 
         try {
             setLoading(true);
-            await leaveJobBoard(thisJobBoardId);
+            if (thisJobBoardId) await leaveJobBoard(thisJobBoardId);
             navigate("/job-boards")
         } catch (err: any) {
-            setError(`Failed to update application`);
+            setError(`Failed to leave job board`);
         } finally {
             setLoading(false);
         }
     }
 
+    if (isQueryLoading) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.loading}>Loading job board...</div>
+            </div>
+        );
+    }
+
+    if (queryError instanceof Error) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.error}>{queryError.message}</div>
+            </div>
+        );
+    }
+
     return (
-        <div>
-            {loading && <p>Loading</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
+        <div className={styles.container}>
+            {loading && <div className={styles.loading}>Loading...</div>}
+            {error && <div className={styles.error}>{error}</div>}
 
-            {isQueryLoading && <p>Loading form data...</p>}
-            {queryError instanceof Error && <p style={{color: "red"}}>{queryError.message}</p>}
-
-            <h1>{jobBoard?.title}</h1>
-            
-            <div>
-                <h3>Members:</h3>
-                {/* Display members */}
-                {jobBoard?.members.map((member) => {
-                    return (
-                            <p>{member.user.email} - {member.role}</p>
-                    );
-                })}
+            <div className={styles.header}>
+                <h1>{jobBoard?.title}</h1>
+                <div className={styles.headerActions}>
+                    <button className={styles.button} onClick={() => setDisplayInput(!displayInput)}>
+                        + Add Member
+                    </button>
+                    <button className={styles.dangerButton} onClick={handleLeaveJobBoard}>
+                        Leave Board
+                    </button>
+                    <button className={styles.dangerButton} onClick={handleDeleteJobBoard}>
+                        Delete Board
+                    </button>
+                </div>
             </div>
 
-            {/* Output applications */}
-            {jobBoard?.applications?.map((app) => {
-                const company = companyData ? companyData[app.companyId] : null;
+            {/* Members Section */}
+            <div className={styles.section}>
+                <div className={styles.sectionTitle}>
+                    <h2 style={{margin: 0}}>Members</h2>
+                </div>
+                <ul className={styles.memberList}>
+                    {jobBoard?.members.map((member) => (
+                        <li key={member.user.id} className={styles.memberItem}>
+                            <span className={styles.memberEmail}>{member.user.email}</span>
+                            <span className={styles.memberRole}>{member.role}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
 
-                return (
-                    <div key={app.id}>
-                        {app.title} - {company?.name ?? "Unknown Company"} - {app.status} - {app.url}
-                        <button onClick={() => handleUpdateJobBoardApplication(app.id)}>Update Application</button>
-                        <button onClick={() => handleRemoveApplication(app.id)}>Remove Application</button>
+            {/* Add Member Form */}
+            {displayInput && (
+                <div className={styles.section}>
+                    <h3 className={styles.sectionTitle} style={{marginBottom: 'var(--space-4)'}}>Add Member</h3>
+                    <div className={styles.form}>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="memberEmail" className={styles.label}>Member Email</label>
+                            <input
+                                className={styles.input}
+                                name="memberEmail"
+                                id="memberEmail"
+                                type="email"
+                                value={memberEmail}
+                                onChange={(e) => setMemberEmail(e.target.value)}
+                                placeholder="user@example.com"
+                                required
+                            />
+                        </div>
+                        <div style={{display: 'flex', gap: 'var(--space-3)'}}>
+                            <button 
+                                className={styles.button}
+                                onClick={() => handleAddJobBoardMember(memberEmail)}
+                                disabled={loading || !memberEmail}
+                            >
+                                {loading ? "Sending..." : "Send Invite"}
+                            </button>
+                            <button 
+                                className={styles.secondaryButton}
+                                onClick={() => {
+                                    setDisplayInput(false);
+                                    setMemberEmail("");
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
-                );
-            })}
-
-
-            <button onClick={() => {
-                // Fetch applications on click if no applications exist in current state
-                if (!displayApplications && applications.length === 0) {
-                    getApplications()
-                        .then((page) => {
-                            const apps = page?.content ?? [];
-                            setApplications(apps);  // store applications in state (cached)
-                            if (apps.length > 0) setSelectedApplicationId(apps[0].id);
-                        })
-                        .catch((err) => setError(err?.message ?? "Failed to fetch applications"));
-                }
-                setDisplayApplications(!displayApplications);
-            }}>+ Application</button>
-
-            {/* Add existing applications */}
-            {displayApplications &&
-                <div>
-                    <label htmlFor="your-applications">Your Applications:</label>
-                    <select name="your-applications" id="application-select" value={selectedApplicationId ?? ""} onChange={(e) => setSelectedApplicationId(Number(e.target.value))}>
-                        {applications?.map((app) => 
-                                <option value={app.id}>{app.title}</option>
-                        )}
-                    </select>
-                    {/* <button onClick={() => navigate("/create-application")}>Create new applicaiton</button> */}
-                    <button onClick={handleAddApplication}>Add application</button>
                 </div>
-            }
+            )}
 
-            {/* Adding a job board member logic */}
-            <button onClick={() => setDisplayInput(!displayInput)}>Add member to job board</button>
-            {displayInput ? (
-                <div>
-                    <label htmlFor="memberEmail">Member Email</label>
-                    <input
-                        name="memberEmail"
-                        type="email"
-                        value={memberEmail}
-                        onChange={(e) => setMemberEmail(e.target.value)}
-                        placeholder="Enter email..."
-                        required
-                    />
-                    <button onClick={() => handleAddJobBoardMember(memberEmail)}>Send Invite</button>
+            {/* Applications Section */}
+            <div className={styles.section}>
+                <div className={styles.sectionTitle}>
+                    <h2 style={{margin: 0}}>Applications ({jobBoard?.applications?.length || 0})</h2>
+                    <button 
+                        className={styles.button}
+                        onClick={() => {
+                            if (!displayApplications && applications.length === 0) {
+                                getApplications()
+                                    .then((page) => {
+                                        const apps = page?.content ?? [];
+                                        setApplications(apps);
+                                        if (apps.length > 0) setSelectedApplicationId(apps[0].id);
+                                    })
+                                    .catch((err) => setError(err?.message ?? "Failed to fetch applications"));
+                            }
+                            setDisplayApplications(!displayApplications);
+                        }}
+                    >
+                        + Add Application
+                    </button>
                 </div>
-            ) : <p></p>}
 
-            {/* Leave a job board  */}
-            <button onClick={handleLeaveJobBoard}>Leave Job Board</button>
+                {jobBoard?.applications && jobBoard.applications.length > 0 ? (
+                    <div className={styles.applicationList}>
+                        {jobBoard.applications.map((app) => {
+                            const company = companyData ? companyData[app.companyId] : null;
 
-            {/* Job board deletion  */}
-            <button onClick={handleDeleteJobBoard}>Delete Job Board</button>
+                            return (
+                                <div key={app.id} className={styles.applicationCard}>
+                                    <h3 className={styles.applicationTitle}>{app.title}</h3>
+                                    <div className={styles.applicationMeta}>
+                                        <p style={{marginBottom: 'var(--space-2)', color: 'var(--text-primary)', fontWeight: 500}}>
+                                            {company?.name ?? "Unknown Company"}
+                                        </p>
+                                        <p style={{marginBottom: 0, fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)'}}>
+                                            {company?.location ?? "Unknown Location"}
+                                        </p>
+                                    </div>
+                                    <span className={`${styles.applicationStatus} ${styles[`status${app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()}`]}`}>
+                                        {app.status}
+                                    </span>
+                                    <div className={styles.applicationActions}>
+                                        <a 
+                                            href={app.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                flex: 1,
+                                                padding: 'var(--space-2)',
+                                                fontSize: 'var(--font-size-xs)',
+                                                textAlign: 'center',
+                                                color: 'var(--color-primary)',
+                                                textDecoration: 'none',
+                                                border: '1px solid var(--color-gray-300)',
+                                                borderRadius: 'var(--radius-md)',
+                                                cursor: 'pointer',
+                                                transition: 'all var(--transition-fast)'
+                                            }}
+                                        >
+                                            View Job
+                                        </a>
+                                        <button 
+                                            className={styles.button}
+                                            onClick={() => handleUpdateJobBoardApplication(app.id)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button 
+                                            className={styles.dangerButton}
+                                            onClick={() => handleRemoveApplication(app.id)}
+                                            style={{padding: 'var(--space-2)', fontSize: 'var(--font-size-xs)'}}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className={styles.emptyState}>
+                        <p>No applications yet. Add one to get started!</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Add Existing Application */}
+            {displayApplications && (
+                <div className={styles.section}>
+                    <h3 className={styles.sectionTitle} style={{marginBottom: 'var(--space-4)'}}>Add Existing Application</h3>
+                    <div className={styles.form}>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="application-select" className={styles.label}>Your Applications</label>
+                            <select 
+                                className={styles.select}
+                                id="application-select" 
+                                value={selectedApplicationId ?? ""} 
+                                onChange={(e) => setSelectedApplicationId(Number(e.target.value))}
+                            >
+                                <option value="">-- Select an application --</option>
+                                {applications?.map((app) => (
+                                    <option key={app.id} value={app.id}>{app.title}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{display: 'flex', gap: 'var(--space-3)'}}>
+                            <button 
+                                className={styles.button}
+                                onClick={handleAddApplication}
+                                disabled={loading || !selectedApplicationId}
+                            >
+                                {loading ? "Adding..." : "Add Application"}
+                            </button>
+                            <button 
+                                className={styles.secondaryButton}
+                                onClick={() => {
+                                    setDisplayApplications(false);
+                                    setSelectedApplicationId(null);
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

@@ -12,8 +12,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
-import com.casey.applyflow.domain.EmailVerificationToken;
-import com.casey.applyflow.domain.User;
+import com.casey.applyflow.model.EmailVerificationToken;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.EmailTokenRepository;
 
 @Service
