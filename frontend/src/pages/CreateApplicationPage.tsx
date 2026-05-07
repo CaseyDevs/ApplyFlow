@@ -7,6 +7,7 @@ import type { ApplicationStatus } from "../types/ApplicationStatus";
 import { addApplicationToJobBoard, getJobBoards } from "../api/jobBoardApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import styles from "./Forms.module.css";
+import { useTimedError } from "../hooks/useTimedError";
 
 export default function CreateApplicationPage() {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function CreateApplicationPage() {
     const [title, setTitle] = useState<string>("");
     const [url, setUrl] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useTimedError(3000);
     const [newCompanyName, setNewCompanyName] = useState<string>("");
     const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [location, setLocation] = useState<string | null>(null);

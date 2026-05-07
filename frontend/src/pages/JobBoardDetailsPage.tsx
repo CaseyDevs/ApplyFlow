@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTimedError } from "../hooks/useTimedError";
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
@@ -9,7 +10,7 @@ import styles from "./Details.module.css";
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>();
+    const [error, setError] = useTimedError(3000);
     const [memberEmail, setMemberEmail] = useState<string>("");
     const [displayInput, setDisplayInput] = useState<boolean>(false);
     const [applications, setApplications] = useState<Application[]>([]);
@@ -59,7 +60,6 @@ export default function JobBoardDetailsPage() {
     // store query error / loading state
     const queryError = companyError ?? jobBoardError;
     const isQueryLoading = isCompaniesPending || isJobBoardPending;
-
 
     async function handleAddJobBoardMember(userEmail: string) {
         if (!hasValidJobBoardId) return;

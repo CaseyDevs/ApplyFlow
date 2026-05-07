@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import styles from "./Auth.module.css";
+import { useTimedError } from "../hooks/useTimedError";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function LoginPage() {
     const { refreshUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useTimedError(3000);
     const [success, setSuccess] = useState(false);
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
