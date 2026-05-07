@@ -77,7 +77,7 @@ export default function JobBoardDetailsPage() {
     }
 
     async function handleDeleteJobBoard() {
-        if (!hasValidJobBoardId || !window.confirm("Are you sure you want to delete this job board?")) return;
+        if (!hasValidJobBoardId) return;
         try {
             setLoading(true);
             await deleteJobBoard(thisJobBoardId);
@@ -140,8 +140,6 @@ export default function JobBoardDetailsPage() {
     }
 
     async function handleLeaveJobBoard() {
-        if (!window.confirm("Are you sure you want to leave this job board?")) return;
-
         try {
             setLoading(true);
             if (thisJobBoardId) await leaveJobBoard(thisJobBoardId);
