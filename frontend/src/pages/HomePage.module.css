@@ -1,17 +1,50 @@
+/* Smooth scrolling */
+:global(html) {
+  scroll-behavior: smooth;
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .container {
   min-height: calc(100vh - 70px);
 }
 
 /* Hero Section */
 .hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--space-20) var(--space-8);
   background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
   text-align: center;
+  min-height: calc(100vh - 70px);
+  position: relative;
+  overflow: hidden;
 }
 
 .heroContent {
   max-width: 800px;
   margin: 0 auto;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .title {
@@ -22,12 +55,13 @@
   color: var(--text-primary);
 }
 
-.highlight {
-  color: var(--color-primary);
+.titleHighlight {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-decoration: none;
+  animation: fadeIn 1s ease-out 0.2s both;
 }
 
 .subtitle {
@@ -35,6 +69,7 @@
   color: var(--text-secondary);
   margin-bottom: var(--space-8);
   line-height: var(--line-height-relaxed);
+  animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
 .ctaButtons {
@@ -42,73 +77,324 @@
   gap: var(--space-4);
   justify-content: center;
   flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
 /* Features Section */
 .features {
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--space-20) var(--space-8);
+  padding: var(--space-24) var(--space-8);
+  position: relative;
 }
 
 .features h2 {
   text-align: center;
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-8);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .featureGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-8);
+  gap: var(--space-12);
 }
 
 .featureCard {
-  padding: var(--space-8);
+  padding: var(--space-12);
   background-color: var(--bg-primary);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-xl);
   transition: all var(--transition-normal);
   text-align: center;
+  animation: fadeInUp 0.8s ease-out;
+  animation-fill-mode: both;
+}
+
+.featureCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.featureCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.featureCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.featureCard:nth-child(4) {
+  animation-delay: 0.4s;
 }
 
 .featureCard:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-8px);
 }
 
 .featureIcon {
-  font-size: 3rem;
-  margin-bottom: var(--space-4);
+  font-size: 3.5rem;
+  margin-bottom: var(--space-6);
+  display: inline-block;
+  transition: transform 0.3s ease-out;
+}
+
+.featureCard:hover .featureIcon {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .featureCard h3 {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
 }
 
 .featureCard p {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Mission Section */
+.mission {
+  padding: var(--space-24) var(--space-8);
+  position: relative;
+}
+
+.mission h2 {
+  text-align: center;
+  margin-bottom: var(--space-12);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.mission p {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+.mission p:last-child {
+  margin-bottom: 0;
+}
+
+/* Content Wrapper */
+.contentWrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Offers Section */
+.offers {
+  padding: var(--space-24) var(--space-8);
+  position: relative;
+}
+
+.offers h2 {
+  text-align: center;
+  margin-bottom: var(--space-16);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-10);
+  margin-top: var(--space-8);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.highlight {
+  padding: var(--space-10);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(var(--color-primary-rgb), 0.02) 100%);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-normal);
+  animation: fadeInUp 0.8s ease-out;
+  animation-fill-mode: both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease-out;
+}
+
+.highlight:hover::before {
+  transform: scaleX(1);
+}
+
+.highlight:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.highlight:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.highlight:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.highlight:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.highlight:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-4px);
+}
+
+.highlightIcon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-4);
+  display: inline-block;
+  transition: transform 0.3s ease-out;
+  line-height: 1;
+}
+
+.highlight:hover .highlightIcon {
+  transform: scale(1.15) rotate(10deg);
+}
+
+.highlight h3 {
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  transition: color 0.3s ease-out;
+}
+
+.highlight:hover h3 {
+  color: var(--color-primary);
+}
+
+.highlight p {
+  font-size: var(--font-size-sm);
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  flex-grow: 1;
+}
+
+/* Values Section */
+.values {
+  padding: var(--space-24) var(--space-8);
+  background-color: var(--bg-secondary);
+  position: relative;
+}
+
+.values h2 {
+  text-align: center;
+  margin-bottom: var(--space-12);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-12);
+  margin-top: var(--space-8);
+}
+
+.valueCard {
+  padding: var(--space-10);
+  background-color: var(--bg-primary);
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-normal);
+  animation: fadeInUp 0.8s ease-out;
+  animation-fill-mode: both;
+}
+
+.valueCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.valueCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.valueCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.valueCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.valueCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-6px);
+}
+
+.valueCard h3 {
+  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  transition: color 0.3s ease-out;
+}
+
+.valueCard:hover h3 {
+  color: var(--color-primary);
+}
+
+.valueCard p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin-bottom: 0;
+  line-height: var(--line-height-relaxed);
 }
 
 /* CTA Section */
 .ctaSection {
-  padding: var(--space-20) var(--space-8);
-  background-color: var(--bg-secondary);
+  padding: var(--space-24) var(--space-8);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   text-align: center;
-  border-top: 1px solid var(--color-gray-200);
+  position: relative;
+  overflow: hidden;
 }
 
 .ctaSection h2 {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
+  color: var(--color-white);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .ctaSection p {
-  font-size: var(--font-size-lg);
-  margin-bottom: var(--space-8);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-10);
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  color: rgba(255, 255, 255, 0.9);
+  animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
 /* Buttons */
@@ -121,18 +407,19 @@
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-base);
   cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .primaryButton:hover {
   background-color: var(--color-primary-dark);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   transform: translateY(-2px);
 }
 
 .primaryButton:active {
   transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .secondaryButton {
@@ -144,12 +431,13 @@
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-base);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
 }
 
 .secondaryButton:hover {
   background-color: var(--color-primary-lighter);
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 .secondaryButton:active {
@@ -157,6 +445,17 @@
 }
 
 @media (max-width: 768px) {
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .hero {
     padding: var(--space-12) var(--space-4);
   }
@@ -175,10 +474,36 @@
   }
 
   .features {
-    padding: var(--space-12) var(--space-4);
+    padding: var(--space-16) var(--space-4);
+  }
+
+  .mission {
+    padding: var(--space-16) var(--space-4);
+  }
+
+  .offers {
+    padding: var(--space-16) var(--space-4);
   }
 
   .ctaSection {
-    padding: var(--space-12) var(--space-4);
+    padding: var(--space-16) var(--space-4);
+  }
+
+  .values {
+    padding: var(--space-16) var(--space-4);
+  }
+
+  .highlightGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  .valuesGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+
+  .featureCard:hover .featureIcon {
+    transform: scale(1.05) rotate(3deg);
   }
 }

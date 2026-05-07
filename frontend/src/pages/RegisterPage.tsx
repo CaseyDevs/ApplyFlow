@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { registerUser } from "../api/auth/register";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styles from "./Auth.module.css";
 import { useTimedError } from "../hooks/useTimedError";
 
@@ -10,6 +10,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useTimedError(3000);
     const [success, setSuccess] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -23,6 +24,7 @@ export default function RegisterPage() {
             setName("");
             setEmail("");
             setPassword("");
+            navigate("/login");
         } catch (err: any) {
             setError(err.message);
         }
