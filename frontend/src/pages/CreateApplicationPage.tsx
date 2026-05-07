@@ -3,8 +3,10 @@ import { createApplication } from "../api/applicationApi";
 import { useNavigate } from "react-router-dom";
 import { getAllCompanies, createCompany } from "../api/companiesApi";
 import type { JobBoardResponse } from "../types/JobBoard";
+import type { ApplicationStatus } from "../types/ApplicationStatus";
 import { addApplicationToJobBoard, getJobBoards } from "../api/jobBoardApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import styles from "./Forms.module.css";
 
 export default function CreateApplicationPage() {
     const navigate = useNavigate();
@@ -16,6 +18,8 @@ export default function CreateApplicationPage() {
     const [newCompanyName, setNewCompanyName] = useState<string>("");
     const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [location, setLocation] = useState<string | null>(null);
+    const [status, setStatus] = useState<ApplicationStatus>("INTERESTED");
+    const [showNewCompanyForm, setShowNewCompanyForm] = useState(false);
     const interviewId = null;
     const [selectedJobBoardId, setSelectedJobBoardId] = useState<number | null>(null);
 
@@ -64,6 +68,8 @@ export default function CreateApplicationPage() {
             
             setSelectedCompanyId(newCompany.id);
             setNewCompanyName("");
+            setLocation(null);
+            setShowNewCompanyForm(false);
             await refetchCompanies();
         } catch (err: any) {
             setError(err.message);
@@ -82,12 +88,13 @@ export default function CreateApplicationPage() {
         }
 
         try {
+            setLoading(true);
             const application = await createApplication({
                 title,
                 url,
                 companyId: selectedCompanyId,
                 interviewId, // will always be null *need to remove in backend*
-                status: (e.currentTarget.status.value || "INTERESTED"),
+                status,
             });
 
             // add this new application to the chosen job board
@@ -102,105 +109,177 @@ export default function CreateApplicationPage() {
             navigate("/applications");
         } catch (err: any) {
             setError(err.message);
+        } finally {
+            setLoading(false);
         }
     }
 
+    if (isQueryLoading) {
+        return (
+            <div className={styles.container}>
+                <div style={{textAlign: 'center'}}>Loading form data...</div>
+            </div>
+        );
+    }
+
     return (
-        <div>
-            {isQueryLoading && <p>Loading form data...</p>}
-            {queryError instanceof Error && <p style={{color: "red"}}>{queryError.message}</p>}
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="title">Job Title:</label>
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="url">URL:</label>
-                    <input
-                        type="url"
-                        id="url"
-                        name="url"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="status">Status:</label>
-                    <select name="status" id="status">
-                        <option value="INTERESTED">Interested</option>
-                        <option value="APPLIED">Applied</option>
-                        <option value="INTERVIEWING">Interviewing</option>
-                        <option value="OFFER">Offer</option>
-                        <option value="REJECTED">Rejected</option>
-                        <option value="WITHDRAWN">Withdrawn</option>
-                        <option value="ACCEPTED">Accepted</option>
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="company">Company:</label>
-                    {companies.length > 0 ? (
-                        <select
-                            name="company"
-                            id="company"
-                            value={selectedCompanyId ?? ''}
-                            onChange={e => setSelectedCompanyId(Number(e.target.value))}
-                        >
-                            {companies.map(company => (
-                                <option key={company.id} value={company.id}>{company.name}</option>
-                            ))}
-                        </select>
-                    ) : (
-                        <div>
-                            <p>No companies found!</p>
-                        </div>
-                    )}
-                                
-                    <span>Company not on the list ?<button type="button" id="create-company" onClick={handleAddCompany}>Add a company here!</button></span>
-                    <input
-                        type="text"
-                        placeholder="New company name"
-                        value={newCompanyName}
-                        onChange={e => setNewCompanyName(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Location"
-                        value={location ?? ""}
-                        onChange={e => setLocation(e.target.value)}
-                    />
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <div className={styles.header}>
+                    <h1>Create Application</h1>
+                    <p>Track your new job application</p>
                 </div>
 
-                {/* Adding new application to members job board  */}
-                <div>
-                    <span>Would you like to add this application to a job board ?</span>
-                    {jobBoards.length > 0 ?
-                        <div>
-                            <label htmlFor="">Your Job Boards</label>
+                {queryError instanceof Error && <div className={styles.error}>{queryError.message}</div>}
+                {error && <div className={styles.error}>{error}</div>}
+
+                <form className={styles.form} onSubmit={handleSubmit}>
+                    <div className={styles.formGroup}>
+                        <label htmlFor="title" className={styles.label}>Job Title</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            id="title"
+                            name="title"
+                            placeholder="e.g., Senior Software Engineer"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="url" className={styles.label}>Job URL</label>
+                        <input
+                            className={styles.input}
+                            type="url"
+                            id="url"
+                            name="url"
+                            placeholder="https://example.com/jobs/123"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="status" className={styles.label}>Application Status</label>
+                        <select 
+                            className={styles.select} 
+                            name="status" 
+                            id="status"
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
+                        >
+                            <option value="INTERESTED">Interested</option>
+                            <option value="APPLIED">Applied</option>
+                            <option value="INTERVIEWING">Interviewing</option>
+                            <option value="OFFER">Offer</option>
+                            <option value="REJECTED">Rejected</option>
+                            <option value="WITHDRAWN">Withdrawn</option>
+                            <option value="ACCEPTED">Accepted</option>
+                        </select>
+                    </div>
+
+                    {/* Company Selection */}
+                    <div className={styles.formGroup}>
+                        <label htmlFor="company" className={styles.label}>Company</label>
+                        {companies.length > 0 ? (
                             <select
+                                className={styles.select}
+                                name="company"
+                                id="company"
+                                value={selectedCompanyId ?? ''}
+                                onChange={e => setSelectedCompanyId(Number(e.target.value))}
+                            >
+                                {companies.map(company => (
+                                    <option key={company.id} value={company.id}>{company.name}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <p style={{color: 'var(--color-error)'}}>No companies found. Please add a company.</p>
+                        )}
+                    </div>
+
+                    {/* Add New Company */}
+                    <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        onClick={() => setShowNewCompanyForm(!showNewCompanyForm)}
+                        style={{marginBottom: 'var(--space-4)'}}
+                    >
+                        {showNewCompanyForm ? "Cancel" : "+ Add New Company"}
+                    </button>
+
+                    {showNewCompanyForm && (
+                        <div style={{padding: 'var(--space-4)', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-4)'}}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="newCompanyName" className={styles.label}>Company Name</label>
+                                <input
+                                    className={styles.input}
+                                    type="text"
+                                    id="newCompanyName"
+                                    placeholder="e.g., Google, Meta, Microsoft"
+                                    value={newCompanyName}
+                                    onChange={e => setNewCompanyName(e.target.value)}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="location" className={styles.label}>Location (Optional)</label>
+                                <input
+                                    className={styles.input}
+                                    type="text"
+                                    id="location"
+                                    placeholder="e.g., San Francisco, CA"
+                                    value={location ?? ""}
+                                    onChange={e => setLocation(e.target.value)}
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                className={styles.button}
+                                onClick={handleAddCompany}
+                                disabled={loading || !newCompanyName}
+                            >
+                                {loading ? "Adding..." : "Add Company"}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Job Board Selection */}
+                    <div className={styles.formGroup}>
+                        <label htmlFor="jobBoard" className={styles.label}>Add to Job Board (Optional)</label>
+                        {jobBoards.length > 0 ? (
+                            <select
+                                className={styles.select}
+                                id="jobBoard"
                                 value={selectedJobBoardId ?? ""}
                                 onChange={(e) => setSelectedJobBoardId(e.target.value ? Number(e.target.value) : null)}
                             >
-                                <option value=""></option>
-                                {jobBoards.map((jb: JobBoardResponse) => {
-                                     return (
-                                        <option value={jb.id}>{jb.title}</option>
-                                     )
-                                })}
+                                <option value="">-- Select a job board --</option>
+                                {jobBoards.map((jb: JobBoardResponse) => (
+                                    <option key={jb.id} value={jb.id}>{jb.title}</option>
+                                ))}
                             </select>
-                        </div> 
-                    : <p>You are not yet a member of any job boards!</p> }
-                </div>
-                <button type="submit" disabled={loading}>Create Application</button>
-            </form>
-            {error && <p style={{color: "red"}}>{error}</p>}
+                        ) : (
+                            <p style={{color: 'var(--text-secondary)'}}>You are not yet a member of any job boards. Create one to organize your applications.</p>
+                        )}
+                    </div>
+
+                    <div className={styles.formFooter}>
+                        <button 
+                            type="button" 
+                            className={styles.secondaryButton}
+                            onClick={() => navigate("/applications")}
+                        >
+                            Cancel
+                        </button>
+                        <button type="submit" className={styles.button} disabled={loading || !selectedCompanyId}>
+                            {loading ? "Creating..." : "Create Application"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
