@@ -1,6 +1,11 @@
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import styles from './AboutPage.module.css';
 
 export default function AboutPage() {
+const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <main className={styles.container}>
       {/* Header Section */}
@@ -90,15 +95,18 @@ export default function AboutPage() {
       </section>
 
       {/* Get Started Section */}
-      <section className={styles.section}>
+      {!isLoggedIn && <section className={styles.section}>
         <div className={styles.contentWrapper}>
           <div className={styles.cta}>
             <h2>Ready to Streamline Your Job Search?</h2>
             <p>Join ApplyFlow today and experience a better way to manage your applications.</p>
-            <button className={styles.ctaButton}>Get Started Free</button>
+            <button className={styles.ctaButton} onClick={() => navigate("/register")}>
+              Get Started Free
+            </button>
           </div>
         </div>
       </section>
+      }
     </main>
   );
 }
