@@ -1,0 +1,117 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.logo:hover {
+  opacity: 0.8;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.logoImage {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.menu {
+  display: flex;
+  list-style: none;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+}
+
+.menuLink {
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-normal);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.menuLink:hover {
+  background-color: var(--bg-secondary);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.menuLink.active {
+  color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+  text-decoration: none;
+}
+
+.button {
+  padding: var(--space-2) var(--space-6);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.button:hover {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.logoutButton {
+  padding: var(--space-2) var(--space-6);
+  background-color: var(--color-error);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.logoutButton:hover {
+  background-color: #dc2626;
+  box-shadow: var(--shadow-md);
+}
+
+.logoutButton:active {
+  transform: scale(0.98);
+}
