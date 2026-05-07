@@ -3,6 +3,7 @@ import { deleteApplication, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import styles from "./Pages.module.css";
 
 export default function ApplicationsPage() {
     const navigate = useNavigate();
@@ -60,7 +61,13 @@ export default function ApplicationsPage() {
     }
 
     // check loading state
-    if (isApplicationsPending || isCompaniesPending || deleting) return <p>Loading applications...</p>;
+    if (isApplicationsPending || isCompaniesPending || deleting) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.loading}>Loading applications...</div>
+            </div>
+        );
+    }
 
     const errors = [
         applicationError instanceof Error ? applicationError.message : null,
@@ -71,9 +78,9 @@ export default function ApplicationsPage() {
     // output errors
     if (errors.length > 0) {
         return (
-            <div>
+            <div className={styles.container}>
                 {errors.map((error, idx) => (
-                    <p key={idx} style={{ color: "red" }}>{error}</p>
+                    <div key={idx} className={styles.error}>{error}</div>
                 ))}
             </div>
         );
@@ -82,32 +89,88 @@ export default function ApplicationsPage() {
     // handle empty application list
     if (apps.length === 0) {
         return (
-            <div>
-                <p>You do not have any applications yet!</p>
-                <h2>Applications</h2>
-                <button onClick={() => navigate("/create-application")}>Create Application +</button>
+            <div className={styles.container}>
+                <div className={styles.header}>
+                    <h1>Applications</h1>
+                </div>
+                <div className={styles.emptyState}>
+                    <h2>No Applications Yet</h2>
+                    <p>Start by creating your first job application to track your progress.</p>
+                    <button 
+                        className={styles.button}
+                        onClick={() => navigate("/create-application")}
+                    >
+                        + Create Application
+                    </button>
+                </div>
             </div>
         );
     }
 
     return (
-        <div>
-            <h2>Applications</h2>
-            <button onClick={() => navigate("/create-application")}>Create Application +</button>
-            <ul>
-                {/* Output application and company data */}
-                {apps.map((app) => (
-                    <li key={app.url}>
-                        <span>
-                            <a href={app.url}>{app.title}</a> - 
-                            {companyData?.[app.companyId]?.name || "Unknown Company"} - 
-                            {companyData?.[app.companyId]?.location || "Unknown Location"} - 
-                            {app.status} - 
-                            <button type="button" onClick={() => handleDeleteApplication(app.id)}>-</button>
-                        </span>
-                    </li> 
-                ))}
-            </ul>
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <h1>Applications</h1>
+                <button 
+                    className={styles.button}
+                    onClick={() => navigate("/create-application")}
+                >
+                    + Create Application
+                </button>
+            </div>
+
+            {deleteError && <div className={styles.error}>{deleteError}</div>}
+
+            <table className={styles.table}>
+                <thead className={styles.tableHeader}>
+                    <tr>
+                        <th className={styles.tableHeaderCell}>Position</th>
+                        <th className={styles.tableHeaderCell}>Company</th>
+                        <th className={styles.tableHeaderCell}>Location</th>
+                        <th className={styles.tableHeaderCell}>Status</th>
+                        <th className={styles.tableHeaderCell}>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {apps.map((app) => (
+                        <tr key={app.id} className={styles.tableRow}>
+                            <td className={styles.tableCell}>
+                                <a href={app.url} target="_blank" rel="noopener noreferrer" style={{color: 'var(--color-primary)'}}>
+                                    {app.title}
+                                </a>
+                            </td>
+                            <td className={styles.tableCell}>
+                                {companyData?.[app.companyId]?.name || "Unknown Company"}
+                            </td>
+                            <td className={styles.tableCell}>
+                                {companyData?.[app.companyId]?.location || "Unknown Location"}
+                            </td>
+                            <td className={styles.tableCell}>
+                                <span className={`${styles.statusBadge} ${styles[`status${app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()}`]}`}>
+                                    {app.status}
+                                </span>
+                            </td>
+                            <td className={styles.tableCell}>
+                                <div className={styles.actions}>
+                                    <button 
+                                        className={styles.actionButton}
+                                        onClick={() => navigate(`/applications/${app.id}`)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                                        onClick={() => handleDeleteApplication(app.id)}
+                                        disabled={deleting}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }
