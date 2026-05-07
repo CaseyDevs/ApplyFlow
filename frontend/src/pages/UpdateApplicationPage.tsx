@@ -5,6 +5,7 @@ import { getApplicationById, updateApplication } from "../api/applicationApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { CompanyResponse } from "../types/Company";
 import type { ApplicationStatus } from "../types/ApplicationStatus";
+import { useQueryClient } from "@tanstack/react-query";
 import styles from "./Forms.module.css";
 
 export default function UpdateApplicationPage() {
@@ -20,11 +21,16 @@ export default function UpdateApplicationPage() {
     const [showNewCompanyForm, setShowNewCompanyForm] = useState(false);
 
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     // get application id from url
     const { applicationId: applicationIdParam } = useParams();
     const applicationId = applicationIdParam ? Number(applicationIdParam) : null;
     const hasValidApplicationId = applicationId !== null && Number.isFinite(applicationId);
+
+    const { jobBoardId: jobBoardIdParam } = useParams(); // get the job board id from url
+    const thisJobBoardId = jobBoardIdParam ? Number(jobBoardIdParam) : null;
+    const hasValidJobBoardId = thisJobBoardId !== null && Number.isFinite(thisJobBoardId); // ensure job board id is always valid
 
     useEffect(() => {
         if (!hasValidApplicationId) return;
@@ -89,7 +95,11 @@ export default function UpdateApplicationPage() {
         try {
             setLoading(true);
             await updateApplication(applicationId, updatedApplication);
-            navigate("/applications");
+            // Invalidate job board query to refetch updated data
+            if (hasValidJobBoardId) {
+                queryClient.invalidateQueries({ queryKey: ["job-board", thisJobBoardId] });
+            }
+            hasValidJobBoardId ? navigate(`/job-boards/${thisJobBoardId}`) : navigate(`/applications`);
         } catch (err: any){
             setError(err.message || "Failed to update application");
         } finally {
