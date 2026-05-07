@@ -144,7 +144,7 @@ export default function JobBoardDetailsPage() {
 
         try {
             setLoading(true);
-            await leaveJobBoard(thisJobBoardId);
+            if (thisJobBoardId) await leaveJobBoard(thisJobBoardId);
             navigate("/job-boards")
         } catch (err: any) {
             setError(`Failed to leave job board`);
