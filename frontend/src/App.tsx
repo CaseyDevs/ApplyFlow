@@ -11,6 +11,8 @@ import CreateJobBoardPage from './pages/CreateJobBoardPage';
 import JobBoardDetailsPage from './pages/JobBoardDetailsPage';
 import UpdateApplicationPage from './pages/UpdateApplicationPage';
 import EmailVerifiedSuccessPage from './pages/EmailVerifiedSuccessPage';
+import EmailVerifyPage from './pages/EmailVerifyPage';
+import EmailVerifiedFailurePage from './pages/EmailVerifiedFailurePage';
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
         <Route path="/job-boards" element={<JobBoardPage />} />
         <Route path="/job-boards/create" element={<CreateJobBoardPage />} />
         <Route path="/email-verified-success" element={<EmailVerifiedSuccessPage />} />
+        <Route path="/email-verified-failure" element={<EmailVerifiedFailurePage />} />
+        <Route path="/email-verify" element={<EmailVerifyPage />} />
       </Routes>
     </>
   );
