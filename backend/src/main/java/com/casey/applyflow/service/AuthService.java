@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.model.EmailVerificationToken;
 import com.casey.applyflow.model.User;
@@ -30,6 +31,7 @@ public class AuthService {
         this.emailService = emailService;
     }
 
+    @Transactional
     public void register(User user) {
         log.warn("AUTH_REGISTER_START email={}", user.getEmail());
 
