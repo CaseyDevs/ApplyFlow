@@ -10,7 +10,6 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useTimedError(3000);
     const [success, setSuccess] = useState(false);
-    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -24,7 +23,6 @@ export default function RegisterPage() {
             setName("");
             setEmail("");
             setPassword("");
-            navigate("/login");
         } catch (err: any) {
             setError(err.message);
         }
@@ -84,7 +82,8 @@ export default function RegisterPage() {
                     {error && <div className={styles.error}>{error}</div>}
                     {success && (
                         <div className={styles.success}>
-                            Registration successful! Redirecting to login...
+                            Registration successful! Please verify your email.
+                            <p>If you can't see the email, be sure to check the spam folder :)</p>
                         </div>
                     )}
 
