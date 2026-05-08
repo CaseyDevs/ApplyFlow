@@ -60,6 +60,11 @@
   font-weight: var(--font-weight-normal);
   border-radius: var(--radius-md);
   transition: background-color var(--transition-fast), color var(--transition-fast);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
 }
 
 .menuLink:hover {

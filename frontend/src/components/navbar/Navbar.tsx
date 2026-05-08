@@ -11,6 +11,8 @@ export default function Navbar() {
     const queryClient = useQueryClient();
     const { isLoggedIn, refreshUser } = useAuth();
 
+    const isHome = location.pathname === '/';
+
     const handleLogout = async () => {
         try {
             await logoutUser();
@@ -19,6 +21,13 @@ export default function Navbar() {
             navigate("/");
         } catch (err) {
             console.error("Logout failed:", err);
+        }
+    };
+
+    const handleSmoothScroll = (sectionId: string) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
@@ -38,11 +47,41 @@ export default function Navbar() {
                             Home
                         </Link>
                     </li>
-                    <li className={styles.menuItem}>
-                        <Link to="/about" className={`${styles.menuLink} ${isActive('/about') ? styles.active : ''}`}>
-                            About
-                        </Link>
-                    </li>
+                    {isHome && (
+                        <>
+                            <li className={styles.menuItem}>
+                                <button 
+                                    onClick={() => handleSmoothScroll('features')}
+                                    className={styles.menuLink}
+                                >
+                                    Features
+                                </button>
+                            </li>
+                            <li className={styles.menuItem}>
+                                <button 
+                                    onClick={() => handleSmoothScroll('offers')}
+                                    className={styles.menuLink}
+                                >
+                                    What We Offer
+                                </button>
+                            </li>
+                            <li className={styles.menuItem}>
+                                <button 
+                                    onClick={() => handleSmoothScroll('mission')}
+                                    className={styles.menuLink}
+                                >
+                                    About
+                                </button>
+                            </li>
+                        </>
+                    )}
+                    {!isHome && (
+                        <li className={styles.menuItem}>
+                            <Link to="/" className={styles.menuLink}>
+                                About
+                            </Link>
+                        </li>
+                    )}
                     {isLoggedIn ? (
                         <>
                             <li className={styles.menuItem}>

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -26,20 +25,17 @@ public class EmailService {
     
     private final JavaMailSender mailSender;
     private EmailTokenRepository emailTokenRepository;
-
-    @Value("${spring.mail.username}")
-    private String mailFrom;
+    private String mailFrom = "ApplyFlow";
 
     public EmailService(JavaMailSender mailSender, EmailTokenRepository emailTokenRepository) {
         this.mailSender = mailSender;
         this.emailTokenRepository = emailTokenRepository;
     }
 
-    // send email via java mail sender
     @Async
     public void sendVerificationEmail(User user, String token) {
         log.warn("EMAIL_SEND_START to={}", user.getEmail());
-        String verificationLink = "http://localhost:8080/api/auth/verify?token=" + token;
+        String verificationLink = "http://localhost:5173/email-verify?token=" + token;
         String body = String.format("""
                 <!DOCTYPE html>
                 <html>
