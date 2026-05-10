@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './HomePage.module.css';
 
 export default function HomePage() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -12,7 +12,11 @@ export default function HomePage() {
       <section className={styles.hero} id="home">
         <div className={styles.heroContent}>
           <h1 className={styles.title}>
-            Manage Your <span className={styles.titleHighlight}>Job Applications</span> Effortlessly
+            {isLoggedIn ? (
+              <>Hi, {user?.name}</>
+            ) : (
+            <>Manage Your <span className={styles.titleHighlight}>Job Applications</span> Effortlessly</>
+            )}
           </h1>
           <p className={styles.subtitle}>
             Track your job applications, manage job boards with friends, and stay organized throughout your job search journey. ApplyFlow makes it simple to succeed.
