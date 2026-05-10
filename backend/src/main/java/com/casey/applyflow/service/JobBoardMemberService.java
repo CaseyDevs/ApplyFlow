@@ -51,7 +51,7 @@ public class JobBoardMemberService {
     }
 
     @Transactional
-    public void addMember(Long jobBoardId, String userEmail) {
+    public void inviteMember(Long jobBoardId, String userEmail) {
         if (jobBoardId == null) {
             throw new IllegalArgumentException("Job board ID cannot be null");
         }
@@ -110,6 +110,24 @@ public class JobBoardMemberService {
         jobBoard.addMember(toJobBoardMember(user));
         jobBoardRepository.save(jobBoard);
         emailTokenRepository.delete(verificationToken); // remove temp token
+    }
+
+    @Transactional
+    public void rejectInvitation(String token) {
+        // ensure token is valid
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        EmailVerificationToken verificationToken = emailTokenRepository.findByToken(token)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+
+        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expired");
+        }
+
+        // remove token
+        emailTokenRepository.delete(verificationToken);
     }
 
     @Transactional
