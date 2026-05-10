@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,14 +28,13 @@ import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
-import com.casey.applyflow.exception.InvalidEmailException;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.CompanyRepository;
 import com.casey.applyflow.repository.EmailTokenRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
-import com.casey.applyflow.utils.EmailValidationProvider;
+
 
 @Service
 public class JobBoardService {
@@ -96,26 +93,7 @@ public class JobBoardService {
         return toJobBoardResponseDto(jobBoard);
     }
 
-    @Transactional(readOnly = true)
-    public Page<ApplicationResponseDto> getAllJobBoardApplications(Long jobBoardId, Pageable pageable) {
-        if (jobBoardId == null) {
-            throw new IllegalArgumentException("Job board ID cannot be null");
-        }
 
-        User currentUser = currentUserProvider.getCurrentUser();
-
-        log.info("Fetching applications for job board {} for user {}", jobBoardId, currentUser.getId());
-
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-
-        return new org.springframework.data.domain.PageImpl<>(
-            jobBoard.getApplications().stream()
-                .map(applicationService::toApplicationResponseDto)
-                .toList(),
-            pageable,
-            jobBoard.getApplications().size()
-        );
-    }
 
     @Transactional
     public JobBoardResponseDto createJobBoard(JobBoardRequestDto request) {
@@ -275,53 +253,9 @@ public class JobBoardService {
         log.info("Ownership of job board {} transferred successfully", jobBoardId);
     }
 
-    @Transactional
-    public void addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
-        if (jobBoardId == null) {
-            throw new IllegalArgumentException("Job board ID cannot be null");
-        }
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
-        }
 
-        User currentUser = currentUserProvider.getCurrentUser();
 
-        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
-            .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
 
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-
-        log.info("Adding application {} to job board {}", applicationId, jobBoardId);
-        jobBoard.addApplication(application);
-        jobBoardRepository.save(jobBoard);
-
-        log.info("Application {} added to job board {} successfully", applicationId, jobBoardId);
-    }
-
-    @Transactional
-    public void removeApplicationFromJobBoard(Long jobBoardId, Long applicationId) {
-        if (jobBoardId == null) {
-            throw new IllegalArgumentException("Job board ID cannot be null");
-        }
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
-        }
-        
-        User currentUser = currentUserProvider.getCurrentUser();
-
-        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
-
-        Application application = jobBoard.getApplications().stream()
-            .filter(app -> app.getId().equals(applicationId))
-            .findFirst()
-            .orElseThrow(() -> new ApplicationNotFoundException("Application is not on this job board"));
-        
-        log.info("Removing application {} from job board {}", applicationId, jobBoardId);
-        jobBoard.removeApplication(application);
-        jobBoardRepository.save(jobBoard);
-        
-        log.info("Application {} removed from job board {} successfully", applicationId, jobBoardId);
-    }
 
     @Transactional
     public void leaveJobBoard(Long jobBoardId) {

@@ -9,6 +9,7 @@ import com.casey.applyflow.dto.AddJobBoardMemberRequestDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
+import com.casey.applyflow.service.JobBoardApplicationService;
 import com.casey.applyflow.service.JobBoardService;
 
 import jakarta.validation.Valid;
@@ -28,11 +29,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RequestMapping("/api/v1")
 public class JobBoardController {
     private final JobBoardService jobBoardService;
+    private final JobBoardApplicationService jobBoardApplicationService;
 
     public JobBoardController(
-        JobBoardService jobBoardService
+        JobBoardService jobBoardService,
+        JobBoardApplicationService jobBoardApplicationService
     ) {
         this.jobBoardService = jobBoardService;
+        this.jobBoardApplicationService = jobBoardApplicationService;
     }
 
     @GetMapping("/job-boards")
@@ -58,7 +62,7 @@ public class JobBoardController {
         @PathVariable Long jobBoardId
     ) {
 
-        return ResponseEntity.ok(jobBoardService.getAllJobBoardApplications(jobBoardId, pageable));
+        return ResponseEntity.ok(jobBoardApplicationService.getAllJobBoardApplications(jobBoardId, pageable));
     }
 
     @PostMapping("/job-boards")
@@ -138,7 +142,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long applicationId
     ) {
 
-        jobBoardService.addApplicationToJobBoard(jobBoardId, applicationId);
+        jobBoardApplicationService.addApplicationToJobBoard(jobBoardId, applicationId);
         return ResponseEntity.noContent().build();
     }
 
@@ -148,7 +152,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long applicationId
     ) {
 
-        jobBoardService.removeApplicationFromJobBoard(jobBoardId, applicationId);
+        jobBoardApplicationService.removeApplicationFromJobBoard(jobBoardId, applicationId);
         return ResponseEntity.noContent().build();
     }
 
