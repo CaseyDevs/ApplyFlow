@@ -10,6 +10,7 @@ import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.service.JobBoardApplicationService;
+import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
 
 import jakarta.validation.Valid;
@@ -30,13 +31,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class JobBoardController {
     private final JobBoardService jobBoardService;
     private final JobBoardApplicationService jobBoardApplicationService;
+    private final JobBoardMemberService jobBoardMemberService;
 
     public JobBoardController(
         JobBoardService jobBoardService,
-        JobBoardApplicationService jobBoardApplicationService
+        JobBoardApplicationService jobBoardApplicationService,
+        JobBoardMemberService jobBoardMemberService
     ) {
         this.jobBoardService = jobBoardService;
         this.jobBoardApplicationService = jobBoardApplicationService;
+        this.jobBoardMemberService = jobBoardMemberService;
     }
 
     @GetMapping("/job-boards")
@@ -97,7 +101,7 @@ public class JobBoardController {
         @Valid @RequestBody AddJobBoardMemberRequestDto request
     ) {
 
-        jobBoardService.addMember(jobBoardId, request.email());
+        jobBoardMemberService.addMember(jobBoardId, request.email());
         return ResponseEntity.noContent().build();
     }
 
@@ -108,7 +112,7 @@ public class JobBoardController {
     ) {
 
         try {
-            jobBoardService.acceptInvitation(jobBoardId, token);
+            jobBoardMemberService.acceptInvitation(jobBoardId, token);
             return ResponseEntity.ok("Job board invitation accepted!");
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -122,7 +126,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardMemberId
     ) {
 
-        jobBoardService.removeMember(jobBoardId, jobBoardMemberId);
+        jobBoardMemberService.removeMember(jobBoardId, jobBoardMemberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -132,7 +136,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardMemberId
     ) {
 
-        jobBoardService.setNewOwner(jobBoardId, jobBoardMemberId);
+        jobBoardMemberService.setNewOwner(jobBoardId, jobBoardMemberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -161,7 +165,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId
     ) {
 
-        jobBoardService.leaveJobBoard(jobBoardId);
+        jobBoardMemberService.leaveJobBoard(jobBoardId);
         return ResponseEntity.noContent().build();
     }
     

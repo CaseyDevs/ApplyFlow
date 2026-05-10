@@ -26,6 +26,7 @@ import com.casey.applyflow.repository.JobBoardRepository;
 import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.service.ApplicationService;
 import com.casey.applyflow.service.CurrentUserProvider;
+import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
 
 /**
@@ -61,6 +62,9 @@ class JobBoardServiceTests {
     // The real service under test — Mockito injects the mocks above via the constructor
     @InjectMocks
     private JobBoardService jobBoardService;
+
+    @InjectMocks
+    private JobBoardMemberService jobBoardMemberService;
 
     // A reusable fake user for the tests
     private User testUser;
@@ -144,7 +148,7 @@ class JobBoardServiceTests {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // act
-        jobBoardService.setNewOwner(1L, 10L);
+        jobBoardMemberService.setNewOwner(1L, 10L);
 
         // assert — the new member should now be OWNER, and the old owner should be MEMBER
         assertEquals(Role.OWNER, member1.getRole());
