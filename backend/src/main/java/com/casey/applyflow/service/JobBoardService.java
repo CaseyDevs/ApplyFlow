@@ -19,7 +19,6 @@ import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.JobBoardMember;
 import com.casey.applyflow.model.User;
 import com.casey.applyflow.model.enums.Role;
-import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 
@@ -115,20 +114,6 @@ public class JobBoardService {
 
         return toJobBoardResponseDto(jobBoard);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @Transactional
     public void deleteJobBoard(Long jobBoardId) {

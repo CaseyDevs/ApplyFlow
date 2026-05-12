@@ -122,6 +122,8 @@ public class JobBoardMemberService {
             throw new IllegalArgumentException("Invalid token");
         }
 
+        User currentUser = currentUserProvider.getCurrentUser();
+
         EmailVerificationToken verificationToken = emailTokenRepository.findByToken(token)
             .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
@@ -135,7 +137,7 @@ public class JobBoardMemberService {
         return new InvitationDetailsDto(
             jobBoard.getId(),
             jobBoard.getTitle(),
-            verificationToken.getUser().getEmail()
+            currentUser.getName()
         );
     }
 
