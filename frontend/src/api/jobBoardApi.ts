@@ -160,7 +160,7 @@ export async function leaveJobBoard(jobBoardId: number): Promise<void> {
 }
 
 export async function getJobBoardInvitation(jobBoardId: number, token: string): Promise<Invitation> {
-    const response = await fetch (`${BASE_URL}/api/v1/job-boards/${jobBoardId}/invitation/accept?token=${encodeURIComponent(token)}`, {
+    const response = await fetch (`${BASE_URL}/api/v1/job-boards/${jobBoardId}/invitation?token=${encodeURIComponent(token)}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -193,9 +193,9 @@ export async function acceptJobBoardInvitation(jobBoardId: number, token: string
     return;
 }
 
-export async function rejectJobBoardInvitation(token: string): Promise<void> {
-    const response = await fetch (`${BASE_URL}/api/v1/job-boards/0/invitation/reject?token=${encodeURIComponent(token)}`, {
-        method: "GET",
+export async function rejectJobBoardInvitation(jobBoardId: number, token: string): Promise<void> {
+    const response = await fetch (`${BASE_URL}/api/v1/job-boards/${jobBoardId}/invitation?token=${encodeURIComponent(token)}`, {
+        method: "DELETE",
         headers: {
             "Content-Type": "application/json"
         },
@@ -204,7 +204,7 @@ export async function rejectJobBoardInvitation(token: string): Promise<void> {
 
         if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || `There was an error joining this job board: ${response.status}`);
+        throw new Error(error.message || `There was an error rejecting this invitation: ${response.status}`);
     }
     
     return;
