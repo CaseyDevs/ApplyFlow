@@ -1,3 +1,4 @@
+import type { Invitation } from "../types/Invitation";
 import type { JobBoardRequest, JobBoardResponse } from "../types/JobBoard";
 
 const BASE_URL = "http://localhost:8080";
@@ -153,6 +154,57 @@ export async function leaveJobBoard(jobBoardId: number): Promise<void> {
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || `There was an error when attempting to leave this job board, please try again later: ${response.status}`);
+    }
+    
+    return;
+}
+
+export async function getJobBoardInvitation(jobBoardId: number, token: string): Promise<Invitation> {
+    const response = await fetch (`${BASE_URL}/api/v1/job-boards/${jobBoardId}/invitation/accept?token=${encodeURIComponent(token)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `There was an error gathering your invitation details: ${response.status}`);
+    }
+
+    return response.json();
+}
+
+export async function acceptJobBoardInvitation(jobBoardId: number, token: string): Promise<void> {
+    const response = await fetch (`${BASE_URL}/api/v1/job-boards/${jobBoardId}/invitation/accept?token=${encodeURIComponent(token)}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `There was an error joining this job board: ${response.status}`);
+        }
+    
+    return;
+}
+
+export async function rejectJobBoardInvitation(token: string): Promise<void> {
+    const response = await fetch (`${BASE_URL}/api/v1/job-boards/0/invitation/reject?token=${encodeURIComponent(token)}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    });
+
+        if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `There was an error joining this job board: ${response.status}`);
     }
     
     return;
