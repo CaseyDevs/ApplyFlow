@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.AddJobBoardMemberRequestDto;
+import com.casey.applyflow.dto.InvitationDetailsDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
@@ -105,7 +106,20 @@ public class JobBoardController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/job-boards/{jobBoardId}/invitation")
+    @GetMapping("/job-boards/{jobBoardId}/invitation")
+    public ResponseEntity<InvitationDetailsDto> handleGetInvitation(
+        @PathVariable @Min(1) Long jobBoardId,
+        @RequestParam String token
+    ) {
+
+        try {
+            return ResponseEntity.ok(jobBoardMemberService.getInvitation(jobBoardId, token));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/job-boards/{jobBoardId}/invitation/accept")
     public ResponseEntity<String> handleAcceptInvitation(
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
@@ -119,7 +133,7 @@ public class JobBoardController {
         }
     }
 
-    @PostMapping("/job-boards/{jobBoardId}/invitation")
+    @DeleteMapping("/job-boards/{jobBoardId}/invitation")
     public ResponseEntity<String> handleRejectInvitation(
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token

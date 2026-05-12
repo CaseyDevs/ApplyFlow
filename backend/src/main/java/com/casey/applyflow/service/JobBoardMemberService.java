@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.casey.applyflow.dto.InvitationDetailsDto;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
@@ -110,6 +111,32 @@ public class JobBoardMemberService {
         jobBoard.addMember(toJobBoardMember(user));
         jobBoardRepository.save(jobBoard);
         emailTokenRepository.delete(verificationToken); // remove temp token
+    }
+
+    @Transactional
+    public InvitationDetailsDto getInvitation(Long jobBoardId, String token) {
+        if (jobBoardId == null) {
+            throw new IllegalArgumentException("Job board ID cannot be null");
+        }
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        EmailVerificationToken verificationToken = emailTokenRepository.findByToken(token)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+
+        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expired");
+        }
+
+        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
+            .orElseThrow(() -> new JobBoardNotFoundException("Job board not found!"));
+
+        return new InvitationDetailsDto(
+            jobBoard.getId(),
+            jobBoard.getTitle(),
+            verificationToken.getUser().getEmail()
+        );
     }
 
     @Transactional
