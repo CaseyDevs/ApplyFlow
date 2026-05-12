@@ -13,6 +13,7 @@ import UpdateApplicationPage from './pages/UpdateApplicationPage';
 import EmailVerifiedSuccessPage from './pages/EmailVerifiedSuccessPage';
 import EmailVerifyPage from './pages/EmailVerifyPage';
 import EmailVerifiedFailurePage from './pages/EmailVerifiedFailurePage';
+import InvitationConfirmationPage from './pages/InvitationConfirmationPage';
 
 function App() {
   return (
@@ -32,6 +33,8 @@ function App() {
         <Route path="/email-verified-success" element={<EmailVerifiedSuccessPage />} />
         <Route path="/email-verified-failure" element={<EmailVerifiedFailurePage />} />
         <Route path="/email-verify" element={<EmailVerifyPage />} />
+        <Route path="/job-boards/:jobBoardId/invitation" element={<InvitationConfirmationPage />} />
+
       </Routes>
     </>
   );
