@@ -13,12 +13,21 @@ import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.service.JobBoardApplicationService;
 import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
+import com.casey.applyflow.utils.ClientIpProvider;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,15 +42,25 @@ public class JobBoardController {
     private final JobBoardService jobBoardService;
     private final JobBoardApplicationService jobBoardApplicationService;
     private final JobBoardMemberService jobBoardMemberService;
+    private final Map<String, Bucket> invitationBuckets = new ConcurrentHashMap<>();
+    private final Bandwidth invitationLimit;
+    private final ClientIpProvider clientIpProvider;
 
     public JobBoardController(
         JobBoardService jobBoardService,
         JobBoardApplicationService jobBoardApplicationService,
-        JobBoardMemberService jobBoardMemberService
+        JobBoardMemberService jobBoardMemberService,
+        ClientIpProvider clientIpProvider
     ) {
         this.jobBoardService = jobBoardService;
         this.jobBoardApplicationService = jobBoardApplicationService;
         this.jobBoardMemberService = jobBoardMemberService;
+        this.clientIpProvider = clientIpProvider;
+
+        this.invitationLimit = Bandwidth.builder()
+            .capacity(6)
+            .refillGreedy(2, Duration.ofMinutes(1))
+            .build();
     }
 
     @GetMapping("/job-boards")
@@ -97,10 +116,22 @@ public class JobBoardController {
     }
 
     @PostMapping("/job-boards/{jobBoardId}/members")
-    public ResponseEntity<Void> inviteJobBoardMember(
+    public ResponseEntity<?> inviteJobBoardMember(
+        HttpServletRequest httpRequest,
         @PathVariable Long jobBoardId,
         @Valid @RequestBody AddJobBoardMemberRequestDto request
     ) {
+        // limit requests via clietn IP
+        String clientIp = clientIpProvider.getClientIp(httpRequest);
+        Bucket invitationBucket = invitationBuckets.computeIfAbsent(
+            clientIp,
+            ip -> Bucket.builder().addLimit(invitationLimit).build()
+        );
+
+        // return 429 if too bucket is empty
+        if (!invitationBucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many invitation requests, try again later");
+        }
 
         jobBoardMemberService.inviteMember(jobBoardId, request.email());
         return ResponseEntity.noContent().build();
