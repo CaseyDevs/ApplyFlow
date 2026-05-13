@@ -47,7 +47,7 @@ export default function Navbar() {
                             Home
                         </Link>
                     </li>
-                    {isHome && (
+                    {isHome && !isLoggedIn && (
                         <>
                             <li className={styles.menuItem}>
                                 <button 
@@ -74,13 +74,6 @@ export default function Navbar() {
                                 </button>
                             </li>
                         </>
-                    )}
-                    {!isHome && (
-                        <li className={styles.menuItem}>
-                            <Link to="/" className={styles.menuLink}>
-                                About
-                            </Link>
-                        </li>
                     )}
                     {isLoggedIn ? (
                         <>
