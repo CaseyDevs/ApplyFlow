@@ -4,8 +4,10 @@ import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { acceptJobBoardInvitation, getJobBoardInvitation, rejectJobBoardInvitation } from "../api/jobBoardApi";
 import { useTimedError } from "../hooks/useTimedError";
 import styles from "./InvitationConfirmationPage.module.css";
+import { useAuth } from "../context/AuthContext";
 
 export default function InvitationConfirmationPage() {
+    const { user } = useAuth();
     const [error, setError] = useTimedError(3000);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [isAccepting, setIsAccepting] = useState(false);
@@ -41,6 +43,15 @@ export default function InvitationConfirmationPage() {
             navigate("/");
         }
     }, [hasValidParams, navigate]);
+
+    // redirect if not logged in to recieving account
+    useEffect(() => {
+        if (invitationData && (!user || user.email !== invitationData.inviteeEmail)) {
+            setError("Please log in to the account associated with the invitation.");
+            const timeout = setTimeout(() => navigate("/"), 3000);
+            return () => clearTimeout(timeout);
+        }
+    }, [navigate, user, invitationData, setError]);
 
     // redirect on error
     useEffect(() => {

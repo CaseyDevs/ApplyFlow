@@ -131,13 +131,16 @@ public class JobBoardMemberService {
             throw new IllegalArgumentException("Token expired");
         }
 
+        verifyIsInvitedUser(currentUser, verificationToken.getUser());
+
         JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
             .orElseThrow(() -> new JobBoardNotFoundException("Job board not found!"));
 
         return new InvitationDetailsDto(
             jobBoard.getId(),
             jobBoard.getTitle(),
-            currentUser.getName()
+            currentUser.getName(),
+            verificationToken.getUser().getEmail()
         );
     }
 
@@ -269,6 +272,12 @@ public class JobBoardMemberService {
         JobBoardMember owner = jobBoard.getOwner();
         if (owner == null || owner.getUser() == null || !owner.getUser().getId().equals(userId)) {
             throw new InsufficientPermissionException("Only the owner can perform this action.");
+        }
+    }
+
+    private void verifyIsInvitedUser(User currentUser, User invitedUser) {
+        if (!currentUser.getId().equals(invitedUser.getId())) {
+            throw new InsufficientPermissionException("This invitation is not for your account.");
         }
     }
 }
