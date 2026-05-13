@@ -1,7 +1,10 @@
 package com.casey.applyflow.utils;
 
+import org.springframework.stereotype.Component;
+
 import jakarta.servlet.http.HttpServletRequest;
 
+@Component
 public class ClientIpProvider {
 
     public ClientIpProvider() {};
