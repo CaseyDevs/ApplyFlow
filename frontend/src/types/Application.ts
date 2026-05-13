@@ -7,6 +7,7 @@ export type Application = {
     status: ApplicationStatus;
     companyId: number;
     interviewIds: number[];
+    createdAt: string
 };
 
 export type ApplicationRequest = {

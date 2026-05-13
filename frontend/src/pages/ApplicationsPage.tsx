@@ -9,6 +9,7 @@ export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(0);
 
     // applications query
     const { 
@@ -17,8 +18,8 @@ export default function ApplicationsPage() {
         error: applicationError, 
         refetch: refetchApplications 
     } = useQuery({
-        queryKey: ['applications'],
-        queryFn: () => getApplications(0, 10) // first page, 10 elements
+        queryKey: ['applications', currentPage],
+        queryFn: () => getApplications(currentPage, 10)
     });
 
     // company data query
@@ -171,6 +172,27 @@ export default function ApplicationsPage() {
                     ))}
                 </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+                <button
+                    className={styles.button}
+                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0}
+                >
+                    ← Previous
+                </button>
+                <span style={{ minWidth: '150px', textAlign: 'center' }}>
+                    Page {currentPage + 1} of {applicationData?.totalPages || 1}
+                </span>
+                <button
+                    className={styles.button}
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    disabled={currentPage >= (applicationData?.totalPages || 1) - 1}
+                >
+                    Next →
+                </button>
+            </div>
         </div>
     );
 }
