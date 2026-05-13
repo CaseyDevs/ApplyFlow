@@ -5,6 +5,7 @@ import com.casey.applyflow.service.AuthService;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -207,21 +209,22 @@ public class AuthController {
                 passwordEncoder.encode(request.password())  // hash the password
         );
 
-        userRepository.save(user);
-        log.warn("REGISTER_USER_SAVED email={} id={}", user.getEmail(), user.getId());
-
-        // handle registration
+        // handle registration (saves user + token in single transaction)
         authService.register(user);
         log.warn("REGISTER_AUTH_SERVICE_COMPLETED email={}", user.getEmail());
 
         return ResponseEntity.status(HttpStatus.OK).body("Account created! Please verify you email.");
     }
 
-    @GetMapping("/verify")
+    @PostMapping("/verify")
+    @Transactional
     public ResponseEntity<String> verify(@RequestParam String token) {
         // check token exists
-        EmailVerificationToken vt = emailTokenRepository.findByToken(token)
-            .orElseThrow(() -> new RuntimeException("Invalid token"));
+        Optional<EmailVerificationToken> optionalToken = emailTokenRepository.findByToken(token);
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.badRequest().body("Invalid or already used token");
+        }
+        EmailVerificationToken vt = optionalToken.get();
 
         // check token has not expired
         if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
