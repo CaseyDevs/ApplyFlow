@@ -123,11 +123,3 @@ export async function rejectJobBoardInvitation(jobBoardId: number, token: string
         "Failed to reject invitation"
     );
 }
-
-export async function getJobBoardByIdAgain(jobBoardId: number): Promise<JobBoardResponse> {
-    return apiRequest(
-        `${API_BASE}/job-boards/${jobBoardId}`,
-        { method: "GET" },
-        "Failed to get job board"
-    );
-}
