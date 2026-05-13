@@ -10,6 +10,7 @@ import com.casey.applyflow.dto.InvitationDetailsDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
+import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.service.JobBoardApplicationService;
 import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
@@ -116,7 +117,7 @@ public class JobBoardController {
     }
 
     @PostMapping("/job-boards/{jobBoardId}/members")
-    public ResponseEntity<?> inviteJobBoardMember(
+    public ResponseEntity<Void> inviteJobBoardMember(
         HttpServletRequest httpRequest,
         @PathVariable Long jobBoardId,
         @Valid @RequestBody AddJobBoardMemberRequestDto request
@@ -128,9 +129,9 @@ public class JobBoardController {
             ip -> Bucket.builder().addLimit(invitationLimit).build()
         );
 
-        // return 429 if too bucket is empty
+        // return 429 if bucket is empty
         if (!invitationBucket.tryConsume(1)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many invitation requests, try again later");
+            throw new RateLimitExceededException("Too many invitation requests, try again later.");
         }
 
         jobBoardMemberService.inviteMember(jobBoardId, request.email());

@@ -1,8 +1,10 @@
 package com.casey.applyflow.config;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -20,6 +22,7 @@ import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NoOwnerException;
 import com.casey.applyflow.exception.NoteNotFoundException;
+import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
 
@@ -28,6 +31,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExceeded(RateLimitExceededException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.TOO_MANY_REQUESTS.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
 
     @ExceptionHandler(EmailNotVerifiedException.class)
     public ResponseEntity<ErrorResponse> handleEmailNotVerified(EmailNotVerifiedException ex) {

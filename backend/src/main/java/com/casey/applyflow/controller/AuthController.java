@@ -39,6 +39,7 @@ import io.github.bucket4j.Bucket;
 import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.EmailNotVerifiedException;
 import com.casey.applyflow.exception.InvalidEmailException;
+import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.model.EmailVerificationToken;
@@ -92,6 +93,7 @@ public class AuthController {
         this.emailValidationProvider = emailValidationProvider;
         this.authService = authService;
         this.emailTokenRepository = emailTokenRepository;
+        this.clientIpProvider = clientIpProvider;
         
         this.loginLimit = Bandwidth.builder()
             .capacity(5)
@@ -103,7 +105,6 @@ public class AuthController {
             .refillGreedy(1, Duration.ofMinutes(1))
             .build();
 
-        this.clientIpProvider = clientIpProvider;
     }
 
     @GetMapping("/me")
@@ -140,7 +141,7 @@ public class AuthController {
     
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(
+    public ResponseEntity<Void> login(
         HttpServletRequest httpRequest,
         @Valid @RequestBody LoginRequestDto request
     ) {
@@ -151,7 +152,7 @@ public class AuthController {
         );
 
         if (!loginBucket.tryConsume(1)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many requests, try again later");
+            throw new RateLimitExceededException("Too many login attempts, try again later");
         }
 
         User user = userRepository.findByEmail(request.email())
@@ -177,7 +178,7 @@ public class AuthController {
 
         return ResponseEntity.ok()
         .header(HttpHeaders.SET_COOKIE, cookie.toString())
-        .body("OK");
+        .build();
     }
 
     @PostMapping("/register")
@@ -194,7 +195,7 @@ public class AuthController {
         );
 
         if (!registerBucket.tryConsume(1)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Too many requests, try again later");
+            throw new RateLimitExceededException("Too many registration attempts, try again later.");
         }
 
         // Check if email already exists
