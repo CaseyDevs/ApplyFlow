@@ -5,13 +5,14 @@ import { acceptJobBoardInvitation, getJobBoardInvitation, rejectJobBoardInvitati
 import { useTimedError } from "../hooks/useTimedError";
 import styles from "./InvitationConfirmationPage.module.css";
 import { useAuth } from "../context/AuthContext";
+import type { InvitationAction } from "../types/InvitationAction";
+import DetailItem from "../components/DetailItem";
 
 export default function InvitationConfirmationPage() {
     const { user } = useAuth();
     const [error, setError] = useTimedError(3000);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [isAccepting, setIsAccepting] = useState(false);
-    const [isRejecting, setIsRejecting] = useState(false);
+    const [loadingAction, setLoadingAction] = useState<InvitationAction | null>(null);
     
     const queryClient = useQueryClient();
     const [searchParams] = useSearchParams();
@@ -37,63 +38,44 @@ export default function InvitationConfirmationPage() {
         enabled: hasValidParams,
     });
 
-    // redirect if invalid params
+    // validate params and handle errors
     useEffect(() => {
         if (!hasValidParams) {
             navigate("/");
+            return;
         }
-    }, [hasValidParams, navigate]);
 
-    // redirect if not logged in to recieving account
-    useEffect(() => {
-        if (invitationData && (!user || user.email !== invitationData.inviteeEmail)) {
-            setError("Please log in to the account associated with the invitation.");
-            const timeout = setTimeout(() => navigate("/"), 3000);
-            return () => clearTimeout(timeout);
-        }
-    }, [navigate, user, invitationData, setError]);
-
-    // redirect on error
-    useEffect(() => {
         if (invitationError) {
             setError("Invalid or expired invitation link");
             const timeout = setTimeout(() => navigate("/"), 3000);
             return () => clearTimeout(timeout);
         }
-    }, [invitationError, setError, navigate]);
 
-    // handlers
-    const handleAcceptInvitation = async () => {
-        if (!hasValidParams) return;
-        
-        setIsAccepting(true);
-        try {
-            await acceptJobBoardInvitation(thisJobBoardId as number, invitationToken as string);
-            queryClient.invalidateQueries({ queryKey: ["invitation"] });
-            setSuccessMessage("Invitation accepted! Redirecting...");
-            setTimeout(() => {
-                navigate(`/job-boards/${thisJobBoardId}`);
-            }, 1500);
-        } catch (err: any) {
-            setError(err.message || "Failed to accept invitation");
-            setIsAccepting(false);
+        if (invitationData && (!user || user.email !== invitationData.inviteeEmail)) {
+            setError("Please log in to the account associated with the invitation.");
+            const timeout = setTimeout(() => navigate("/"), 3000);
+            return () => clearTimeout(timeout);
         }
-    };
+    }, [hasValidParams, invitationError, invitationData, user, navigate, setError]);
 
-    const handleRejectInvitation = async () => {
+    const handleInvitationAction = async (action: InvitationAction) => {
         if (!hasValidParams) return;
         
-        setIsRejecting(true);
+        setLoadingAction(action);
         try {
-            await rejectJobBoardInvitation(thisJobBoardId as number, invitationToken as string);
+            if (action === 'accept') {
+                await acceptJobBoardInvitation(thisJobBoardId as number, invitationToken as string);
+                setSuccessMessage("Invitation accepted! Redirecting...");
+                setTimeout(() => navigate(`/job-boards/${thisJobBoardId}`), 1500);
+            } else {
+                await rejectJobBoardInvitation(thisJobBoardId as number, invitationToken as string);
+                setSuccessMessage("Invitation rejected. Redirecting...");
+                setTimeout(() => navigate("/"), 1500);
+            }
             queryClient.invalidateQueries({ queryKey: ["invitation"] });
-            setSuccessMessage("Invitation rejected. Redirecting...");
-            setTimeout(() => {
-                navigate("/");
-            }, 1500);
         } catch (err: any) {
-            setError(err.message || "Failed to reject invitation");
-            setIsRejecting(false);
+            setError(err.message || `Failed to ${action} invitation`);
+            setLoadingAction(null);
         }
     };
 
@@ -141,23 +123,8 @@ export default function InvitationConfirmationPage() {
                 )}
 
                 <div className={styles.invitationDetails}>
-                    <div className={styles.detailSection}>
-                        <p className={styles.detailLabel}>
-                            Job Board Name
-                        </p>
-                        <p className={styles.detailValue}>
-                            {invitationData.jobBoardTitle}
-                        </p>
-                    </div>
-
-                    <div className={styles.detailSection}>
-                        <p className={styles.detailLabel}>
-                            Invitation Sent From
-                        </p>
-                        <p className={styles.detailValueEmail}>
-                            {invitationData.inviterName}
-                        </p>
-                    </div>
+                    <DetailItem label="Job Board Name" value={invitationData.jobBoardTitle} />
+                    <DetailItem label="Invitation Sent From" value={invitationData.inviterName} />
                 </div>
 
                 <p className={styles.description}>
@@ -167,17 +134,17 @@ export default function InvitationConfirmationPage() {
                 <div className={styles.formFooter}>
                     <button
                         className={styles.secondaryButton}
-                        onClick={handleRejectInvitation}
-                        disabled={isRejecting || isAccepting || !!successMessage}
+                        onClick={() => handleInvitationAction('reject')}
+                        disabled={loadingAction !== null || !!successMessage}
                     >
-                        {isRejecting ? "Rejecting..." : "Reject"}
+                        {loadingAction === 'reject' ? "Rejecting..." : "Reject"}
                     </button>
                     <button
                         className={styles.button}
-                        onClick={handleAcceptInvitation}
-                        disabled={isAccepting || isRejecting || !!successMessage}
+                        onClick={() => handleInvitationAction('accept')}
+                        disabled={loadingAction !== null || !!successMessage}
                     >
-                        {isAccepting ? "Accepting..." : "Accept Invitation"}
+                        {loadingAction === 'accept' ? "Accepting..." : "Accept Invitation"}
                     </button>
                 </div>
             </div>

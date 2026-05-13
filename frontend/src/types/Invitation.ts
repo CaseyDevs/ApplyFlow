@@ -1,5 +1,6 @@
 export type Invitation = {
     jobBoardId: number,
     jobBoardTitle: string,
-    inviterName: string
+    inviterName: string,
+    inviteeEmail: string
 }
