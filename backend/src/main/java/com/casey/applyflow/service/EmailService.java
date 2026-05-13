@@ -102,7 +102,7 @@ public class EmailService {
         String token = UUID.randomUUID().toString(); // TODO: Make token more secure
         String to = user.getEmail();
         String subject = "You're invited to a job board";
-        String invitationLink = "http://localhost:8080/api/v1/job-boards/" + jobBoarId + "/invitation?token=" + token;
+        String invitationLink = "http://localhost:5173/job-boards/" + jobBoarId + "/invitation?token=" + token;
         String body = String.format("""
                 <!DOCTYPE html>
                 <html>

@@ -143,6 +143,7 @@ export default function JobBoardDetailsPage() {
         try {
             setLoading(true);
             if (thisJobBoardId) await leaveJobBoard(thisJobBoardId);
+            queryClient.invalidateQueries({queryKey: ["job-boards"]});
             navigate("/job-boards")
         } catch (err: any) {
             setError(`Failed to leave job board`);
@@ -278,7 +279,7 @@ export default function JobBoardDetailsPage() {
                                             {company?.name ?? "Unknown Company"}
                                         </p>
                                         <p style={{marginBottom: 0, fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)'}}>
-                                            {company?.location ?? "Unknown Location"}
+                                            {company?.location ?? "Unknown Location"}  ⟟ 
                                         </p>
                                     </div>
                                     <span className={`${styles.applicationStatus} ${styles[`status${app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()}`]}`}>
