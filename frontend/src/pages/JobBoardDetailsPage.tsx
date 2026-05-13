@@ -243,6 +243,48 @@ export default function JobBoardDetailsPage() {
                 </div>
             )}
 
+
+            {/* Add Existing Application */}
+            {displayApplications && (
+                <div className={styles.section}>
+                    <h3 className={styles.sectionTitle} style={{marginBottom: 'var(--space-4)'}}>Add Existing Application</h3>
+                    <div className={styles.form}>
+                        <div className={styles.formGroup}>
+                            <label htmlFor="application-select" className={styles.label}>Your Applications</label>
+                            <select 
+                                className={styles.select}
+                                id="application-select" 
+                                value={selectedApplicationId ?? ""} 
+                                onChange={(e) => setSelectedApplicationId(Number(e.target.value))}
+                            >
+                                <option value="">-- Select an application --</option>
+                                {applications?.map((app) => (
+                                    <option key={app.id} value={app.id}>{app.title}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div style={{display: 'flex', gap: 'var(--space-3)'}}>
+                            <button 
+                                className={styles.button}
+                                onClick={handleAddApplication}
+                                disabled={loading || !selectedApplicationId}
+                            >
+                                {loading ? "Adding..." : "Add Application"}
+                            </button>
+                            <button 
+                                className={styles.secondaryButton}
+                                onClick={() => {
+                                    setDisplayApplications(false);
+                                    setSelectedApplicationId(null);
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Applications Section */}
             <div className={styles.section}>
                 <div className={styles.sectionTitle}>
@@ -329,47 +371,6 @@ export default function JobBoardDetailsPage() {
                     </div>
                 )}
             </div>
-
-            {/* Add Existing Application */}
-            {displayApplications && (
-                <div className={styles.section}>
-                    <h3 className={styles.sectionTitle} style={{marginBottom: 'var(--space-4)'}}>Add Existing Application</h3>
-                    <div className={styles.form}>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="application-select" className={styles.label}>Your Applications</label>
-                            <select 
-                                className={styles.select}
-                                id="application-select" 
-                                value={selectedApplicationId ?? ""} 
-                                onChange={(e) => setSelectedApplicationId(Number(e.target.value))}
-                            >
-                                <option value="">-- Select an application --</option>
-                                {applications?.map((app) => (
-                                    <option key={app.id} value={app.id}>{app.title}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div style={{display: 'flex', gap: 'var(--space-3)'}}>
-                            <button 
-                                className={styles.button}
-                                onClick={handleAddApplication}
-                                disabled={loading || !selectedApplicationId}
-                            >
-                                {loading ? "Adding..." : "Add Application"}
-                            </button>
-                            <button 
-                                className={styles.secondaryButton}
-                                onClick={() => {
-                                    setDisplayApplications(false);
-                                    setSelectedApplicationId(null);
-                                }}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }
