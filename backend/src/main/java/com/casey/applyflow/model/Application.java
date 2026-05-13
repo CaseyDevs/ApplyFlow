@@ -1,5 +1,6 @@
 package com.casey.applyflow.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +44,9 @@ public class Application {
     @Column(nullable = false)
     private Status status;
 
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = true)
     private Company company;
@@ -73,6 +77,7 @@ public class Application {
         this.status = status;
         this.company = company;
         this.interviews = new ArrayList<>();
+        this.createdAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -101,6 +106,10 @@ public class Application {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public Company getCompany() {

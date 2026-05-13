@@ -124,7 +124,8 @@ public class ApplicationService {
             application.getUrl(),
             application.getStatus(),
             application.getCompany() != null ? application.getCompany().getId() : null,
-            getAllInterviewIds(application)
+            getAllInterviewIds(application),
+            application.getCreatedAt()
         );
     }
 
