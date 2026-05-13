@@ -30,6 +30,7 @@ import com.casey.applyflow.dto.RegisterRequestDto;
 import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.service.CurrentUserProvider;
 import com.casey.applyflow.service.TokenService;
+import com.casey.applyflow.utils.ClientIpProvider;
 import com.casey.applyflow.utils.EmailValidationProvider;
 
 import io.github.bucket4j.Bandwidth;
@@ -67,6 +68,7 @@ public class AuthController {
     private final Bandwidth registerLimit;
     private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
     private final Map<String, Bucket> registerBuckets = new ConcurrentHashMap<>();
+    private final ClientIpProvider clientIpProvider;
 
     @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
@@ -79,7 +81,8 @@ public class AuthController {
         CurrentUserProvider currentUserProvider,
         EmailValidationProvider emailValidationProvider, 
         AuthService authService, 
-        EmailTokenRepository emailTokenRepository
+        EmailTokenRepository emailTokenRepository,
+        ClientIpProvider clientIpProvider
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
@@ -99,6 +102,8 @@ public class AuthController {
             .capacity(3)
             .refillGreedy(1, Duration.ofMinutes(1))
             .build();
+
+        this.clientIpProvider = clientIpProvider;
     }
 
     @GetMapping("/me")
@@ -139,7 +144,7 @@ public class AuthController {
         HttpServletRequest httpRequest,
         @Valid @RequestBody LoginRequestDto request
     ) {
-        String clientIp = clientIp(httpRequest);
+        String clientIp = clientIpProvider.getClientIp(httpRequest);
         Bucket loginBucket = loginBuckets.computeIfAbsent(
             clientIp,
             ip -> Bucket.builder().addLimit(loginLimit).build()
@@ -182,7 +187,7 @@ public class AuthController {
     ) {
         log.warn("REGISTER_START email={}", request.email());
 
-        String clientIp = clientIp(httpRequest);
+        String clientIp = clientIpProvider.getClientIp(httpRequest);
         Bucket registerBucket = registerBuckets.computeIfAbsent(
             clientIp,
             ip -> Bucket.builder().addLimit(registerLimit).build()
@@ -247,22 +252,14 @@ public class AuthController {
     }
     
 
-private ResponseCookie accessCookie(String jwt, long maxAgeSeconds) {
-    return ResponseCookie.from("ACCESS_TOKEN", jwt)
+    private ResponseCookie accessCookie(String jwt, long maxAgeSeconds) {
+        return ResponseCookie.from("ACCESS_TOKEN", jwt)
             .httpOnly(true)
             .secure(false)           // TODO: true in prod -- keep false for local dev.
-            .sameSite("None")    
+            .sameSite("Lax")         // Changed from "None" - SameSite=None requires Secure=true
             .path("/api")               
             .maxAge(maxAgeSeconds)
             .build();
-}
-
-private String clientIp(HttpServletRequest request) {
-    String forwardedFor = request.getHeader("X-Forwarded-For");
-    if (forwardedFor != null && !forwardedFor.isBlank()) {
-        return forwardedFor.split(",")[0].trim();
     }
-    return request.getRemoteAddr();
-}
 
 }
