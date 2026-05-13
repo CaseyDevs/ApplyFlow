@@ -152,30 +152,30 @@ public class JobBoardController {
     }
 
     @PostMapping("/job-boards/{jobBoardId}/invitation/accept")
-    public ResponseEntity<String> handleAcceptInvitation(
+    public ResponseEntity<Void> handleAcceptInvitation(
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
 
         try {
             jobBoardMemberService.acceptInvitation(jobBoardId, token);
-            return ResponseEntity.ok("Job board invitation accepted!");
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @DeleteMapping("/job-boards/{jobBoardId}/invitation")
-    public ResponseEntity<String> handleRejectInvitation(
+    public ResponseEntity<Void> handleRejectInvitation(
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
 
         try {
             jobBoardMemberService.rejectInvitation(token);
-            return ResponseEntity.ok("Job board invitation rejected");
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
     

@@ -70,7 +70,7 @@ export default function JobBoardDetailsPage() {
             setDisplayInput(false);
             refetchJobBoardData(); // refresh job board data
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Failed to add job board member");
         } finally {
             setLoading(false);
         }
@@ -84,7 +84,7 @@ export default function JobBoardDetailsPage() {
             queryClient.invalidateQueries({ queryKey: ["job-boards"]});
             navigate("/job-boards");  // navigate to home page upon deletion
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Failed to delte job board");
         } finally {
             setLoading(false);
         }
@@ -121,7 +121,7 @@ export default function JobBoardDetailsPage() {
             await removeApplicationFromJobBoard(thisJobBoardId, applicationId);
             refetchJobBoardData();
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Failed to remove application from job board");
         } finally {
             setLoading(false);
         }
@@ -133,7 +133,7 @@ export default function JobBoardDetailsPage() {
             await getApplicationById(applicationId); // ensure user owns application before navigating to update page
             navigate(`/job-boards/${thisJobBoardId}/applications/${applicationId}`);
         } catch (err: any) {
-            setError("You cannot update applications that you do not own!");
+            setError(err || "You cannot update applications that you do not own!");
         } finally {
             setLoading(false);
         }
@@ -146,7 +146,7 @@ export default function JobBoardDetailsPage() {
             queryClient.invalidateQueries({queryKey: ["job-boards"]});
             navigate("/job-boards")
         } catch (err: any) {
-            setError(`Failed to leave job board`);
+            setError(err.message || "Failed to leave job board");
         } finally {
             setLoading(false);
         }
