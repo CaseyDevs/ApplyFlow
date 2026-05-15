@@ -1,5 +1,6 @@
 import type { Invitation } from "../types/Invitation";
 import type { JobBoardRequest, JobBoardResponse } from "../types/JobBoard";
+import type { Page } from "../types/Application";
 
 const BASE_URL = "http://localhost:8080";
 const API_BASE = `${BASE_URL}/api/v1`;
@@ -41,7 +42,7 @@ async function apiRequest<T>(
     return response.json();
 }
 
-export async function getJobBoards() {
+export async function getJobBoards(): Promise<Page<JobBoardResponse>> {
     return apiRequest(`${API_BASE}/job-boards`, { method: "GET" }, "Failed to fetch job boards");
 }
 
