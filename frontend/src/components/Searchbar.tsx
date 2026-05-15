@@ -28,12 +28,12 @@ export default function Searchbar({
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-        onSearchChange(value === "" ? applications : filteredApplications);
+        onSearchChange(value === "" ? [] : filteredApplications);
     };
 
     const handleClear = () => {
         setSearchTerm("");
-        onSearchChange(applications);
+        onSearchChange([]);
     };
 
     return (
