@@ -10,6 +10,7 @@ public record ApplicationResponseDto(
     String title,
     String url,
     Status status,
+    String location,
     Long companyId,
     List<Long> interviewIds,
     LocalDateTime createdAt

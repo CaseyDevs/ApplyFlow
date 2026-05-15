@@ -16,6 +16,9 @@ public record ApplicationRequestDto(
     @URL 
     String url,
 
+    @Nullable
+    String location,
+
     @NotNull 
     Long companyId,
     

@@ -80,7 +80,7 @@ public class ApplicationService {
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
-        Application application = new Application(request.title(), request.url(), company, request.status());
+        Application application = new Application(request.title(), request.url(), request.location(), company, request.status());
 
 
         user.addApplication(application);  // save new application to users application list
@@ -123,6 +123,7 @@ public class ApplicationService {
             application.getTitle(),
             application.getUrl(),
             application.getStatus(),
+            application.getLocation(),
             application.getCompany() != null ? application.getCompany().getId() : null,
             getAllInterviewIds(application),
             application.getCreatedAt()

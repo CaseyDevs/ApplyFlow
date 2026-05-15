@@ -66,11 +66,10 @@ export default function CreateApplicationPage() {
 
         try {
             // add company to db and refresh company list
-            const newCompany = await createCompany({ name: newCompanyName, location: location, rating: null });
+            const newCompany = await createCompany({ name: newCompanyName, rating: null });
             
             setSelectedCompanyId(newCompany.id);
             setNewCompanyName("");
-            setLocation(null);
             setShowNewCompanyForm(false);
             await refetchCompanies();
         } catch (err: any) {
@@ -94,6 +93,7 @@ export default function CreateApplicationPage() {
             const application = await createApplication({
                 title,
                 url,
+                location,
                 companyId: selectedCompanyId,
                 interviewId, // will always be null *need to remove in backend*
                 status,
@@ -183,6 +183,20 @@ export default function CreateApplicationPage() {
                         </select>
                     </div>
 
+                    <div className={styles.formGroup}>
+                        <label htmlFor="location" className={styles.label}>Location</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            id="location"
+                            name="location"
+                            placeholder="e.g., New York, NY"
+                            value={location ?? ""}
+                            onChange={(e) => setLocation(e.target.value)}
+                            required
+                        />
+                    </div>
+
                     {/* Company Selection */}
                     <div className={styles.formGroup}>
                         <label className={styles.label}>Company</label>
@@ -192,15 +206,10 @@ export default function CreateApplicationPage() {
                                 selectedId={selectedCompanyId}
                                 onSelect={setSelectedCompanyId}
                                 getLabel={(company) => company.name}
-                                getSearchFields={(company) => [company.name, company.location || ""]}
+                                getSearchFields={(company) => [company.name]}
                                 renderOption={(company) => (
                                     <div style={{ flex: 1 }}>
                                         <div className={styles.optionTitle}>{company.name}</div>
-                                        {company.location && (
-                                            <div style={{ fontSize: "var(--font-size-xs)", color: "var(--text-tertiary)" }}>
-                                                {company.location}
-                                            </div>
-                                        )}
                                     </div>
                                 )}
                                 placeholder="Search by name or location..."

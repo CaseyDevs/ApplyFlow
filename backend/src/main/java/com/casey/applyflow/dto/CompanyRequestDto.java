@@ -8,8 +8,5 @@ public record CompanyRequestDto (
     String name,
     
     @Nullable
-    String location,
-    
-    @Nullable
     Double rating
 ) {}

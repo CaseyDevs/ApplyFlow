@@ -48,11 +48,10 @@ export default function JobBoardDetailsPage() {
         queryFn: getAllCompanies,
         select: (companyPage) => {
             // select and map company data
-            const map: Record<number, { name: string; location: string }> = {};
+            const map: Record<number, { name: string; }> = {};
             companyPage.content.forEach((company) => {
                 map[company.id] = {
                     name: company.name,
-                    location: company.location || "Unknown",
                 };
             });
 
@@ -333,7 +332,7 @@ export default function JobBoardDetailsPage() {
                                             {company?.name ?? "Unknown Company"}
                                         </p>
                                         <p style={{marginBottom: 0, fontSize: 'var(--font-size-xs)', color: 'var(--text-tertiary)'}}>
-                                            {company?.location ?? "Unknown Location"}  ⟟ 
+                                            {app.location ?? "Unknown Location"}  ⟟ 
                                         </p>
                                     </div>
                                     <span className={`${styles.applicationStatus} ${styles[`status${app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()}`]}`}>
