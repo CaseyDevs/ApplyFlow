@@ -1,32 +1,41 @@
 import { useState, useRef, useEffect } from "react";
-import type { Application } from "../types/Application";
 import styles from "./SearchableSelect.module.css";
 
-interface SearchableSelectProps {
-    applications: Application[];
+interface SearchableSelectProps<T> {
+    items: T[];
     selectedId: number | null;
-    onSelect: (applicationId: number) => void;
+    onSelect: (id: number) => void;
+    getLabel: (item: T) => string;
+    getSearchFields: (item: T) => string[];
+    renderOption?: (item: T) => React.ReactNode;
+    placeholder?: string;
     loading?: boolean;
 }
 
-export default function SearchableSelect({
-    applications,
+export default function SearchableSelect<T extends { id: number }>({
+    items,
     selectedId,
     onSelect,
+    getLabel,
+    getSearchFields,
+    renderOption,
+    placeholder = "Search...",
     loading = false,
-}: SearchableSelectProps) {
+}: SearchableSelectProps<T>) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Filter applications based on search term
-    const filteredApplications = applications.filter((app) =>
-        app.title.toLowerCase().includes(searchTerm.toLowerCase())
+    // Filter items based on search term
+    const filteredItems = items.filter((item) =>
+        getSearchFields(item).some((field) =>
+            field.toLowerCase().includes(searchTerm.toLowerCase())
+        )
     );
 
-    // Get selected application
-    const selectedApplication = applications.find((app) => app.id === selectedId);
+    // Get selected item
+    const selectedItem = items.find((item) => item.id === selectedId);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -47,8 +56,8 @@ export default function SearchableSelect({
         }
     }, [isOpen]);
 
-    const handleSelect = (applicationId: number) => {
-        onSelect(applicationId);
+    const handleSelect = (id: number) => {
+        onSelect(id);
         setIsOpen(false);
         setSearchTerm("");
     };
@@ -62,7 +71,7 @@ export default function SearchableSelect({
                 type="button"
             >
                 <span className={styles.selectedText}>
-                    {selectedApplication?.title || "-- Select an application --"}
+                    {selectedItem ? getLabel(selectedItem) : "-- Select an option --"}
                 </span>
                 <span className={`${styles.arrow} ${isOpen ? styles.open : ""}`}>▼</span>
             </button>
@@ -73,28 +82,31 @@ export default function SearchableSelect({
                         ref={inputRef}
                         type="text"
                         className={styles.searchInput}
-                        placeholder="Search applications..."
+                        placeholder={placeholder}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
                     <div className={styles.optionsList}>
-                        {filteredApplications.length > 0 ? (
-                            filteredApplications.map((app) => (
+                        {filteredItems.length > 0 ? (
+                            filteredItems.map((item) => (
                                 <button
-                                    key={app.id}
+                                    key={item.id}
                                     className={`${styles.option} ${
-                                        selectedId === app.id ? styles.selected : ""
+                                        selectedId === item.id ? styles.selected : ""
                                     }`}
-                                    onClick={() => handleSelect(app.id)}
+                                    onClick={() => handleSelect(item.id)}
                                     type="button"
                                 >
-                                    <span className={styles.optionTitle}>{app.title}</span>
-                                    <span className={styles.optionStatus}>{app.status}</span>
+                                    {renderOption ? (
+                                        renderOption(item)
+                                    ) : (
+                                        <span className={styles.optionTitle}>{getLabel(item)}</span>
+                                    )}
                                 </button>
                             ))
                         ) : (
-                            <div className={styles.noResults}>No applications found</div>
+                            <div className={styles.noResults}>No options found</div>
                         )}
                     </div>
                 </div>

@@ -8,6 +8,7 @@ import { addApplicationToJobBoard, getJobBoards } from "../api/jobBoardApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import styles from "./Forms.module.css";
 import { useTimedError } from "../hooks/useTimedError";
+import SearchableSelect from "../components/SearchableSelect";
 
 export default function CreateApplicationPage() {
     const navigate = useNavigate();
@@ -184,19 +185,27 @@ export default function CreateApplicationPage() {
 
                     {/* Company Selection */}
                     <div className={styles.formGroup}>
-                        <label htmlFor="company" className={styles.label}>Company</label>
+                        <label className={styles.label}>Company</label>
                         {companies.length > 0 ? (
-                            <select
-                                className={styles.select}
-                                name="company"
-                                id="company"
-                                value={selectedCompanyId ?? ''}
-                                onChange={e => setSelectedCompanyId(Number(e.target.value))}
-                            >
-                                {companies.map(company => (
-                                    <option key={company.id} value={company.id}>{company.name}</option>
-                                ))}
-                            </select>
+                            <SearchableSelect
+                                items={companies}
+                                selectedId={selectedCompanyId}
+                                onSelect={setSelectedCompanyId}
+                                getLabel={(company) => company.name}
+                                getSearchFields={(company) => [company.name, company.location || ""]}
+                                renderOption={(company) => (
+                                    <div style={{ flex: 1 }}>
+                                        <div className={styles.optionTitle}>{company.name}</div>
+                                        {company.location && (
+                                            <div style={{ fontSize: "var(--font-size-xs)", color: "var(--text-tertiary)" }}>
+                                                {company.location}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                placeholder="Search by name or location..."
+                                loading={loading}
+                            />
                         ) : (
                             <p style={{color: 'var(--color-error)'}}>No companies found. Please add a company.</p>
                         )}

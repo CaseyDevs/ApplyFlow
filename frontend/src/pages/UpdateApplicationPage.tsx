@@ -75,6 +75,8 @@ export default function UpdateApplicationPage() {
             // Invalidate related queries
             queryClient.invalidateQueries({ queryKey: ["application", applicationId] });  // for job boards
             queryClient.invalidateQueries({ queryKey: ["applications"] });  // for personal application refresh
+            queryClient.invalidateQueries({ queryKey: ["companies"] }); // in case company name/location changed and affects search results
+            queryClient.invalidateQueries({ queryKey: ["searchApplications"] }); // for search results refresh
             if (hasValidJobBoardId) {
                 queryClient.invalidateQueries({ queryKey: ["job-board", thisJobBoardId] });
             }

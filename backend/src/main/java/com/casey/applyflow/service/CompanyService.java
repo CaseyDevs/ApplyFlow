@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.CompanyRequestDto;
 import com.casey.applyflow.dto.CompanyResponseDto;
+import com.casey.applyflow.exception.CompanyAlreadyExistsException;
 import com.casey.applyflow.exception.CompanyInUseException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.model.Company;
@@ -44,6 +45,12 @@ public class CompanyService {
 
     @Transactional
     public CompanyResponseDto createCompany(CompanyRequestDto request) {
+        
+        // prevent duplicate companies
+        if (!companyRepository.findByName(request.name()).isEmpty()) {
+            throw new CompanyAlreadyExistsException("A company already exists with the name " + request.name() + ". Try searching for it.");
+        }
+
         Company company = new Company(
             request.name(), 
             request.location(), 
