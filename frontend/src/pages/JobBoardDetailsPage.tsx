@@ -3,10 +3,11 @@ import { useTimedError } from "../hooks/useTimedError";
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
-import { getApplicationById, getApplications } from "../api/applicationApi";
+import { getApplicationById, getAllApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import styles from "./Details.module.css";
+import SearchableSelect from "../components/SearchableSelect";
 
 export default function JobBoardDetailsPage() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -250,18 +251,22 @@ export default function JobBoardDetailsPage() {
                     <h3 className={styles.sectionTitle} style={{marginBottom: 'var(--space-4)'}}>Add Existing Application</h3>
                     <div className={styles.form}>
                         <div className={styles.formGroup}>
-                            <label htmlFor="application-select" className={styles.label}>Your Applications</label>
-                            <select 
-                                className={styles.select}
-                                id="application-select" 
-                                value={selectedApplicationId ?? ""} 
-                                onChange={(e) => setSelectedApplicationId(Number(e.target.value))}
-                            >
-                                <option value="">-- Select an application --</option>
-                                {applications?.map((app) => (
-                                    <option key={app.id} value={app.id}>{app.title}</option>
-                                ))}
-                            </select>
+                            <label className={styles.label}>Your Applications</label>
+                            <SearchableSelect
+                                items={applications}
+                                selectedId={selectedApplicationId}
+                                onSelect={setSelectedApplicationId}
+                                getLabel={(app) => app.title}
+                                getSearchFields={(app) => [app.title]}
+                                renderOption={(app) => (
+                                    <>
+                                        <span className={styles.optionTitle}>{app.title}</span>
+                                        <span className={styles.optionStatus}>{app.status}</span>
+                                    </>
+                                )}
+                                placeholder="Search applications..."
+                                loading={loading}
+                            />
                         </div>
                         <div style={{display: 'flex', gap: 'var(--space-3)'}}>
                             <button 
@@ -293,9 +298,8 @@ export default function JobBoardDetailsPage() {
                         className={styles.button}
                         onClick={() => {
                             if (!displayApplications && applications.length === 0) {
-                                getApplications()
-                                    .then((page) => {
-                                        const apps = page?.content ?? [];
+                                getAllApplications()
+                                    .then((apps) => {
                                         setApplications(apps);
                                         if (apps.length > 0) setSelectedApplicationId(apps[0].id);
                                     })

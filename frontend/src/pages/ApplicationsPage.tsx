@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { deleteApplication, getApplications } from "../api/applicationApi";
+import { deleteApplication, getAllApplications, getApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import styles from "./Pages.module.css";
 import Searchbar from "../components/Searchbar";
+import type { Application } from "../types/Application";
 
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
-    const [filteredApps, setFilteredApps] = useState<any[] | null>(null);
+    const [filteredApps, setFilteredApps] = useState<Application[] | null>(null);
 
     // applications query
     const { 
@@ -22,6 +23,14 @@ export default function ApplicationsPage() {
     } = useQuery({
         queryKey: ['applications', currentPage],
         queryFn: () => getApplications(currentPage, 10)
+    });
+
+        // applications query
+    const { 
+        data: applicationSearchData, 
+    } = useQuery({
+        queryKey: ['searchApplications'],
+        queryFn: () => getAllApplications()
     });
 
     // company data query
@@ -125,7 +134,7 @@ export default function ApplicationsPage() {
             {deleteError && <div className={styles.error}>{deleteError}</div>}
 
             <Searchbar 
-                applications={applicationData?.content ?? []}
+                applications={applicationSearchData ?? []}
                 onSearchChange={(filtered) => setFilteredApps(filtered.length > 0 ? filtered : null)}
                 companies={companyData}
             />
