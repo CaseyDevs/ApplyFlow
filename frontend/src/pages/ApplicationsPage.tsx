@@ -4,12 +4,14 @@ import { getAllCompanies } from "../api/companiesApi";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import styles from "./Pages.module.css";
+import Searchbar from "../components/Searchbar";
 
 export default function ApplicationsPage() {
     const navigate = useNavigate();
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
+    const [filteredApps, setFilteredApps] = useState<any[] | null>(null);
 
     // applications query
     const { 
@@ -44,7 +46,7 @@ export default function ApplicationsPage() {
         },
     });
 
-    const apps = applicationData?.content ?? []; // keep applications empty if no data passed
+    const apps = filteredApps ?? (applicationData?.content ?? []); // use filtered apps if searching, otherwise use paginated apps
 
     async function handleDeleteApplication(applicationId: number): Promise<void> {
         try {
@@ -122,6 +124,12 @@ export default function ApplicationsPage() {
 
             {deleteError && <div className={styles.error}>{deleteError}</div>}
 
+            <Searchbar 
+                applications={applicationData?.content ?? []}
+                onSearchChange={(filtered) => setFilteredApps(filtered.length > 0 ? filtered : null)}
+                companies={companyData}
+            />
+
             <table className={styles.table}>
                 <thead className={styles.tableHeader}>
                     <tr>
@@ -173,26 +181,28 @@ export default function ApplicationsPage() {
                 </tbody>
             </table>
 
-            {/* Pagination Controls */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
-                <button
-                    className={styles.button}
-                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                    disabled={currentPage === 0}
-                >
-                    ← Previous
-                </button>
-                <span style={{ minWidth: '150px', textAlign: 'center' }}>
-                    Page {currentPage + 1} of {applicationData?.totalPages || 1}
-                </span>
-                <button
-                    className={styles.button}
-                    onClick={() => setCurrentPage(prev => prev + 1)}
-                    disabled={currentPage >= (applicationData?.totalPages || 1) - 1}
-                >
-                    Next →
-                </button>
-            </div>
+            {/* Pagination Controls - Only show if not filtering */}
+            {!filteredApps && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem' }}>
+                    <button
+                        className={styles.button}
+                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        disabled={currentPage === 0}
+                    >
+                        ← Previous
+                    </button>
+                    <span style={{ minWidth: '150px', textAlign: 'center' }}>
+                        Page {currentPage + 1} of {applicationData?.totalPages || 1}
+                    </span>
+                    <button
+                        className={styles.button}
+                        onClick={() => setCurrentPage(prev => prev + 1)}
+                        disabled={currentPage >= (applicationData?.totalPages || 1) - 1}
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
