@@ -5,7 +5,7 @@ import styles from "./Searchbar.module.css";
 interface SearchbarProps {
     applications: Application[];
     onSearchChange: (filteredApplications: Application[]) => void;
-    companies?: Record<number, { name: string; location: string }>;
+    companies?: Record<number, { name: string; }>;
 }
 
 export default function Searchbar({ 
@@ -20,7 +20,7 @@ export default function Searchbar({
         const titleMatch = app.title.toLowerCase().includes(searchTerm.toLowerCase());
         const companyName = companies[app.companyId]?.name || "";
         const companyMatch = companyName.toLowerCase().includes(searchTerm.toLowerCase());
-        const location = companies[app.companyId]?.location || "";
+        const location = app.location || "";
         const locationMatch = location.toLowerCase().includes(searchTerm.toLowerCase());
         const statusMatch = app.status.toLowerCase().includes(searchTerm.toLowerCase());
         return titleMatch || companyMatch || locationMatch || statusMatch;
