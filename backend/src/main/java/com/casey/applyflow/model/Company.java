@@ -27,9 +27,6 @@ public class Company {
     private String name;
 
     @Column()
-    private String location;
-
-    @Column()
     private Double rating;
 
     @OneToMany(mappedBy = "company")
@@ -40,9 +37,8 @@ public class Company {
 
     protected Company() {} // JPA Constructor
 
-    public Company(String name, String location, Double rating) {
+    public Company(String name, Double rating) {
         this.name = name;
-        this.location = location;
         this.rating = rating;
     }
 

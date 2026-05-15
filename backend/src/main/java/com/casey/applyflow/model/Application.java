@@ -40,6 +40,9 @@ public class Application {
     @Column(nullable = false)
     private String url;
 
+    @Column(nullable = true)
+    private String location;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
@@ -71,10 +74,11 @@ public class Application {
 
     protected Application() {} // JPA constructor
 
-    public Application(String title, String url, Company company, Status status) {
+    public Application(String title, String url, String location, Company company, Status status) {
         this.title = title;
         this.url = url;
         this.status = status;
+        this.location = location;
         this.company = company;
         this.interviews = new ArrayList<>();
         this.createdAt = LocalDateTime.now();
@@ -106,6 +110,14 @@ public class Application {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public LocalDateTime getCreatedAt() {
