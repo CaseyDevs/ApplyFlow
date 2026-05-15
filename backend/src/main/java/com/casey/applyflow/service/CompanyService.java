@@ -53,7 +53,6 @@ public class CompanyService {
 
         Company company = new Company(
             request.name(), 
-            request.location(), 
             request.rating()
         );
         
@@ -70,7 +69,6 @@ public class CompanyService {
             .orElseThrow(() -> new CompanyNotFoundException("Company not found."));
 
         company.setName(request.name());
-        company.setLocation(request.location());
         company.setRating(request.rating());
 
         log.info("Company - {} - updated successfully.", company.getName());
@@ -86,7 +84,6 @@ public class CompanyService {
         return new CompanyResponseDto(
             company.getId(),
             company.getName(),
-            company.getLocation(),
             company.getRating()
         );
     }
