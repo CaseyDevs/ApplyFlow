@@ -5,6 +5,7 @@ export type Application = {
     title: string;
     url: string;
     status: ApplicationStatus;
+    location: string | null;
     companyId: number;
     interviewIds: number[];
     createdAt: string
@@ -13,6 +14,7 @@ export type Application = {
 export type ApplicationRequest = {
     title: string;
     url: string;
+    location: string | null;
     companyId: number;
     interviewId: number | null;
     status: ApplicationStatus;
@@ -21,6 +23,7 @@ export type ApplicationRequest = {
 export type UpdateApplicationRequest = {
     title: string | null;
     url: string | null;
+    location: string | null;
     companyId: number | null;
     status: ApplicationStatus | null;
 }
