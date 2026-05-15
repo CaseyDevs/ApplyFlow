@@ -20,7 +20,7 @@ export default function Searchbar({
         const titleMatch = app.title.toLowerCase().includes(searchTerm.toLowerCase());
         const companyName = companies[app.companyId]?.name || "";
         const companyMatch = companyName.toLowerCase().includes(searchTerm.toLowerCase());
-        const location = app.location || "";
+        const location = app.location || "Unknown Location";
         const locationMatch = location.toLowerCase().includes(searchTerm.toLowerCase());
         const statusMatch = app.status.toLowerCase().includes(searchTerm.toLowerCase());
         return titleMatch || companyMatch || locationMatch || statusMatch;
