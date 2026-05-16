@@ -21,8 +21,7 @@ import jakarta.persistence.UniqueConstraint;
 @Entity
 @Table(
     name = "job_board_application_status",
-    // ensure a given user can only have at most one status row per job board / application pair
-    uniqueConstraints = @UniqueConstraint(columnNames = {"job_board_id", "application_id", "user_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"job_board_application_id", "user_id"})
 )
 public class JobBoardApplicationStatus {
     
@@ -31,12 +30,8 @@ public class JobBoardApplicationStatus {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_board_id", nullable = false)
-    private JobBoard jobBoard;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
-    private Application application;
+    @JoinColumn(name = "job_board_application_id", nullable = false)
+    private JobBoardApplication jobBoardApplication;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -55,13 +50,10 @@ public class JobBoardApplicationStatus {
     protected JobBoardApplicationStatus() {}; // for JPA
 
     public JobBoardApplicationStatus(
-        JobBoard jobBoard,
-        Application application,
+
         User user,
         Status status
     ) {
-        this.jobBoard = jobBoard;
-        this.application = application;
         this.user = user;
         this.status = status;
         this.updatedAt = LocalDateTime.now();
@@ -74,22 +66,6 @@ public class JobBoardApplicationStatus {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public JobBoard getJobBoard() {
-        return jobBoard;
-    }
-
-    public void setJobBoard(JobBoard jobBoard) {
-        this.jobBoard = jobBoard;
-    }
-
-    public Application getApplication() {
-        return application;
-    }
-
-    public void setApplication(Application application) {
-        this.application = application;
     }
 
     public User getUser() {
@@ -135,5 +111,13 @@ public class JobBoardApplicationStatus {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public JobBoardApplication getJobBoardApplication() {
+        return jobBoardApplication;
+    }
+
+    public void setJobBoardApplication(JobBoardApplication jobBoardApplication) {
+        this.jobBoardApplication = jobBoardApplication;
     }
 }
