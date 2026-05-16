@@ -30,8 +30,8 @@ public class JobBoardApplication {
     private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User addedBy;
+    @JoinColumn(name = "job_board_member_id")
+    private JobBoardMember jobBoardMember;
 
     @Column(nullable = false)
     private LocalDateTime addedAt;
@@ -50,11 +50,11 @@ public class JobBoardApplication {
     protected JobBoardApplication() {} // for jpa
 
     public JobBoardApplication(
-        User addedBy,
+        JobBoardMember jobBoardMember,
         Application application,
         JobBoard jobBoard
     ) {
-        this.addedBy = addedBy;
+        this.jobBoardMember = jobBoardMember;
         this.application = application;
         this.jobBoard = jobBoard;
         addedAt = LocalDateTime.now();
@@ -76,12 +76,12 @@ public class JobBoardApplication {
         this.version = version;
     }
 
-    public User getAddedBy() {
-        return addedBy;
+    public JobBoardMember getJobBoardMember() {
+        return jobBoardMember;
     }
 
-    public void setAddedBy(User addedBy) {
-        this.addedBy = addedBy;
+    public void setJobBoardMember(JobBoardMember jobBoardMember) {
+        this.jobBoardMember = jobBoardMember;
     }
 
     public LocalDateTime getAddedAt() {
