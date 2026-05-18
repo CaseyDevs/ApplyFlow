@@ -4,9 +4,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.AddJobBoardMemberRequestDto;
 import com.casey.applyflow.dto.InvitationDetailsDto;
+import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,7 +81,7 @@ public class JobBoardController {
     
 
     @GetMapping("/job-boards/{jobBoardId}/applications")
-    public ResponseEntity<Page<ApplicationResponseDto>> getJobBoardApplications(
+    public ResponseEntity<Page<JobBoardApplicationResponseDto>> getJobBoardApplications(
         Pageable pageable,
         @PathVariable Long jobBoardId
     ) {
