@@ -5,17 +5,14 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.casey.applyflow.model.JobBoardApplication;
 import com.casey.applyflow.model.JobBoardApplicationStatus;
 
 public interface JobBoardApplicationStatusRepository extends JpaRepository<JobBoardApplicationStatus, Long> {
-    Optional<List<JobBoardApplicationStatus>> findAllByJobBoardIdAndApplicationId(
-        Long jobBoardId,
-        Long applicationId
-    );
+    List<JobBoardApplicationStatus> findAllByJobBoardApplication(JobBoardApplication jobBoardApplication);
 
-    Optional<JobBoardApplicationStatus> findByJobBoardIdAndApplicationIdAndUserId(
-        Long jobBoardId,
-        Long applicationId,
+    Optional<JobBoardApplicationStatus> findByJobBoardApplicationIdAndUserId(
+        Long jobBoardApplicationId,
         Long userId
     );
 }
