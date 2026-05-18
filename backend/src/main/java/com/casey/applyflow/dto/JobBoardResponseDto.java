@@ -7,5 +7,5 @@ public record JobBoardResponseDto(
     String title,
     Long ownerId,
     List<JobBoardMemberDto> members, 
-    List<ApplicationResponseDto> applications
+    List<JobBoardApplicationResponseDto> applications
 ) {}
