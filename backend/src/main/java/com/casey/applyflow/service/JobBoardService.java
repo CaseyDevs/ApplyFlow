@@ -30,20 +30,20 @@ public class JobBoardService {
     private final JobBoardRepository jobBoardRepository;
     private final JobBoardMemberRepository jobBoardMemberRepository;
     private final CurrentUserProvider currentUserProvider;
-    private final ApplicationService applicationService;
+    private final JobBoardApplicationService jobBoardApplicationService;
     private final JobBoardMemberService jobBoardMemberService;
 
     public JobBoardService(
         JobBoardRepository jobBoardRepository,
         JobBoardMemberRepository jobBoardMemberRepository,
         CurrentUserProvider currentUserProvider,
-        ApplicationService applicationService,
+        JobBoardApplicationService jobBoardApplicationService,
         JobBoardMemberService jobBoardMemberService
     ) {
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
         this.currentUserProvider = currentUserProvider;
-        this.applicationService = applicationService;
+        this.jobBoardApplicationService = jobBoardApplicationService;
         this.jobBoardMemberService = jobBoardMemberService;
     }
 
@@ -84,8 +84,7 @@ public class JobBoardService {
 
         JobBoard jobBoard = new JobBoard(
             request.title(), 
-            owner,
-            null
+            owner
         );
         
         jobBoard.addMember(owner);
@@ -127,7 +126,7 @@ public class JobBoardService {
         log.info("Deleting job board {} owned by user {}", jobBoardId, currentUser.getId());
         
         // Detach all applications from the job board before deletion
-        jobBoard.getApplications().forEach(app -> app.removeJobBoard(jobBoard));
+        jobBoard.getApplications().forEach(app -> app.setJobBoard(jobBoard));
 
         // Members will be cascade deleted
         jobBoardRepository.delete(jobBoard);
@@ -159,7 +158,7 @@ public class JobBoardService {
             jobBoard.getTitle(),
             jobBoard.getOwner().getId(),
             jobBoard.getMembers().stream().map(this::toJobBoardMemberDto).toList(),
-            jobBoard.getApplications().stream().map(applicationService::toApplicationResponseDto).toList()
+            jobBoard.getApplications().stream().map(jobBoardApplicationService::toJobBoardApplicationResponseDto).toList()
         );
     }
 
