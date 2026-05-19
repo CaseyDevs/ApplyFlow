@@ -22,6 +22,11 @@ import com.casey.applyflow.repository.JobBoardApplicationRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 
+/* TODO'S: 
+    GET JOB BOARD APPLICATION BY ID LOGIC
+    UPDATE JOB BOARD APPLICATION LOGIC
+*/
+
 @Service
 public class JobBoardApplicationService {
     private static final Logger log = LoggerFactory.getLogger(JobBoardApplicationService.class);
@@ -73,33 +78,50 @@ public class JobBoardApplicationService {
         );
     }
 
-    @Transactional
-public JobBoardApplicationResponseDto addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
-    if (jobBoardId == null || applicationId == null) {
-        throw new IllegalArgumentException("Job board and application IDs cannot be null");
+    @Transactional(readOnly = true)
+    public JobBoardApplication getJobBoardApplicationById(Long id, Long jobBoardId) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
+
+        User currentUser = currentUserProvider.getCurrentUser();
+
+        getJobBoardForMember(jobBoardId, currentUser.getId());
+
+        log.info("Fetching job board application with id {} for user {}", id, currentUser.getId());
+        
+        return jobBoardApplicationRepository
+            .findByIdAndJobBoardId(id, jobBoardId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Job board application does not exist with id: " + id));
     }
 
-    User currentUser = currentUserProvider.getCurrentUser();
-    
-    // Get the application (user must own it)
-    Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
-        .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
-    
-    // Get the job board and verify user is a member
-    JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-    
-    // Get the current user's JobBoardMember
-    JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
-        .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
-    
-    // Create the JobBoardApplication
-    JobBoardApplication jobBoardApp = new JobBoardApplication(member, application, jobBoard);
-    jobBoardApplicationRepository.save(jobBoardApp);
-    
-    log.info("Application {} added to job board {} by user {}", applicationId, jobBoardId, currentUser.getId());
-    
-    return toJobBoardApplicationResponseDto(jobBoardApp);
-}
+    @Transactional
+        public JobBoardApplicationResponseDto addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
+        if (jobBoardId == null || applicationId == null) {
+            throw new IllegalArgumentException("Job board and application IDs cannot be null");
+        }
+
+        User currentUser = currentUserProvider.getCurrentUser();
+        
+        // Get the application (user must own it)
+        Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
+            .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
+        
+        // Get the job board and verify user is a member
+        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
+        
+        // Get the current user's JobBoardMember
+        JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        
+        // Create the JobBoardApplication
+        JobBoardApplication jobBoardApp = new JobBoardApplication(member, application, jobBoard);
+        jobBoardApplicationRepository.save(jobBoardApp);
+        
+        log.info("Application {} added to job board {} by user {}", applicationId, jobBoardId, currentUser.getId());
+        
+        return toJobBoardApplicationResponseDto(jobBoardApp);
+    }   
 
     @Transactional
     public void removeApplicationFromJobBoard(Long jobBoardId, Long applicationId) {
