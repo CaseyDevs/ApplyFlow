@@ -1,16 +1,19 @@
 import { useState } from "react"
 import { useTimedError } from "../hooks/useTimedError";
-import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
+import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard, updateApplicationStatus } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
+import type { JobBoardApplicationResponse } from "../types/JobBoardApplication";
 import { getApplicationById, getAllApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import styles from "./Details.module.css";
 import SearchableSelect from "../components/SearchableSelect";
 import Searchbar from "../components/Searchbar";
+import { useAuth } from "../context/AuthContext";
 
 export default function JobBoardDetailsPage() {
+    const auth = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useTimedError(3000);
     const [memberEmail, setMemberEmail] = useState<string>("");
@@ -18,7 +21,8 @@ export default function JobBoardDetailsPage() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [displayApplications, setDisplayApplications] = useState<boolean>(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
-    const [filteredBoardApplications, setFilteredBoardApplications] = useState<Application[] | null>(null);
+    const [filteredBoardApplications, setFilteredBoardApplications] = useState<JobBoardApplicationResponse[] | null>(null);
+    const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
 
     const queryClient = useQueryClient();
     const navigate = useNavigate();
@@ -96,7 +100,7 @@ export default function JobBoardDetailsPage() {
         if (!hasValidJobBoardId || selectedApplicationId == null) return;
         try {
             setLoading(true);
-            const alreadyAdded = jobBoard?.applications?.some((app) => app.id === selectedApplicationId); // check for first match
+            const alreadyAdded = jobBoard?.applications?.some((app) => app.application.id === selectedApplicationId); // check for first match
             
             // prevent application duplicates
             if (alreadyAdded) {
@@ -129,13 +133,27 @@ export default function JobBoardDetailsPage() {
         }
     }
 
+    async function handleUpdateApplicationStatus(jobBoardApplicationId: number, status: string) {
+        if (!jobBoardApplicationId || !hasValidJobBoardId || !status) return;
+
+        try {
+            setLoading(true);
+            await updateApplicationStatus(thisJobBoardId, jobBoardApplicationId, status);
+            refetchJobBoardData();
+        } catch (err: any) {
+            setError(err?.message || "Failed to update application status");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function handleUpdateJobBoardApplication(applicationId: number) {
         try {
             setLoading(true);
             await getApplicationById(applicationId); // ensure user owns application before navigating to update page
             navigate(`/job-boards/${thisJobBoardId}/applications/${applicationId}`);
         } catch (err: any) {
-            setError(err || "You cannot update applications that you do not own!");
+            setError("You cannot update applications that you do not own!");
         } finally {
             setLoading(false);
         }
@@ -316,17 +334,27 @@ export default function JobBoardDetailsPage() {
                 {jobBoard?.applications && jobBoard.applications.length > 0 ? (
                     <>
                         <Searchbar 
-                            applications={jobBoard.applications}
-                            onSearchChange={(filtered) => setFilteredBoardApplications(filtered.length > 0 ? filtered : null)}
+                            applications={(jobBoard.applications as JobBoardApplicationResponse[]).map(jba => jba.application)}
+                            onSearchChange={(filtered) => {
+                                const filteredIds = filtered.map(app => app.id);
+                                const filtered_jba = (jobBoard.applications as JobBoardApplicationResponse[]).filter(jba => filteredIds.includes(jba.application.id));
+                                setFilteredBoardApplications(filtered_jba.length > 0 ? filtered_jba : null);
+                            }}
                             companies={companyData}
                         />
                         <div className={styles.applicationList}>
-                            {(filteredBoardApplications ?? jobBoard.applications).map((app) => {
+                            {(filteredBoardApplications ?? jobBoard.applications)
+                            .sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
+                            .map((jobBoardApp) => {
+                                const app = jobBoardApp.application;
                                 const company = companyData ? companyData[app.companyId] : null;
 
                                 return (
-                                <div key={app.id} className={styles.applicationCard}>
-                                    <h3 className={styles.applicationTitle}>{app.title}</h3>
+                                <div key={jobBoardApp.id} className={styles.applicationCard}>
+                                    <div className={styles.applicationTitleHeader}>
+                                        <h3 className={styles.applicationTitle}>{app.title}</h3>
+                                        <span className={styles.applicationDate}>{new Date(jobBoardApp.addedAt).toLocaleDateString()}</span>
+                                    </div>
                                     <div className={styles.applicationMeta}>
                                         <p style={{marginBottom: 'var(--space-2)', color: 'var(--text-primary)', fontWeight: 500}}>
                                             {company?.name ?? "Unknown Company"}
@@ -335,9 +363,49 @@ export default function JobBoardDetailsPage() {
                                             {app.location ?? "Unknown Location"}  ⟟ 
                                         </p>
                                     </div>
-                                    <span className={`${styles.applicationStatus} ${styles[`status${app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()}`]}`}>
-                                        {app.status}
-                                    </span>
+                                    <div>
+                                        {jobBoardApp.statusList && jobBoardApp.statusList.length > 0 && (
+                                            <div className={styles.applicationStatusList}>
+                                                {jobBoardApp.statusList.map((status) => {
+                                                    const isCurrentUser = auth?.user?.email === status.userEmail;
+                                                    const isEditing = editingStatusId === status.id;
+                                                    return (
+                                                        <div key={status.id}>
+                                                            {isEditing && isCurrentUser ? (
+                                                                <select 
+                                                                    autoFocus
+                                                                    className={styles.inlineStatusSelect}
+                                                                    value={status.status}
+                                                                    onChange={(e) => {
+                                                                        handleUpdateApplicationStatus(jobBoardApp.id, e.target.value);
+                                                                        setEditingStatusId(null);
+                                                                    }}
+                                                                    onBlur={() => setEditingStatusId(null)}
+                                                                >
+                                                                    <option value="INTERESTED">Interested</option>
+                                                                    <option value="APPLIED">Applied</option>
+                                                                    <option value="INTERVIEWING">Interviewing</option>
+                                                                    <option value="OFFER">Offer</option>
+                                                                    <option value="REJECTED">Rejected</option>
+                                                                    <option value="WITHDRAWN">Withdrawn</option>
+                                                                    <option value="ACCEPTED">Accepted</option>
+                                                                </select>
+                                                            ) : (
+                                                                <div 
+                                                                    className={`${styles.applicationStatusItem} ${isCurrentUser ? styles.clickableStatus : ''}`}
+                                                                    onClick={() => isCurrentUser && setEditingStatusId(status.id)}
+                                                                    style={{cursor: isCurrentUser ? 'pointer' : 'default'}}
+                                                                >
+                                                                    <span className={styles.applicationStatusEmail}>{status.userEmail.split('@')[0]}</span>
+                                                                    <span className={styles.applicationStatusValue}>{status.status.toLowerCase()}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className={styles.applicationActions}>
                                         <a 
                                             href={app.url} 
@@ -366,7 +434,7 @@ export default function JobBoardDetailsPage() {
                                         </button>
                                         <button 
                                             className={styles.dangerButton}
-                                            onClick={() => handleRemoveApplication(app.id)}
+                                            onClick={() => handleRemoveApplication(jobBoardApp.id)}
                                             style={{padding: 'var(--space-2)', fontSize: 'var(--font-size-xs)'}}
                                         >
                                             Remove

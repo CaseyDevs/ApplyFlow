@@ -6,8 +6,7 @@ import com.casey.applyflow.model.enums.Status;
 
 public record JobBoardStatusResponseDto(
     Long id,
-    Long jobBoardId,
-    Long applicationId,
+    Long jobBoardApplicationId,
     Long userId,
     String userEmail,
     Status status,

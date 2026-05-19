@@ -16,7 +16,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -42,16 +41,14 @@ public class JobBoard {
     @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobBoardMember> members = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "jobBoards")
-    private Set<Application> applications = new HashSet<>();
+    @OneToMany(mappedBy = "jobBoard", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobBoardApplication> applications = new HashSet<>();
 
     public JobBoard(
         String title,
-        JobBoardMember owner,
-        Set<Application> applications
+        JobBoardMember owner
     ) {
         this.title = title;
-        this.applications = applications != null ? applications : new HashSet<>();
         if (owner != null) {
             this.user = owner.getUser();
             members.add(owner); // add creator to members list
@@ -110,17 +107,17 @@ public class JobBoard {
         members.remove(member);
     }
 
-    public Set<Application> getApplications() {
+    public Set<JobBoardApplication> getApplications() {
         return applications;
     }
 
-    public void addApplication(Application application) {
-        application.addJobBoard(this);
+    public void addApplication(JobBoardApplication application) {
+        application.setJobBoard(this);
         applications.add(application);
     }
 
-    public void removeApplication(Application application) {
-        application.removeJobBoard(this);
+    public void removeApplication(JobBoardApplication application) {
+        application.setJobBoard(null);
         applications.remove(application);
     }
 }

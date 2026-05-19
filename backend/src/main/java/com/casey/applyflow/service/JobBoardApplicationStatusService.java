@@ -7,75 +7,91 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.JobBoardStatusResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
-import com.casey.applyflow.exception.JobBoardNotFoundException;
+import com.casey.applyflow.exception.NotAMemberException;
+import com.casey.applyflow.model.JobBoardApplication;
 import com.casey.applyflow.model.JobBoardApplicationStatus;
-import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.User;
+import com.casey.applyflow.model.enums.Status;
 import com.casey.applyflow.repository.ApplicationRepository;
+import com.casey.applyflow.repository.JobBoardApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationStatusRepository;
+import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 
 @Service
 public class JobBoardApplicationStatusService {
-    private ApplicationRepository applicationRepository;
-    private CurrentUserProvider currentUserProvider;
-    private JobBoardRepository jobBoardRepository;
-    private JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository;
-
+    private final JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository;
+    private final CurrentUserProvider currentUserProvider;
+    private final JobBoardApplicationRepository jobBoardApplicationRepository;
+    private final JobBoardMemberRepository jobBoardMemberRepository;
 
     public JobBoardApplicationStatusService(
         ApplicationRepository applicationRepository,
         CurrentUserProvider currentUserProvider,
         JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository,
-        JobBoardRepository jobBoardRepository
+        JobBoardRepository jobBoardRepository,
+        JobBoardApplicationRepository jobBoardApplicationRepository,
+        JobBoardMemberRepository jobBoardMemberRepository
     ) {
-        this.applicationRepository = applicationRepository;
-        this.currentUserProvider = currentUserProvider;
         this.jobBoardApplicationStatusRepository = jobBoardApplicationStatusRepository;
-        this.jobBoardRepository = jobBoardRepository;
+        this.currentUserProvider = currentUserProvider;
+        this.jobBoardApplicationRepository = jobBoardApplicationRepository;
+        this.jobBoardMemberRepository = jobBoardMemberRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<JobBoardStatusResponseDto> getAllJobBoardApplicationStatuses(Long jobBoardId, Long applicationId) {
-        if (jobBoardId == null) {
-            throw new IllegalArgumentException("Job board ID cannot be null");
-        }
-
-        if (applicationId == null) {
-            throw new IllegalArgumentException("Application ID cannot be null");
-        }
-
+    public List<JobBoardStatusResponseDto> getAllJobBoardApplicationStatuses(Long jobBoardApplicationId) {
+        // Get the JobBoardApplication
+        JobBoardApplication jobBoardApp = jobBoardApplicationRepository.findById(jobBoardApplicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Job board application does not exist"));
+        
+        // Verify current user is a member of this board
         User currentUser = currentUserProvider.getCurrentUser();
-
-        // check user is a member of the board
-        JobBoard jobBoard = jobBoardRepository.findByIdAndMembersUserId(jobBoardId, currentUser.getId())
-            .orElseThrow(() -> new JobBoardNotFoundException("You are not a member of this job board!"));
-
-        applicationRepository.findById(applicationId)
-            .orElseThrow(() -> new ApplicationNotFoundException("Application does not exist with id: " + applicationId));
-
-        // check job board contains the given application
-        boolean applicationBelongsToJobBoard = jobBoard.getApplications().stream()
-            .anyMatch(application -> application.getId().equals(applicationId));
-
-        if (!applicationBelongsToJobBoard) {
-            throw new ApplicationNotFoundException("Application is not on this job board.");
-        }
-
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardApp.getJobBoard().getId(), currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        
+        // Get the statuses
         return jobBoardApplicationStatusRepository
-            .findAllByJobBoardIdAndApplicationId(jobBoardId, applicationId)
-            .orElseGet(List::of)
+            .findAllByJobBoardApplication(jobBoardApp)
             .stream()
             .map(this::toJobBoardStatusResponseDto)
             .toList();
     }
 
+    @Transactional
+    public JobBoardStatusResponseDto updateApplicationStatus(Long jobBoardApplicationId, String status) {
+        // Get the JobBoardApplication
+        JobBoardApplication jobBoardApp = jobBoardApplicationRepository.findById(jobBoardApplicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Job board application does not exist"));
+        
+        // Verify current user is a member of this board
+        User currentUser = currentUserProvider.getCurrentUser();
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardApp.getJobBoard().getId(), currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        
+        // Find existing status or create new one
+        JobBoardApplicationStatus appStatus = jobBoardApplicationStatusRepository
+            .findByJobBoardApplicationIdAndUserId(jobBoardApplicationId, currentUser.getId())
+            .orElseGet(() -> {
+                JobBoardApplicationStatus newStatus = new JobBoardApplicationStatus(currentUser, Status.valueOf(status));
+                newStatus.setJobBoardApplication(jobBoardApp);
+                return newStatus;
+            });
+        
+        // Update the status
+        appStatus.setStatus(Status.valueOf(status));
+        appStatus.setUpdatedAt(java.time.LocalDateTime.now());
+        appStatus.setUpdatedBy(currentUser.getEmail());
+        
+        jobBoardApplicationStatusRepository.save(appStatus);
+        return toJobBoardStatusResponseDto(appStatus);
+    }
+
     // dto mapper
-    private JobBoardStatusResponseDto toJobBoardStatusResponseDto(JobBoardApplicationStatus status) {
+    public JobBoardStatusResponseDto toJobBoardStatusResponseDto(JobBoardApplicationStatus status) {
         return new JobBoardStatusResponseDto (
             status.getId(),
-            status.getJobBoard().getId(),
-            status.getApplication().getId(),
+            status.getJobBoardApplication().getId(),
             status.getUser().getId(),
             status.getUser().getEmail(),
             status.getStatus(),

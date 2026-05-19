@@ -4,9 +4,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.AddJobBoardMemberRequestDto;
 import com.casey.applyflow.dto.InvitationDetailsDto;
+import com.casey.applyflow.dto.JobBoardApplicationRequestDto;
+import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
@@ -28,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +36,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+ 
+/* TODO'S: 
+    GET JOB BOARD APPLICATION BY ID ENDPOINT 
+*/
+
 
 @RestController
 @RequestMapping("/api/v1")
@@ -78,16 +83,6 @@ public class JobBoardController {
     ) {
         
         return ResponseEntity.ok(jobBoardService.getJobBoardById(jobBoardId));
-    }
-    
-
-    @GetMapping("/job-boards/{jobBoardId}/applications")
-    public ResponseEntity<Page<ApplicationResponseDto>> getJobBoardApplications(
-        Pageable pageable,
-        @PathVariable Long jobBoardId
-    ) {
-
-        return ResponseEntity.ok(jobBoardApplicationService.getAllJobBoardApplications(jobBoardId, pageable));
     }
 
     @PostMapping("/job-boards")
@@ -199,13 +194,33 @@ public class JobBoardController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/job-boards/{jobBoardId}/applications")
+    public ResponseEntity<Page<JobBoardApplicationResponseDto>> getJobBoardApplications(
+        Pageable pageable,
+        @PathVariable Long jobBoardId
+    ) {
+
+        return ResponseEntity.ok(jobBoardApplicationService.getAllJobBoardApplications(jobBoardId, pageable));
+    }
+
+    @GetMapping("job-boards/{jobBoardId}/applications/{jobBoardApplicationId}")
+    public ResponseEntity<JobBoardApplicationResponseDto> getJobBoardApplicationById (
+        @PathVariable @Min(1) Long jobBoardId,
+        @PathVariable @Min(1) Long jobBoardApplicationId
+    ) {
+
+        return ResponseEntity.ok(jobBoardApplicationService.getJobBoardApplicationById(jobBoardApplicationId, jobBoardId));
+    }
+    
     @PostMapping("/job-boards/{jobBoardId}/applications/{applicationId}")
     public ResponseEntity<Void> addApplicationToJobBoard(
         @PathVariable @Min(1) Long jobBoardId,
         @PathVariable @Min(1) Long applicationId
     ) {
 
-        jobBoardApplicationService.addApplicationToJobBoard(jobBoardId, applicationId);
+        JobBoardApplicationRequestDto request = new JobBoardApplicationRequestDto(applicationId, jobBoardId);
+
+        jobBoardApplicationService.addApplicationToJobBoard(request);
         return ResponseEntity.noContent().build();
     }
 
