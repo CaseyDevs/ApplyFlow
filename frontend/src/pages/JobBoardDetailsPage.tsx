@@ -334,7 +334,10 @@ export default function JobBoardDetailsPage() {
 
                                 return (
                                 <div key={jobBoardApp.id} className={styles.applicationCard}>
-                                    <h3 className={styles.applicationTitle}>{app.title}</h3>
+                                    <div className={styles.applicationTitleHeader}>
+                                        <h3 className={styles.applicationTitle}>{app.title}</h3>
+                                        <span className={styles.applicationDate}>{new Date(jobBoardApp.addedAt).toLocaleDateString()}</span>
+                                    </div>
                                     <div className={styles.applicationMeta}>
                                         <p style={{marginBottom: 'var(--space-2)', color: 'var(--text-primary)', fontWeight: 500}}>
                                             {company?.name ?? "Unknown Company"}

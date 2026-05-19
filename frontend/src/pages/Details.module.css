@@ -154,10 +154,22 @@
   box-shadow: var(--shadow-md);
 }
 
+.applicationTitleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
 .applicationTitle {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--space-2);
+  margin-bottom: 0;
+}
+
+.applicationDate {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
 }
 
 .applicationMeta {
