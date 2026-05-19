@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
+import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.NotAMemberException;
@@ -21,11 +22,6 @@ import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
-
-/* TODO'S: 
-    GET JOB BOARD APPLICATION BY ID LOGIC
-    UPDATE JOB BOARD APPLICATION LOGIC
-*/
 
 @Service
 public class JobBoardApplicationService {
@@ -79,8 +75,8 @@ public class JobBoardApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public JobBoardApplication getJobBoardApplicationById(Long id, Long jobBoardId) {
-        if (id == null) {
+    public JobBoardApplicationResponseDto getJobBoardApplicationById(Long id, Long jobBoardId) {
+        if (id == null || jobBoardId == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
 
@@ -90,9 +86,11 @@ public class JobBoardApplicationService {
 
         log.info("Fetching job board application with id {} for user {}", id, currentUser.getId());
         
-        return jobBoardApplicationRepository
+        JobBoardApplication jobBoardApplication = jobBoardApplicationRepository
             .findByIdAndJobBoardId(id, jobBoardId)
             .orElseThrow(() -> new ApplicationNotFoundException("Job board application does not exist with id: " + id));
+
+        return toJobBoardApplicationResponseDto(jobBoardApplication);
     }
 
     @Transactional

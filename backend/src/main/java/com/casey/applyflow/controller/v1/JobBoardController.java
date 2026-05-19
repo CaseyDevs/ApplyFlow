@@ -35,6 +35,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
+ 
+/* TODO'S: 
+    GET JOB BOARD APPLICATION BY ID ENDPOINT 
+*/
+
 
 @RestController
 @RequestMapping("/api/v1")
@@ -77,16 +82,6 @@ public class JobBoardController {
     ) {
         
         return ResponseEntity.ok(jobBoardService.getJobBoardById(jobBoardId));
-    }
-    
-
-    @GetMapping("/job-boards/{jobBoardId}/applications")
-    public ResponseEntity<Page<JobBoardApplicationResponseDto>> getJobBoardApplications(
-        Pageable pageable,
-        @PathVariable Long jobBoardId
-    ) {
-
-        return ResponseEntity.ok(jobBoardApplicationService.getAllJobBoardApplications(jobBoardId, pageable));
     }
 
     @PostMapping("/job-boards")
@@ -198,6 +193,24 @@ public class JobBoardController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/job-boards/{jobBoardId}/applications")
+    public ResponseEntity<Page<JobBoardApplicationResponseDto>> getJobBoardApplications(
+        Pageable pageable,
+        @PathVariable Long jobBoardId
+    ) {
+
+        return ResponseEntity.ok(jobBoardApplicationService.getAllJobBoardApplications(jobBoardId, pageable));
+    }
+
+    @GetMapping("job-boards/{jobBoardId}/applications/{jobBoardApplicationId}")
+    public ResponseEntity<JobBoardApplicationResponseDto> getJobBoardApplicationById (
+        @PathVariable @Min(1) Long jobBoardId,
+        @PathVariable @Min(1) Long jobBoardApplicationId
+    ) {
+
+        return ResponseEntity.ok(jobBoardApplicationService.getJobBoardApplicationById(jobBoardApplicationId, jobBoardId));
+    }
+    
     @PostMapping("/job-boards/{jobBoardId}/applications/{applicationId}")
     public ResponseEntity<Void> addApplicationToJobBoard(
         @PathVariable @Min(1) Long jobBoardId,
