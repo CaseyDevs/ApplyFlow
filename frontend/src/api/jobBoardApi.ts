@@ -1,6 +1,7 @@
 import type { Invitation } from "../types/Invitation";
 import type { JobBoardRequest, JobBoardResponse } from "../types/JobBoard";
 import type { Page } from "../types/Application";
+import type { JobBoardApplicationRequest, JobBoardApplicationResponse } from "../types/JobBoardApplication";
 
 const BASE_URL = "http://localhost:8080";
 const API_BASE = `${BASE_URL}/api/v1`;
@@ -127,5 +128,21 @@ export async function rejectJobBoardInvitation(jobBoardId: number, token: string
         `${API_BASE}/job-boards/${jobBoardId}/invitation?token=${encodeURIComponent(token)}`,
         { method: "DELETE" },
         "Failed to reject invitation"
+    );
+}
+
+export async function getAllJobBoardApplications(request: JobBoardApplicationRequest): Promise<JobBoardApplicationResponse> {
+    return apiRequest(
+        `${API_BASE}/job-boards/${request.jobBoardId}/applications}`,
+        { method: "GET" },
+        "Failed to fetch job board applications"
+    );
+}
+
+export async function getJobBoardApplicationById(request: JobBoardApplicationRequest): Promise<JobBoardApplicationResponse> {
+    return apiRequest(
+        `${API_BASE}/job-boards/${request.jobBoardId}/applications/${request.applicationId}`,
+        { method: "GET" },
+        "Failed to fetch job board application"
     );
 }
