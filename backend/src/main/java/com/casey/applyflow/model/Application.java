@@ -2,9 +2,7 @@ package com.casey.applyflow.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.casey.applyflow.model.enums.Status;
 
@@ -18,13 +16,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-
 
 @Entity
 @Table(name = "application")
@@ -57,13 +52,8 @@ public class Application {
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Interview> interviews = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "job_board_application",
-        joinColumns = @JoinColumn(name = "application_id"),
-        inverseJoinColumns = @JoinColumn(name = "job_board_id")
-    )
-    private Set<JobBoard> jobBoards = new HashSet<>();
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<JobBoardApplication> jobBoardApplications = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -81,6 +71,7 @@ public class Application {
         this.location = location;
         this.company = company;
         this.interviews = new ArrayList<>();
+        this.jobBoardApplications = new ArrayList<>();
         this.createdAt = LocalDateTime.now();
     }
 
@@ -153,17 +144,19 @@ public class Application {
     public void setUser(User user) {
         this.user = user;
     }
-    
-    public Set<JobBoard> getJobBoards() {
-        return jobBoards;
+
+    public List<JobBoardApplication> getJobBoardApplications() {
+        return jobBoardApplications;
     }
 
-    public void addJobBoard(JobBoard jobBoard) {
-        jobBoards.add(jobBoard);
+    public void addJobBoardApplication(JobBoardApplication jobBoardApplication) {
+        jobBoardApplications.add(jobBoardApplication);
+        jobBoardApplication.setApplication(this);
     }
 
-    public void removeJobBoard(JobBoard jobBoard) {
-        jobBoards.remove(jobBoard);
+    public void removeJobBoardApplication(JobBoardApplication jobBoardApplication) {
+        jobBoardApplications.remove(jobBoardApplication);
+        jobBoardApplication.setApplication(null);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.casey.applyflow.service;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -10,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.JobBoardApplicationRequestDto;
 import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
-import com.casey.applyflow.dto.JobBoardResponseDto;
+import com.casey.applyflow.exception.ApplicationAlreadyAddedException;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.NotAMemberException;
@@ -95,36 +97,44 @@ public class JobBoardApplicationService {
     }
 
     @Transactional
-        public JobBoardApplicationResponseDto addApplicationToJobBoard(JobBoardApplicationRequestDto request) {
+    public JobBoardApplicationResponseDto addApplicationToJobBoard(JobBoardApplicationRequestDto request) {
         if (request.jobBoardId() == null || request.applicationId() == null) {
             throw new IllegalArgumentException("Job board and application IDs cannot be null");
-        }
-
+        }   
         Long jobBoardId = request.jobBoardId(); 
-        Long applicationId = request.applicationId();
-
+        Long applicationId = request.applicationId();   
         User currentUser = currentUserProvider.getCurrentUser();
-        
+
         // Get the application (user must own it)
         Application application = applicationRepository.findByIdAndUserId(applicationId, currentUser.getId())
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
-        
+
         // Get the job board and verify user is a member
         JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
-        
+
         // Get the current user's JobBoardMember
         JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+
+        // Check if application is already added to this job board
+        Optional<JobBoardApplication> existingApp = jobBoardApplicationRepository.findByApplicationIdAndJobBoardId(applicationId, jobBoardId);
+        if (existingApp.isPresent()) {
+            log.warn("Application {} is already added to job board {} by member {}", 
+                applicationId, jobBoardId, existingApp.get().getJobBoardMember().getUser().getEmail());
+            throw new ApplicationAlreadyAddedException("This application is already added to this job board");
+        }
         
+        log.info("Validation passed - application {} not yet on job board {}, proceeding to add", applicationId, jobBoardId);
+
         // Create the JobBoardApplication
         JobBoardApplication jobBoardApp = new JobBoardApplication(member, application, jobBoard);
         jobBoardApplicationRepository.save(jobBoardApp);
-        
+
         // Automatically set the owner's status to match the application's status
         jobBoardApplicationStatusService.updateApplicationStatus(jobBoardApp.getId(), application.getStatus().toString());
-        
+
         log.info("Application {} added to job board {} by user {}", applicationId, jobBoardId, currentUser.getId());
-        
+
         return toJobBoardApplicationResponseDto(jobBoardApp);
     }   
 

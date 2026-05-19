@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.casey.applyflow.exception.ApplicationAlreadyAddedException;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyAlreadyExistsException;
 import com.casey.applyflow.exception.CompanyInUseException;
@@ -96,6 +97,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MemberAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleMemberAlreadyExists(MemberAlreadyExistsException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.CONFLICT.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(ApplicationAlreadyAddedException.class)
+    public ResponseEntity<ErrorResponse> handleApplicationAlreadyAdded(ApplicationAlreadyAddedException ex) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.CONFLICT.value(),
             ex.getMessage()
