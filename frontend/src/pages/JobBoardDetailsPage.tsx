@@ -3,6 +3,7 @@ import { useTimedError } from "../hooks/useTimedError";
 import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
+import type { JobBoardApplicationResponse } from "../types/JobBoardApplication";
 import { getApplicationById, getAllApplications } from "../api/applicationApi";
 import { getAllCompanies } from "../api/companiesApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,7 @@ export default function JobBoardDetailsPage() {
     const [applications, setApplications] = useState<Application[]>([]);
     const [displayApplications, setDisplayApplications] = useState<boolean>(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
-    const [filteredBoardApplications, setFilteredBoardApplications] = useState<Application[] | null>(null);
+    const [filteredBoardApplications, setFilteredBoardApplications] = useState<JobBoardApplicationResponse[] | null>(null);
 
     const queryClient = useQueryClient();
     const navigate = useNavigate();
@@ -96,7 +97,7 @@ export default function JobBoardDetailsPage() {
         if (!hasValidJobBoardId || selectedApplicationId == null) return;
         try {
             setLoading(true);
-            const alreadyAdded = jobBoard?.applications?.some((app) => app.id === selectedApplicationId); // check for first match
+            const alreadyAdded = jobBoard?.applications?.some((app) => app.application.id === selectedApplicationId); // check for first match
             
             // prevent application duplicates
             if (alreadyAdded) {
@@ -316,16 +317,23 @@ export default function JobBoardDetailsPage() {
                 {jobBoard?.applications && jobBoard.applications.length > 0 ? (
                     <>
                         <Searchbar 
-                            applications={jobBoard.applications}
-                            onSearchChange={(filtered) => setFilteredBoardApplications(filtered.length > 0 ? filtered : null)}
+                            applications={(jobBoard.applications as JobBoardApplicationResponse[]).map(jba => jba.application)}
+                            onSearchChange={(filtered) => {
+                                const filteredIds = filtered.map(app => app.id);
+                                const filtered_jba = (jobBoard.applications as JobBoardApplicationResponse[]).filter(jba => filteredIds.includes(jba.application.id));
+                                setFilteredBoardApplications(filtered_jba.length > 0 ? filtered_jba : null);
+                            }}
                             companies={companyData}
                         />
                         <div className={styles.applicationList}>
-                            {(filteredBoardApplications ?? jobBoard.applications).map((app) => {
+                            {(filteredBoardApplications ?? jobBoard.applications)
+                            .sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
+                            .map((jobBoardApp) => {
+                                const app = jobBoardApp.application;
                                 const company = companyData ? companyData[app.companyId] : null;
 
                                 return (
-                                <div key={app.id} className={styles.applicationCard}>
+                                <div key={jobBoardApp.id} className={styles.applicationCard}>
                                     <h3 className={styles.applicationTitle}>{app.title}</h3>
                                     <div className={styles.applicationMeta}>
                                         <p style={{marginBottom: 'var(--space-2)', color: 'var(--text-primary)', fontWeight: 500}}>
@@ -366,7 +374,7 @@ export default function JobBoardDetailsPage() {
                                         </button>
                                         <button 
                                             className={styles.dangerButton}
-                                            onClick={() => handleRemoveApplication(app.id)}
+                                            onClick={() => handleRemoveApplication(jobBoardApp.id)}
                                             style={{padding: 'var(--space-2)', fontSize: 'var(--font-size-xs)'}}
                                         >
                                             Remove
