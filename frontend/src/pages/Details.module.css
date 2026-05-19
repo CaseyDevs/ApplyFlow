@@ -172,6 +172,98 @@
   color: var(--text-tertiary);
 }
 
+.applicationStatusList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.applicationStatusItem {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  background-color: var(--bg-primary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-gray-200);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.applicationStatusItem.clickableStatus {
+  background-color: var(--color-primary-lighter);
+}
+
+.applicationStatusItem.clickableStatus:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.applicationStatusEmail {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  margin-right: var(--space-1);
+}
+
+.applicationStatusValue {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.inlineStatusSelect {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+}
+
+.applicationStatusSelector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  font-size: var(--font-size-sm);
+}
+
+.statusLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.statusSelect {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.statusSelect:hover {
+  border-color: var(--color-primary);
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.statusSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .applicationMeta {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);

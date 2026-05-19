@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTimedError } from "../hooks/useTimedError";
-import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard } from "../api/jobBoardApi";
+import { addApplicationToJobBoard, addJobBoardMember, deleteJobBoard, getJobBoardById, leaveJobBoard, removeApplicationFromJobBoard, updateApplicationStatus } from "../api/jobBoardApi";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Application } from "../types/Application";
 import type { JobBoardApplicationResponse } from "../types/JobBoardApplication";
@@ -10,8 +10,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import styles from "./Details.module.css";
 import SearchableSelect from "../components/SearchableSelect";
 import Searchbar from "../components/Searchbar";
+import { useAuth } from "../context/AuthContext";
 
 export default function JobBoardDetailsPage() {
+    const auth = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useTimedError(3000);
     const [memberEmail, setMemberEmail] = useState<string>("");
@@ -20,6 +22,7 @@ export default function JobBoardDetailsPage() {
     const [displayApplications, setDisplayApplications] = useState<boolean>(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
     const [filteredBoardApplications, setFilteredBoardApplications] = useState<JobBoardApplicationResponse[] | null>(null);
+    const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
 
     const queryClient = useQueryClient();
     const navigate = useNavigate();
@@ -130,13 +133,27 @@ export default function JobBoardDetailsPage() {
         }
     }
 
+    async function handleUpdateApplicationStatus(jobBoardApplicationId: number, status: string) {
+        if (!jobBoardApplicationId || !hasValidJobBoardId || !status) return;
+
+        try {
+            setLoading(true);
+            await updateApplicationStatus(thisJobBoardId, jobBoardApplicationId, status);
+            refetchJobBoardData();
+        } catch (err: any) {
+            setError(err?.message || "Failed to update application status");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function handleUpdateJobBoardApplication(applicationId: number) {
         try {
             setLoading(true);
             await getApplicationById(applicationId); // ensure user owns application before navigating to update page
             navigate(`/job-boards/${thisJobBoardId}/applications/${applicationId}`);
         } catch (err: any) {
-            setError(err || "You cannot update applications that you do not own!");
+            setError("You cannot update applications that you do not own!");
         } finally {
             setLoading(false);
         }
@@ -346,9 +363,49 @@ export default function JobBoardDetailsPage() {
                                             {app.location ?? "Unknown Location"}  ⟟ 
                                         </p>
                                     </div>
-                                    <span className={`${styles.applicationStatus} ${styles[`status${app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()}`]}`}>
-                                        {app.status}
-                                    </span>
+                                    <div>
+                                        {jobBoardApp.statusList && jobBoardApp.statusList.length > 0 && (
+                                            <div className={styles.applicationStatusList}>
+                                                {jobBoardApp.statusList.map((status) => {
+                                                    const isCurrentUser = auth?.user?.email === status.userEmail;
+                                                    const isEditing = editingStatusId === status.id;
+                                                    return (
+                                                        <div key={status.id}>
+                                                            {isEditing && isCurrentUser ? (
+                                                                <select 
+                                                                    autoFocus
+                                                                    className={styles.inlineStatusSelect}
+                                                                    value={status.status}
+                                                                    onChange={(e) => {
+                                                                        handleUpdateApplicationStatus(jobBoardApp.id, e.target.value);
+                                                                        setEditingStatusId(null);
+                                                                    }}
+                                                                    onBlur={() => setEditingStatusId(null)}
+                                                                >
+                                                                    <option value="INTERESTED">Interested</option>
+                                                                    <option value="APPLIED">Applied</option>
+                                                                    <option value="INTERVIEWING">Interviewing</option>
+                                                                    <option value="OFFER">Offer</option>
+                                                                    <option value="REJECTED">Rejected</option>
+                                                                    <option value="WITHDRAWN">Withdrawn</option>
+                                                                    <option value="ACCEPTED">Accepted</option>
+                                                                </select>
+                                                            ) : (
+                                                                <div 
+                                                                    className={`${styles.applicationStatusItem} ${isCurrentUser ? styles.clickableStatus : ''}`}
+                                                                    onClick={() => isCurrentUser && setEditingStatusId(status.id)}
+                                                                    style={{cursor: isCurrentUser ? 'pointer' : 'default'}}
+                                                                >
+                                                                    <span className={styles.applicationStatusEmail}>{status.userEmail.split('@')[0]}</span>
+                                                                    <span className={styles.applicationStatusValue}>{status.status.toLowerCase()}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className={styles.applicationActions}>
                                         <a 
                                             href={app.url} 
