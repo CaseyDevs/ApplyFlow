@@ -120,6 +120,9 @@ public class JobBoardApplicationService {
         JobBoardApplication jobBoardApp = new JobBoardApplication(member, application, jobBoard);
         jobBoardApplicationRepository.save(jobBoardApp);
         
+        // Automatically set the owner's status to match the application's status
+        jobBoardApplicationStatusService.updateApplicationStatus(jobBoardApp.getId(), application.getStatus().toString());
+        
         log.info("Application {} added to job board {} by user {}", applicationId, jobBoardId, currentUser.getId());
         
         return toJobBoardApplicationResponseDto(jobBoardApp);
