@@ -99,6 +99,14 @@ export async function removeApplicationFromJobBoard(jobBoardId: number, applicat
     );
 }
 
+export async function updateApplicationStatus(jobBoardId: number, jobBoardApplicationId: number, status: string): Promise<void> {
+    await apiRequest(
+        `${API_BASE}/job-boards/${jobBoardId}/applications/${jobBoardApplicationId}/status`,
+        { method: "PUT", body: JSON.stringify({ status }) },
+        "Failed to update application status"
+    );
+}
+
 export async function leaveJobBoard(jobBoardId: number): Promise<void> {
     await apiRequest(
         `${API_BASE}/job-boards/${jobBoardId}`,
