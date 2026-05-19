@@ -11,6 +11,7 @@ import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.model.JobBoardApplication;
 import com.casey.applyflow.model.JobBoardApplicationStatus;
 import com.casey.applyflow.model.User;
+import com.casey.applyflow.model.enums.Status;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationStatusRepository;
@@ -55,6 +56,35 @@ public class JobBoardApplicationStatusService {
             .stream()
             .map(this::toJobBoardStatusResponseDto)
             .toList();
+    }
+
+    @Transactional
+    public JobBoardStatusResponseDto updateApplicationStatus(Long jobBoardApplicationId, String status) {
+        // Get the JobBoardApplication
+        JobBoardApplication jobBoardApp = jobBoardApplicationRepository.findById(jobBoardApplicationId)
+            .orElseThrow(() -> new ApplicationNotFoundException("Job board application does not exist"));
+        
+        // Verify current user is a member of this board
+        User currentUser = currentUserProvider.getCurrentUser();
+        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardApp.getJobBoard().getId(), currentUser.getId())
+            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
+        
+        // Find existing status or create new one
+        JobBoardApplicationStatus appStatus = jobBoardApplicationStatusRepository
+            .findByJobBoardApplicationIdAndUserId(jobBoardApplicationId, currentUser.getId())
+            .orElseGet(() -> {
+                JobBoardApplicationStatus newStatus = new JobBoardApplicationStatus(currentUser, Status.valueOf(status));
+                newStatus.setJobBoardApplication(jobBoardApp);
+                return newStatus;
+            });
+        
+        // Update the status
+        appStatus.setStatus(Status.valueOf(status));
+        appStatus.setUpdatedAt(java.time.LocalDateTime.now());
+        appStatus.setUpdatedBy(currentUser.getEmail());
+        
+        jobBoardApplicationStatusRepository.save(appStatus);
+        return toJobBoardStatusResponseDto(appStatus);
     }
 
     // dto mapper
