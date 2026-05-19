@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.casey.applyflow.dto.JobBoardApplicationRequestDto;
 import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
@@ -94,10 +95,13 @@ public class JobBoardApplicationService {
     }
 
     @Transactional
-        public JobBoardApplicationResponseDto addApplicationToJobBoard(Long jobBoardId, Long applicationId) {
-        if (jobBoardId == null || applicationId == null) {
+        public JobBoardApplicationResponseDto addApplicationToJobBoard(JobBoardApplicationRequestDto request) {
+        if (request.jobBoardId() == null || request.applicationId() == null) {
             throw new IllegalArgumentException("Job board and application IDs cannot be null");
         }
+
+        Long jobBoardId = request.jobBoardId(); 
+        Long applicationId = request.applicationId();
 
         User currentUser = currentUserProvider.getCurrentUser();
         

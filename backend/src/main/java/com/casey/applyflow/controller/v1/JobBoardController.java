@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.casey.applyflow.dto.AddJobBoardMemberRequestDto;
 import com.casey.applyflow.dto.InvitationDetailsDto;
+import com.casey.applyflow.dto.JobBoardApplicationRequestDto;
 import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
@@ -217,7 +218,9 @@ public class JobBoardController {
         @PathVariable @Min(1) Long applicationId
     ) {
 
-        jobBoardApplicationService.addApplicationToJobBoard(jobBoardId, applicationId);
+        JobBoardApplicationRequestDto request = new JobBoardApplicationRequestDto(applicationId, jobBoardId);
+
+        jobBoardApplicationService.addApplicationToJobBoard(request);
         return ResponseEntity.noContent().build();
     }
 
