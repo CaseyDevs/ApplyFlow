@@ -13,22 +13,16 @@ import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.dto.JobBoardStatusResponseDto;
-import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.service.JobBoardApplicationService;
 import com.casey.applyflow.service.JobBoardApplicationStatusService;
 import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
-import com.casey.applyflow.utils.ClientIpProvider;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
-import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
