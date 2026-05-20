@@ -18,6 +18,7 @@ import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.JobBoardMember;
 import com.casey.applyflow.model.User;
+import com.casey.applyflow.model.builder.JobBoardBuilder;
 import com.casey.applyflow.model.enums.Role;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
@@ -82,12 +83,12 @@ public class JobBoardService {
         JobBoardMember owner = jobBoardMemberService.toJobBoardMember(currentUser);
         owner.setRole(Role.OWNER);
 
-        JobBoard jobBoard = new JobBoard(
-            request.title(), 
-            owner
-        );
+        JobBoard jobBoard = new JobBoardBuilder()
+            .withTitle(request.title())
+            .withOwner(owner)
+            .addMember(owner)
+            .build();
         
-        jobBoard.addMember(owner);
         jobBoardRepository.save(jobBoard);
         
         log.info("Job board '{}' created successfully with ID {}", jobBoard.getTitle(), jobBoard.getId());

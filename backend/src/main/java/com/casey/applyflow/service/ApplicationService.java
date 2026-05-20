@@ -24,6 +24,7 @@ import com.casey.applyflow.model.Application;
 import com.casey.applyflow.model.Company;
 import com.casey.applyflow.model.Interview;
 import com.casey.applyflow.model.User;
+import com.casey.applyflow.model.builder.ApplicationBuilder;
 
 @Service
 public class ApplicationService {
@@ -80,7 +81,14 @@ public class ApplicationService {
         Company company = companyRepository.findById(request.companyId())
             .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
-        Application application = new Application(request.title(), request.url(), request.location(), company, request.status());
+        Application application = new ApplicationBuilder()
+            .withTitle(request.title())
+            .withUrl(request.url())
+            .withLocation(request.location())
+            .withStatus(request.status())
+            .withCompany(company)
+            .withUser(user)
+            .build();
 
 
         user.addApplication(application);  // save new application to users application list
