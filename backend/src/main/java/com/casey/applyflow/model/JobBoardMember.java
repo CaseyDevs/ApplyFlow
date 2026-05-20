@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.casey.applyflow.model.enums.Role;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,7 +29,7 @@ public class JobBoardMember {
     @ManyToOne
     private JobBoard jobBoard;
 
-    @OneToMany(mappedBy = "jobBoardMember") // do not remove job board applications 
+    @OneToMany(mappedBy = "jobBoardMember", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<JobBoardApplication> jobBoardApplications = new HashSet<>();
     
     @Enumerated(EnumType.STRING)
