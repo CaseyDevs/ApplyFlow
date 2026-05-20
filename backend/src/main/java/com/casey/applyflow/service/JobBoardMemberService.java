@@ -1,6 +1,9 @@
 package com.casey.applyflow.service;
 
+import com.casey.applyflow.repository.JobBoardApplicationRepository;
+import com.casey.applyflow.repository.JobBoardApplicationStatusRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.InvitationDetailsDto;
+import com.casey.applyflow.exception.ApplicationAlreadyAddedException;
 import com.casey.applyflow.exception.InsufficientPermissionException;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
@@ -16,6 +20,7 @@ import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.model.EmailVerificationToken;
 import com.casey.applyflow.model.JobBoard;
+import com.casey.applyflow.model.JobBoardApplicationStatus;
 import com.casey.applyflow.model.JobBoardMember;
 import com.casey.applyflow.model.User;
 import com.casey.applyflow.model.enums.Role;
@@ -26,6 +31,10 @@ import com.casey.applyflow.repository.UserRepository;
 
 @Service
 public class JobBoardMemberService {
+    private final JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository;
+
+    private final JobBoardApplicationRepository jobBoardApplicationRepository;
+
     private static final Logger log = LoggerFactory.getLogger(JobBoardMemberService.class);
     
     private final JobBoardRepository jobBoardRepository;
@@ -41,7 +50,9 @@ public class JobBoardMemberService {
         UserRepository userRepository,
         CurrentUserProvider currentUserProvider,
         EmailService emailService,
-        EmailTokenRepository emailTokenRepository
+        EmailTokenRepository emailTokenRepository,
+        JobBoardApplicationRepository jobBoardApplicationRepository,
+        JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository
     ) {
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
@@ -49,6 +60,8 @@ public class JobBoardMemberService {
         this.currentUserProvider = currentUserProvider;
         this.emailService = emailService;
         this.emailTokenRepository = emailTokenRepository;
+        this.jobBoardApplicationRepository = jobBoardApplicationRepository;
+        this.jobBoardApplicationStatusRepository = jobBoardApplicationStatusRepository;
     }
 
     @Transactional
@@ -234,9 +247,20 @@ public class JobBoardMemberService {
 
         log.info("Removing member {} from job board {}", member.getId(), jobBoard.getId());
 
+        handleDeleteAllUserStatusEntities(jobBoard, member);
         jobBoard.removeMember(member);
         jobBoardMemberRepository.delete(member);
         jobBoardRepository.save(jobBoard);
+    }
+
+    @Transactional
+    public void handleDeleteAllUserStatusEntities(JobBoard jobBoard, JobBoardMember jobBoardMember) {
+        int deletedCount = jobBoardApplicationStatusRepository.deleteAllByJobBoardIdAndUserId(
+            jobBoard.getId(),
+            jobBoardMember.getUser().getId()
+        );
+        log.debug("Deleted {} application statuses for user {} on job board {}", 
+                  deletedCount, jobBoardMember.getUser().getId(), jobBoard.getId());
     }
 
     // HELPER METHODS
