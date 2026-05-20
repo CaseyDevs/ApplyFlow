@@ -364,47 +364,57 @@ export default function JobBoardDetailsPage() {
                                         </p>
                                     </div>
                                     <div>
-                                        {jobBoardApp.statusList && jobBoardApp.statusList.length > 0 && (
-                                            <div className={styles.applicationStatusList}>
-                                                {jobBoardApp.statusList.map((status) => {
-                                                    const isCurrentUser = auth?.user?.email === status.userEmail;
-                                                    const isEditing = editingStatusId === status.id;
-                                                    return (
-                                                        <div key={status.id}>
-                                                            {isEditing && isCurrentUser ? (
-                                                                <select 
-                                                                    autoFocus
-                                                                    className={styles.inlineStatusSelect}
-                                                                    value={status.status}
-                                                                    onChange={(e) => {
-                                                                        handleUpdateApplicationStatus(jobBoardApp.id, e.target.value);
-                                                                        setEditingStatusId(null);
-                                                                    }}
-                                                                    onBlur={() => setEditingStatusId(null)}
-                                                                >
-                                                                    <option value="INTERESTED">Interested</option>
-                                                                    <option value="APPLIED">Applied</option>
-                                                                    <option value="INTERVIEWING">Interviewing</option>
-                                                                    <option value="OFFER">Offer</option>
-                                                                    <option value="REJECTED">Rejected</option>
-                                                                    <option value="WITHDRAWN">Withdrawn</option>
-                                                                    <option value="ACCEPTED">Accepted</option>
-                                                                </select>
-                                                            ) : (
-                                                                <div 
-                                                                    className={`${styles.applicationStatusItem} ${isCurrentUser ? styles.clickableStatus : ''}`}
-                                                                    onClick={() => isCurrentUser && setEditingStatusId(status.id)}
-                                                                    style={{cursor: isCurrentUser ? 'pointer' : 'default'}}
-                                                                >
-                                                                    <span className={styles.applicationStatusEmail}>{status.userEmail.split('@')[0]}</span>
-                                                                    <span className={styles.applicationStatusValue}>{status.status.toLowerCase()}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
+                                        <div className={styles.applicationStatusList}>
+                                            {jobBoardApp.statusList && jobBoardApp.statusList.length > 0 && jobBoardApp.statusList.map((status) => {
+                                                const isCurrentUser = auth?.user?.email === status.userEmail;
+                                                const isEditing = editingStatusId === status.id;
+                                                return (
+                                                    <div key={status.id}>
+                                                        {isEditing && isCurrentUser ? (
+                                                            <select 
+                                                                autoFocus
+                                                                className={styles.inlineStatusSelect}
+                                                                value={status.status}
+                                                                onChange={(e) => {
+                                                                    handleUpdateApplicationStatus(jobBoardApp.id, e.target.value);
+                                                                    setEditingStatusId(null);
+                                                                }}
+                                                                onBlur={() => setEditingStatusId(null)}
+                                                            >
+                                                                <option value="INTERESTED">Interested</option>
+                                                                <option value="APPLIED">Applied</option>
+                                                                <option value="INTERVIEWING">Interviewing</option>
+                                                                <option value="OFFER">Offer</option>
+                                                                <option value="REJECTED">Rejected</option>
+                                                                <option value="WITHDRAWN">Withdrawn</option>
+                                                                <option value="ACCEPTED">Accepted</option>
+                                                            </select>
+                                                        ) : (
+                                                            <div 
+                                                                className={`${styles.applicationStatusItem} ${isCurrentUser ? styles.clickableStatus : ''}`}
+                                                                onClick={() => isCurrentUser && setEditingStatusId(status.id)}
+                                                                style={{cursor: isCurrentUser ? 'pointer' : 'default'}}
+                                                            >
+                                                                <span className={styles.applicationStatusEmail}>{status.userEmail.split('@')[0]}</span>
+                                                                <span className={styles.applicationStatusValue}>{status.status.toLowerCase()}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                            {(() => {
+                                                const currentUserStatus = jobBoardApp.statusList?.find(status => auth?.user?.email === status.userEmail);
+                                                const hasCurrentUserStatus = !!currentUserStatus;
+                                                return !hasCurrentUserStatus ? (
+                                                    <button
+                                                        className={styles.addStatusButton}
+                                                        onClick={() => handleUpdateApplicationStatus(jobBoardApp.id, "INTERESTED")}
+                                                    >
+                                                        + Add your status
+                                                    </button>
+                                                ) : null;
+                                            })()}
+                                        </div>
                                     </div>
                                     <div className={styles.applicationActions}>
                                         <a 

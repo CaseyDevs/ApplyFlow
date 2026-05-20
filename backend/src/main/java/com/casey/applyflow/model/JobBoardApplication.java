@@ -16,10 +16,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 @Entity
-@Table(name = "job_board_application")
+@Table(name = "job_board_application", uniqueConstraints = @UniqueConstraint(columnNames = {"application_id", "job_board_id"}))
 public class JobBoardApplication {
 
     @Id

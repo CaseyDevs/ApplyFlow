@@ -50,14 +50,6 @@ public class Company {
         this.name = name;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public Double getRating() {
         return rating;
     }

@@ -11,8 +11,10 @@ import com.casey.applyflow.dto.JobBoardApplicationResponseDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
+import com.casey.applyflow.dto.JobBoardStatusResponseDto;
 import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.service.JobBoardApplicationService;
+import com.casey.applyflow.service.JobBoardApplicationStatusService;
 import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
 import com.casey.applyflow.utils.ClientIpProvider;
@@ -36,17 +38,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
- 
-/* TODO'S: 
-    GET JOB BOARD APPLICATION BY ID ENDPOINT 
-*/
-
 
 @RestController
 @RequestMapping("/api/v1")
 public class JobBoardController {
     private final JobBoardService jobBoardService;
     private final JobBoardApplicationService jobBoardApplicationService;
+    private final JobBoardApplicationStatusService jobBoardApplicationStatusService;
     private final JobBoardMemberService jobBoardMemberService;
     private final Map<String, Bucket> invitationBuckets = new ConcurrentHashMap<>();
     private final Bandwidth invitationLimit;
@@ -55,11 +53,13 @@ public class JobBoardController {
     public JobBoardController(
         JobBoardService jobBoardService,
         JobBoardApplicationService jobBoardApplicationService,
+        JobBoardApplicationStatusService jobBoardApplicationStatusService,
         JobBoardMemberService jobBoardMemberService,
         ClientIpProvider clientIpProvider
     ) {
         this.jobBoardService = jobBoardService;
         this.jobBoardApplicationService = jobBoardApplicationService;
+        this.jobBoardApplicationStatusService = jobBoardApplicationStatusService;
         this.jobBoardMemberService = jobBoardMemberService;
         this.clientIpProvider = clientIpProvider;
 
@@ -232,6 +232,16 @@ public class JobBoardController {
 
         jobBoardApplicationService.removeApplicationFromJobBoard(jobBoardId, applicationId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/job-boards/{jobBoardId}/applications/{jobBoardApplicationId}/status")
+    public ResponseEntity<JobBoardStatusResponseDto> updateApplicationStatus(
+        @PathVariable @Min(1) Long jobBoardId,
+        @PathVariable @Min(1) Long jobBoardApplicationId,
+        @RequestBody Map<String, String> request
+    ) {
+        String status = request.get("status");
+        return ResponseEntity.ok(jobBoardApplicationStatusService.updateApplicationStatus(jobBoardApplicationId, status));
     }
 
     @PostMapping("/job-boards/{jobBoardId}")

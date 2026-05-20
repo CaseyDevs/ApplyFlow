@@ -223,6 +223,27 @@
   outline: none;
 }
 
+.addStatusButton {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  background-color: var(--bg-primary);
+  padding: var(--space-1) var(--space-2);
+  border: 1px dashed var(--color-gray-300);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-sans);
+}
+
+.addStatusButton:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary);
+}
+
 .applicationStatusSelector {
   display: flex;
   align-items: center;
