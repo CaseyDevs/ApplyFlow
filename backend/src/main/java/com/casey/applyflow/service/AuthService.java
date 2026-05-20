@@ -1,7 +1,6 @@
 package com.casey.applyflow.service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,20 +14,24 @@ import com.casey.applyflow.repository.UserRepository;
 
 @Service
 public class AuthService {
+    
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-
+    
     private final UserRepository userRepository;
     private final EmailTokenRepository emailTokenRepository;
     private final EmailService emailService;
+    private final SecureTokenGenerationService tokenGenerationService;
 
     public AuthService(
         UserRepository userRepository,
         EmailTokenRepository emailTokenRepository,
-        EmailService emailService
+        EmailService emailService,
+        SecureTokenGenerationService tokenGenerationService
     ) {
         this.userRepository = userRepository;
         this.emailTokenRepository = emailTokenRepository;
         this.emailService = emailService;
+        this.tokenGenerationService = tokenGenerationService;
     }
 
     @Transactional
@@ -40,7 +43,7 @@ public class AuthService {
         log.warn("AUTH_REGISTER_USER_DISABLED_AND_SAVED email={} id={}", user.getEmail(), user.getId());
 
         // token generation
-        String token = UUID.randomUUID().toString(); // TODO: Make token more secure
+        String token = tokenGenerationService.generate();
 
         // create token
         EmailVerificationToken verificationToken = new EmailVerificationToken();
