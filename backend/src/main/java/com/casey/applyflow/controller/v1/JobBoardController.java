@@ -1,5 +1,6 @@
 package com.casey.applyflow.controller.v1;
 
+import com.casey.applyflow.service.RateLimitingService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,31 +43,23 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RestController
 @RequestMapping("/api/v1")
 public class JobBoardController {
+    private final RateLimitingService rateLimitingService;
     private final JobBoardService jobBoardService;
     private final JobBoardApplicationService jobBoardApplicationService;
     private final JobBoardApplicationStatusService jobBoardApplicationStatusService;
     private final JobBoardMemberService jobBoardMemberService;
-    private final Map<String, Bucket> invitationBuckets = new ConcurrentHashMap<>();
-    private final Bandwidth invitationLimit;
-    private final ClientIpProvider clientIpProvider;
 
     public JobBoardController(
         JobBoardService jobBoardService,
         JobBoardApplicationService jobBoardApplicationService,
         JobBoardApplicationStatusService jobBoardApplicationStatusService,
-        JobBoardMemberService jobBoardMemberService,
-        ClientIpProvider clientIpProvider
+        JobBoardMemberService jobBoardMemberService, RateLimitingService rateLimitingService
     ) {
         this.jobBoardService = jobBoardService;
         this.jobBoardApplicationService = jobBoardApplicationService;
         this.jobBoardApplicationStatusService = jobBoardApplicationStatusService;
         this.jobBoardMemberService = jobBoardMemberService;
-        this.clientIpProvider = clientIpProvider;
-
-        this.invitationLimit = Bandwidth.builder()
-            .capacity(6)
-            .refillGreedy(2, Duration.ofMinutes(1))
-            .build();
+        this.rateLimitingService = rateLimitingService;
     }
 
     @GetMapping("/job-boards")
@@ -117,17 +110,8 @@ public class JobBoardController {
         @PathVariable Long jobBoardId,
         @Valid @RequestBody AddJobBoardMemberRequestDto request
     ) {
-        // limit requests via clietn IP
-        String clientIp = clientIpProvider.getClientIp(httpRequest);
-        Bucket invitationBucket = invitationBuckets.computeIfAbsent(
-            clientIp,
-            ip -> Bucket.builder().addLimit(invitationLimit).build()
-        );
-
-        // return 429 if bucket is empty
-        if (!invitationBucket.tryConsume(1)) {
-            throw new RateLimitExceededException("Too many invitation requests, try again later.");
-        }
+        // limit requests via client IP
+        rateLimitingService.checkRateLimit(httpRequest, "invitations", 6, 4, 1);
 
         jobBoardMemberService.inviteMember(jobBoardId, request.email());
         return ResponseEntity.noContent().build();

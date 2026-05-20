@@ -29,17 +29,13 @@ import com.casey.applyflow.dto.LoginRequestDto;
 import com.casey.applyflow.dto.RegisterRequestDto;
 import com.casey.applyflow.repository.UserRepository;
 import com.casey.applyflow.service.CurrentUserProvider;
+import com.casey.applyflow.service.RateLimitingService;
 import com.casey.applyflow.service.TokenService;
 import com.casey.applyflow.utils.ClientIpProvider;
 import com.casey.applyflow.utils.EmailValidationProvider;
-
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-
 import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.EmailNotVerifiedException;
 import com.casey.applyflow.exception.InvalidEmailException;
-import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
 import com.casey.applyflow.exception.UserNotFoundException;
 import com.casey.applyflow.model.EmailVerificationToken;
@@ -65,11 +61,7 @@ public class AuthController {
     private final TokenService tokenService;
     private final CurrentUserProvider currentUserProvider;
     private final EmailValidationProvider emailValidationProvider;
-    private final Bandwidth loginLimit;
-    private final Bandwidth registerLimit;
-    private final Map<String, Bucket> loginBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> registerBuckets = new ConcurrentHashMap<>();
-    private final ClientIpProvider clientIpProvider;
+    private final RateLimitingService rateLimitingService;
 
     @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
@@ -83,7 +75,8 @@ public class AuthController {
         EmailValidationProvider emailValidationProvider, 
         AuthService authService, 
         EmailTokenRepository emailTokenRepository,
-        ClientIpProvider clientIpProvider
+        ClientIpProvider clientIpProvider,
+        RateLimitingService rateLimitingService
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
@@ -93,18 +86,7 @@ public class AuthController {
         this.emailValidationProvider = emailValidationProvider;
         this.authService = authService;
         this.emailTokenRepository = emailTokenRepository;
-        this.clientIpProvider = clientIpProvider;
-        
-        this.loginLimit = Bandwidth.builder()
-            .capacity(5)
-            .refillGreedy(2, Duration.ofMinutes(1))
-            .build();
-
-        this.registerLimit = Bandwidth.builder()
-            .capacity(3)
-            .refillGreedy(1, Duration.ofMinutes(1))
-            .build();
-
+        this.rateLimitingService = rateLimitingService;
     }
 
     @GetMapping("/me")
@@ -145,15 +127,7 @@ public class AuthController {
         HttpServletRequest httpRequest,
         @Valid @RequestBody LoginRequestDto request
     ) {
-        String clientIp = clientIpProvider.getClientIp(httpRequest);
-        Bucket loginBucket = loginBuckets.computeIfAbsent(
-            clientIp,
-            ip -> Bucket.builder().addLimit(loginLimit).build()
-        );
-
-        if (!loginBucket.tryConsume(1)) {
-            throw new RateLimitExceededException("Too many login attempts, try again later");
-        }
+        rateLimitingService.checkRateLimit(httpRequest, "login", 5, 2, 1);
 
         User user = userRepository.findByEmail(request.email())
             .orElseThrow(() -> new UserNotFoundException("User not found!"));
@@ -188,15 +162,7 @@ public class AuthController {
     ) {
         log.warn("REGISTER_START email={}", request.email());
 
-        String clientIp = clientIpProvider.getClientIp(httpRequest);
-        Bucket registerBucket = registerBuckets.computeIfAbsent(
-            clientIp,
-            ip -> Bucket.builder().addLimit(registerLimit).build()
-        );
-
-        if (!registerBucket.tryConsume(1)) {
-            throw new RateLimitExceededException("Too many registration attempts, try again later.");
-        }
+        rateLimitingService.checkRateLimit(httpRequest, "register", 3, 1, 5);
 
         // Check if email already exists
         if (userRepository.findByEmail(request.email()).isPresent()) {
