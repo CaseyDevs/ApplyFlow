@@ -7,12 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.casey.applyflow.dto.JobBoardMemberDto;
 import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
-import com.casey.applyflow.dto.UserResponseDto;
 import com.casey.applyflow.exception.JobBoardNotFoundException;
+import com.casey.applyflow.mapper.DtoMapper;
 import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.JobBoardMember;
 import com.casey.applyflow.model.User;
@@ -20,27 +19,26 @@ import com.casey.applyflow.model.builder.JobBoardBuilder;
 import com.casey.applyflow.model.enums.Role;
 import com.casey.applyflow.repository.JobBoardRepository;
 
-
 @Service
 public class JobBoardService {
     private static final Logger log = LoggerFactory.getLogger(JobBoardService.class);
-    
     private final JobBoardRepository jobBoardRepository;
     private final CurrentUserProvider currentUserProvider;
-    private final JobBoardApplicationService jobBoardApplicationService;
     private final JobBoardMemberService jobBoardMemberService;
     private final JobBoardAuthorizationService jobBoardAuthorizationService;
+    private final DtoMapper dtoMapper;
 
     public JobBoardService(
-        JobBoardRepository jobBoardRepository,
         CurrentUserProvider currentUserProvider,
+        DtoMapper dtoMapper,
+        JobBoardRepository jobBoardRepository,
         JobBoardApplicationService jobBoardApplicationService,
         JobBoardMemberService jobBoardMemberService,
         JobBoardAuthorizationService jobBoardAuthorizationService
     ) {
-        this.jobBoardRepository = jobBoardRepository;
+        this.dtoMapper = dtoMapper;
         this.currentUserProvider = currentUserProvider;
-        this.jobBoardApplicationService = jobBoardApplicationService;
+        this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberService = jobBoardMemberService;
         this.jobBoardAuthorizationService = jobBoardAuthorizationService;
     }
@@ -53,7 +51,7 @@ public class JobBoardService {
 
         // Fetch job boards where user is a member (not just owner)
         return jobBoardRepository.findAllByMembersUserId(currentUser.getId(), pageable)
-            .map(this::toJobBoardResponseDto);
+            .map(dtoMapper::toJobBoardResponseDto);
     }
 
     @Transactional(readOnly = true)
@@ -65,15 +63,11 @@ public class JobBoardService {
         JobBoard jobBoard = jobBoardRepository.findByIdAndMembersUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new JobBoardNotFoundException("Job Board does not exist."));
         
-        return toJobBoardResponseDto(jobBoard);
+        return dtoMapper.toJobBoardResponseDto(jobBoard);
     }
-
-
 
     @Transactional
     public JobBoardResponseDto createJobBoard(JobBoardRequestDto request) {
-        validateTitle(request.title());
-        
         User currentUser = currentUserProvider.getCurrentUser();
         log.info("Creating job board '{}' for user {}", request.title(), currentUser.getId());
         
@@ -89,7 +83,7 @@ public class JobBoardService {
         jobBoardRepository.save(jobBoard);
         
         log.info("Job board '{}' created successfully with ID {}", jobBoard.getTitle(), jobBoard.getId());
-        return toJobBoardResponseDto(jobBoard);
+        return dtoMapper.toJobBoardResponseDto(jobBoard);
     }
 
     @Transactional
@@ -101,15 +95,11 @@ public class JobBoardService {
         User currentUser = currentUserProvider.getCurrentUser();
         JobBoard jobBoard = jobBoardAuthorizationService.getJobBoardForOwner(jobBoardId, currentUser.getId());
 
-        if (request.title() != null) {
-            validateTitle(request.title());
+        log.info("Updating job board {} title", jobBoard.getId());
+        jobBoard.setTitle(request.title());
+        jobBoardRepository.save(jobBoard);
 
-            log.info("Updating job board {} title", jobBoard.getId());
-            jobBoard.setTitle(request.title());
-            jobBoardRepository.save(jobBoard);
-        }
-
-        return toJobBoardResponseDto(jobBoard);
+        return dtoMapper.toJobBoardResponseDto(jobBoard);
     }
 
     @Transactional
@@ -146,40 +136,5 @@ public class JobBoardService {
             jobBoard.getApplications().size(),
             jobBoard.getMembers()
         );
-    }
-
-    // HELPER METHODS
-
-    private JobBoardResponseDto toJobBoardResponseDto(JobBoard jobBoard) {
-        return new JobBoardResponseDto(
-            jobBoard.getId(),
-            jobBoard.getTitle(),
-            jobBoard.getOwner().getId(),
-            jobBoard.getMembers().stream().map(this::toJobBoardMemberDto).toList(),
-            jobBoard.getApplications().stream().map(jobBoardApplicationService::toJobBoardApplicationResponseDto).toList()
-        );
-    }
-
-    private JobBoardMemberDto toJobBoardMemberDto(JobBoardMember member) {
-        return new JobBoardMemberDto(
-            member.getId(),
-            toUserResponseDto(member.getUser()),
-            member.getRole()
-        );
-    }
-
-    private UserResponseDto toUserResponseDto(User user) {
-        return new UserResponseDto(
-            user.getId(),
-            user.getName(),
-            user.getEmail()
-        );
-    }
-
-    private void validateTitle(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Job board title cannot be empty");
-        }
-    }
-        
+    }   
 }
