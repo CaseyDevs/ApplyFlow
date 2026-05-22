@@ -7,12 +7,12 @@ import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.JobBoardMember;
+import com.casey.applyflow.model.User;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
 import com.casey.applyflow.repository.JobBoardRepository;
 
 @Service
 public class JobBoardAuthorizationService {
-    
     private final JobBoardRepository jobBoardRepository;
     private final JobBoardMemberRepository jobBoardMemberRepository;
 
@@ -24,7 +24,7 @@ public class JobBoardAuthorizationService {
         this.jobBoardMemberRepository= jobBoardMemberRepository;
     }
 
-    private void verifyIsOwner(JobBoard jobBoard, Long userId) {
+    protected void verifyIsOwner(JobBoard jobBoard, Long userId) {
         JobBoardMember owner = jobBoard.getOwner();
         if (owner == null || owner.getUser() == null || !owner.getUser().getId().equals(userId)) {
             throw new InsufficientPermissionException("Only the owner can perform this action.");
@@ -52,5 +52,11 @@ public class JobBoardAuthorizationService {
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
 
         return jobBoard;
+    }
+
+    protected void verifyIsInvitedUser(User currentUser, User invitedUser) {
+        if (!currentUser.getId().equals(invitedUser.getId())) {
+            throw new InsufficientPermissionException("This invitation is not for your account.");
+        }
     }
 }

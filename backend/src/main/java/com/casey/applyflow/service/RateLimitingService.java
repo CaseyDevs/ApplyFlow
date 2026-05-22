@@ -31,7 +31,7 @@ public class RateLimitingService {
                 .capacity(capacity)
                 .refillGreedy(refillCount, Duration.ofMinutes(refillMinutes))
                 .build();
-            return Bucket.builder().addLimit(limit).build();
+            return Bucket.builder().addLimit(limit).build(); 
         });
 
         if (!bucket.tryConsume(1)) {

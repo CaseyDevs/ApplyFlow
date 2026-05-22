@@ -19,7 +19,6 @@ import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.JobBoardMember;
 import com.casey.applyflow.model.User;
 import com.casey.applyflow.model.enums.Role;
-import com.casey.applyflow.repository.JobBoardApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationStatusRepository;
 import com.casey.applyflow.repository.EmailTokenRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
@@ -29,31 +28,33 @@ import com.casey.applyflow.repository.UserRepository;
 @Service
 public class JobBoardMemberService {
     private static final Logger log = LoggerFactory.getLogger(JobBoardMemberService.class);
+    private final CurrentUserProvider currentUserProvider;
+    private final EmailTokenRepository emailTokenRepository;
+    private final EmailService emailService;
+    private final JobBoardAuthorizationService jobBoardAuthorizationService;
     private final JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository;
     private final JobBoardRepository jobBoardRepository;
     private final JobBoardMemberRepository jobBoardMemberRepository;
     private final UserRepository userRepository;
-    private final CurrentUserProvider currentUserProvider;
-    private final EmailService emailService;
-    private final EmailTokenRepository emailTokenRepository;
 
     public JobBoardMemberService(
-        JobBoardRepository jobBoardRepository,
-        JobBoardMemberRepository jobBoardMemberRepository,
-        UserRepository userRepository,
         CurrentUserProvider currentUserProvider,
         EmailService emailService,
         EmailTokenRepository emailTokenRepository,
-        JobBoardApplicationRepository jobBoardApplicationRepository,
-        JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository
+        UserRepository userRepository,
+        JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository,
+        JobBoardAuthorizationService jobBoardAuthorizationService,
+        JobBoardMemberRepository jobBoardMemberRepository,
+        JobBoardRepository jobBoardRepository
     ) {
-        this.jobBoardRepository = jobBoardRepository;
-        this.jobBoardMemberRepository = jobBoardMemberRepository;
-        this.userRepository = userRepository;
         this.currentUserProvider = currentUserProvider;
         this.emailService = emailService;
         this.emailTokenRepository = emailTokenRepository;
+        this.userRepository = userRepository;
         this.jobBoardApplicationStatusRepository = jobBoardApplicationStatusRepository;
+        this.jobBoardAuthorizationService = jobBoardAuthorizationService;
+        this.jobBoardMemberRepository = jobBoardMemberRepository;
+        this.jobBoardRepository = jobBoardRepository;
     }
 
     @Transactional
@@ -63,7 +64,7 @@ public class JobBoardMemberService {
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
-        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
+        JobBoard jobBoard = jobBoardAuthorizationService.getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         if (jobBoard.getMembers().size() >= 4) {
             throw new MemberLimitException("Job Board Full! You cannot have more than 4 members.");
@@ -136,7 +137,7 @@ public class JobBoardMemberService {
             throw new IllegalArgumentException("Token expired");
         }
 
-        verifyIsInvitedUser(currentUser, verificationToken.getUser());
+        jobBoardAuthorizationService.verifyIsInvitedUser(currentUser, verificationToken.getUser());
 
         JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
             .orElseThrow(() -> new JobBoardNotFoundException("Job board not found!"));
@@ -177,7 +178,7 @@ public class JobBoardMemberService {
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
-        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
+        JobBoard jobBoard = jobBoardAuthorizationService.getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         JobBoardMember member = jobBoardMemberRepository.findByIdAndJobBoardId(jobBoardMemberId, jobBoardId)
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
@@ -205,7 +206,7 @@ public class JobBoardMemberService {
         }
         
         User currentUser = currentUserProvider.getCurrentUser();
-        JobBoard jobBoard = getJobBoardForOwner(jobBoardId, currentUser.getId());
+        JobBoard jobBoard = jobBoardAuthorizationService.getJobBoardForOwner(jobBoardId, currentUser.getId());
 
         JobBoardMember newOwner = jobBoardMemberRepository.findByIdAndJobBoardId(jobBoardMemberId, jobBoardId)
             .orElseThrow(() -> new NotAMemberException("User is not a member of this job board"));
@@ -228,7 +229,7 @@ public class JobBoardMemberService {
 
         User currentUser = currentUserProvider.getCurrentUser();
 
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
+        JobBoard jobBoard = jobBoardAuthorizationService.getJobBoardForMember(jobBoardId, currentUser.getId());
 
         JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
             .orElseThrow(() -> new NotAMemberException("You are not a member of this job board"));
@@ -255,45 +256,8 @@ public class JobBoardMemberService {
                   deletedCount, jobBoardMember.getUser().getId(), jobBoard.getId());
     }
 
-    // HELPER METHODS
-
+    // HELPER METHOD
     public JobBoardMember toJobBoardMember(User member) {
         return new JobBoardMember(member, Role.MEMBER);
-    }
-
-    private JobBoard getJobBoardForMember(Long jobBoardId, Long userId) {
-        if (jobBoardId == null) {
-            throw new IllegalArgumentException("Job board ID cannot be null");
-        }
-        if (userId == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
-
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
-
-        return jobBoard;
-    }
-
-    private JobBoard getJobBoardForOwner(Long jobBoardId, Long userId) {
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, userId);
-        verifyIsOwner(jobBoard, userId);
-        return jobBoard;
-    }
-
-    private void verifyIsOwner(JobBoard jobBoard, Long userId) {
-        JobBoardMember owner = jobBoard.getOwner();
-        if (owner == null || owner.getUser() == null || !owner.getUser().getId().equals(userId)) {
-            throw new InsufficientPermissionException("Only the owner can perform this action.");
-        }
-    }
-
-    private void verifyIsInvitedUser(User currentUser, User invitedUser) {
-        if (!currentUser.getId().equals(invitedUser.getId())) {
-            throw new InsufficientPermissionException("This invitation is not for your account.");
-        }
     }
 }

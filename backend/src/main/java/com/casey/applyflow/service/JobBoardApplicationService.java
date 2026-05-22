@@ -1,5 +1,6 @@
 package com.casey.applyflow.service;
 
+import com.casey.applyflow.mapper.DtoMapper;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -29,30 +30,32 @@ import com.casey.applyflow.repository.JobBoardRepository;
 @Service
 public class JobBoardApplicationService {
     private static final Logger log = LoggerFactory.getLogger(JobBoardApplicationService.class);
-    
+    private final ApplicationRepository applicationRepository;
+    private final CurrentUserProvider currentUserProvider;
+    private final DtoMapper dtoMapper;
+    private final JobBoardAuthorizationService jobBoardAuthorizationService;
     private final JobBoardRepository jobBoardRepository;
     private final JobBoardMemberRepository jobBoardMemberRepository;
-    private final ApplicationRepository applicationRepository;
     private final JobBoardApplicationRepository jobBoardApplicationRepository;
-    private final CurrentUserProvider currentUserProvider;
-    private final ApplicationService applicationService;
     private final JobBoardApplicationStatusService jobBoardApplicationStatusService;
 
     public JobBoardApplicationService(
+        ApplicationRepository applicationRepository,
+        CurrentUserProvider currentUserProvider,
+        DtoMapper dtoMapper,
+        JobBoardAuthorizationService jobBoardAuthorizationService,
         JobBoardRepository jobBoardRepository,
         JobBoardMemberRepository jobBoardMemberRepository,
-        ApplicationRepository applicationRepository,
         JobBoardApplicationRepository jobBoardApplicationRepository,
-        CurrentUserProvider currentUserProvider,
-        ApplicationService applicationService,
         JobBoardApplicationStatusService jobBoardApplicationStatusService
     ) {
+        this.applicationRepository = applicationRepository;
+        this.currentUserProvider = currentUserProvider;
+        this.dtoMapper = dtoMapper;
+        this.jobBoardAuthorizationService = jobBoardAuthorizationService;
         this.jobBoardRepository = jobBoardRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
-        this.applicationRepository = applicationRepository;
         this.jobBoardApplicationRepository = jobBoardApplicationRepository;
-        this.currentUserProvider = currentUserProvider;
-        this.applicationService = applicationService;
         this.jobBoardApplicationStatusService = jobBoardApplicationStatusService;
     }
 
@@ -66,11 +69,11 @@ public class JobBoardApplicationService {
 
         log.info("Fetching applications for job board {} for user {}", jobBoardId, currentUser.getId());
 
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
+        JobBoard jobBoard = jobBoardAuthorizationService.getJobBoardForMember(jobBoardId, currentUser.getId());
 
         return new PageImpl<>(
             jobBoard.getApplications().stream()
-                .map(this::toJobBoardApplicationResponseDto)
+                .map(dtoMapper::toJobBoardApplicationResponseDto)
                 .toList(),
             pageable,
             jobBoard.getApplications().size()
@@ -85,7 +88,7 @@ public class JobBoardApplicationService {
 
         User currentUser = currentUserProvider.getCurrentUser();
 
-        getJobBoardForMember(jobBoardId, currentUser.getId());
+        jobBoardAuthorizationService.getJobBoardForMember(jobBoardId, currentUser.getId());
 
         log.info("Fetching job board application with id {} for user {}", id, currentUser.getId());
         
@@ -93,7 +96,7 @@ public class JobBoardApplicationService {
             .findByIdAndJobBoardId(id, jobBoardId)
             .orElseThrow(() -> new ApplicationNotFoundException("Job board application does not exist with id: " + id));
 
-        return toJobBoardApplicationResponseDto(jobBoardApplication);
+        return dtoMapper.toJobBoardApplicationResponseDto(jobBoardApplication);
     }
 
     @Transactional
@@ -110,7 +113,7 @@ public class JobBoardApplicationService {
             .orElseThrow(() -> new ApplicationNotFoundException("Application not found"));
 
         // Get the job board and verify user is a member
-        JobBoard jobBoard = getJobBoardForMember(jobBoardId, currentUser.getId());
+        JobBoard jobBoard =  jobBoardAuthorizationService.getJobBoardForMember(jobBoardId, currentUser.getId());
 
         // Get the current user's JobBoardMember
         JobBoardMember member = jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, currentUser.getId())
@@ -135,7 +138,7 @@ public class JobBoardApplicationService {
 
         log.info("Application {} added to job board {} by user {}", applicationId, jobBoardId, currentUser.getId());
 
-        return toJobBoardApplicationResponseDto(jobBoardApp);
+        return dtoMapper.toJobBoardApplicationResponseDto(jobBoardApp);
     }   
 
     @Transactional
@@ -153,7 +156,7 @@ public class JobBoardApplicationService {
             .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
 
         // Verify user is an owner before allowing removal
-        verifyIsOwner(jobBoard, currentUser.getId());
+        jobBoardAuthorizationService.verifyIsOwner(jobBoard, currentUser.getId());
 
         JobBoardApplication application = jobBoard.getApplications().stream()
             .filter(app -> app.getId().equals(applicationId))
@@ -165,43 +168,5 @@ public class JobBoardApplicationService {
         jobBoardRepository.save(jobBoard);
         
         log.info("Application {} removed from job board {} successfully", applicationId, jobBoardId);
-    }
-
-    // HELPER METHODS
-
-    private JobBoard getJobBoardForMember(Long jobBoardId, Long userId) {
-        if (jobBoardId == null) {
-            throw new IllegalArgumentException("Job board ID cannot be null");
-        }
-        if (userId == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
-
-        JobBoard jobBoard = jobBoardRepository.findById(jobBoardId)
-            .orElseThrow(() -> new JobBoardNotFoundException("Job board does not exist."));
-
-        jobBoardMemberRepository.findByJobBoardIdAndUserId(jobBoardId, userId)
-            .orElseThrow(() -> new NotAMemberException("User is not a member of this job board."));
-
-        return jobBoard;
-    }
-
-    private void verifyIsOwner(JobBoard jobBoard, Long userId) {
-        var owner = jobBoard.getOwner();
-        if (owner == null || owner.getUser() == null || !owner.getUser().getId().equals(userId)) {
-            throw new com.casey.applyflow.exception.InsufficientPermissionException("Only the owner can perform this action.");
-        }
-    }
-
-    public JobBoardApplicationResponseDto toJobBoardApplicationResponseDto(JobBoardApplication jba) {
-    return new JobBoardApplicationResponseDto(
-        jba.getId(),
-        applicationService.toApplicationResponseDto(jba.getApplication()),
-        jba.getAddedAt(),
-        jba.getJobBoardMember().getUser().getEmail(),
-        jba.getStatusList().stream()
-            .map(jobBoardApplicationStatusService::toJobBoardStatusResponseDto)
-            .toList()
-    );    
     }
 }

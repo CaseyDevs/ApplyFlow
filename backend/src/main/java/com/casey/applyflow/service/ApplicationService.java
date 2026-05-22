@@ -1,12 +1,11 @@
 package com.casey.applyflow.service;
 
+import com.casey.applyflow.mapper.DtoMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.ApplicationSpecification;
 import com.casey.applyflow.repository.CompanyRepository;
-import com.casey.applyflow.repository.InterviewRepository;
 import com.casey.applyflow.dto.ApplicationResponseDto;
 import com.casey.applyflow.dto.ApplicationRequestDto;
 import com.casey.applyflow.dto.UpdateApplicationFieldRequestDto;
@@ -22,26 +20,26 @@ import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.CompanyNotFoundException;
 import com.casey.applyflow.model.Application;
 import com.casey.applyflow.model.Company;
-import com.casey.applyflow.model.Interview;
 import com.casey.applyflow.model.User;
 import com.casey.applyflow.model.builder.ApplicationBuilder;
 
 @Service
 public class ApplicationService {
-    private final CurrentUserProvider currentUserProvider;
+    private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
     private final ApplicationRepository applicationRepository;
     private final CompanyRepository companyRepository;
-    private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
+    private final CurrentUserProvider currentUserProvider;
+    private final DtoMapper dtoMapper;
 
     ApplicationService(
         ApplicationRepository applicationRepository,
         CompanyRepository companyRepository,
-        InterviewRepository interviewRepository, 
-        CurrentUserProvider currentUserProvider
+        CurrentUserProvider currentUserProvider, DtoMapper dtoMapper
     ) {
         this.applicationRepository = applicationRepository;
-        this.companyRepository = companyRepository;
         this.currentUserProvider = currentUserProvider;
+        this.companyRepository = companyRepository;
+        this.dtoMapper = dtoMapper;
     }
     
     // Get Applications (Get)
@@ -58,7 +56,7 @@ public class ApplicationService {
         log.info("Fetching applications for user {}", user.getEmail());
  
         return applicationRepository.findAll(spec, pageable)
-            .map(this::toApplicationResponseDto);
+            .map(dtoMapper::toApplicationResponseDto);
     }
 
     // Get Application by...
@@ -70,7 +68,7 @@ public class ApplicationService {
 
         log.debug("Fetching application {} for user {}", application.getTitle(), user);
 
-        return toApplicationResponseDto(application);
+        return dtoMapper.toApplicationResponseDto(application);
     }
 
     // Create Application (Post)
@@ -97,7 +95,7 @@ public class ApplicationService {
         // log success
         log.info("Created application {} for user {}", request.title(), user.getName());
         
-        return toApplicationResponseDto(savedApplication);
+        return dtoMapper.toApplicationResponseDto(savedApplication);
     }
 
     // Update Applicaiton (Put)
@@ -118,24 +116,7 @@ public class ApplicationService {
         
         log.info("Updated application {} for user {}", application.getId(), application.getUser());
         
-        return toApplicationResponseDto(application);
-    }
-
-    protected ApplicationResponseDto toApplicationResponseDto(Application application) {
-        if (application == null) {
-            return null;
-        }
-
-        return new ApplicationResponseDto (
-            application.getId(),
-            application.getTitle(),
-            application.getUrl(),
-            application.getStatus(),
-            application.getLocation(),
-            application.getCompany() != null ? application.getCompany().getId() : null,
-            getAllInterviewIds(application),
-            application.getCreatedAt()
-        );
+        return dtoMapper.toApplicationResponseDto(application);
     }
 
     // Update Apllication (Patch)
@@ -166,7 +147,7 @@ public class ApplicationService {
 
         log.info("Patched application {} for user {}", application.getTitle(), application.getUser());
 
-        return toApplicationResponseDto(application);
+        return dtoMapper.toApplicationResponseDto(application);
     }
 
     // Remove application (DELETE)
@@ -181,15 +162,6 @@ public class ApplicationService {
         applicationRepository.delete(application);
         log.info("Application has been removed! ID: {}", applicationId);
 
-        return toApplicationResponseDto(application);
-    }
-
-    private List<Long> getAllInterviewIds(Application application) {
-        return application.getInterviews() != null
-        ? application.getInterviews()
-            .stream()
-            .map(Interview::getId)
-            .toList()
-        : null;
+        return dtoMapper.toApplicationResponseDto(application);
     }
 }
