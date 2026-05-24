@@ -37,7 +37,7 @@ public class JobBoardApplication {
     @Column(nullable = false)
     private LocalDateTime addedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id")
     private Application application;
 
