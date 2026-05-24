@@ -21,6 +21,7 @@ import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NoOwnerException;
+import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.NoteNotFoundException;
 import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
@@ -75,6 +76,15 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(NotAMemberException.class)
+    public ResponseEntity<ErrorResponse> handleNotAMember(NotAMemberException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(MemberLimitException.class)
@@ -213,7 +223,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CompanyNotFoundException.class)
-        public ResponseEntity<ErrorResponse> handleApplicationNotFound(CompanyNotFoundException ex) {
+        public ResponseEntity<ErrorResponse> handleCompanyNotFound(CompanyNotFoundException ex) {
             ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(), 
                 ex.getMessage()
@@ -231,4 +241,22 @@ public class GlobalExceptionHandler {
     }
     
     public record ErrorResponse(int status, String message) {}
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected error occurred."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected error occurred."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
 }
