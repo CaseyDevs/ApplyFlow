@@ -16,17 +16,17 @@ import com.casey.applyflow.model.JobBoard;
 import com.casey.applyflow.model.JobBoardMember;
 import com.casey.applyflow.model.User;
 import com.casey.applyflow.model.builder.JobBoardBuilder;
+import com.casey.applyflow.model.builder.JobBoardMemberBuilder;
 import com.casey.applyflow.model.enums.Role;
 import com.casey.applyflow.repository.JobBoardRepository;
 
 @Service
 public class JobBoardService {
     private static final Logger log = LoggerFactory.getLogger(JobBoardService.class);
-    private final JobBoardRepository jobBoardRepository;
-    private final CurrentUserProvider currentUserProvider;
-    private final JobBoardMemberService jobBoardMemberService;
-    private final JobBoardAuthorizationService jobBoardAuthorizationService;
     private final DtoMapper dtoMapper;
+    private final CurrentUserProvider currentUserProvider;
+    private final JobBoardAuthorizationService jobBoardAuthorizationService;
+    private final JobBoardRepository jobBoardRepository;
 
     public JobBoardService(
         CurrentUserProvider currentUserProvider,
@@ -39,7 +39,6 @@ public class JobBoardService {
         this.dtoMapper = dtoMapper;
         this.currentUserProvider = currentUserProvider;
         this.jobBoardRepository = jobBoardRepository;
-        this.jobBoardMemberService = jobBoardMemberService;
         this.jobBoardAuthorizationService = jobBoardAuthorizationService;
     }
 
@@ -71,8 +70,10 @@ public class JobBoardService {
         User currentUser = currentUserProvider.getCurrentUser();
         log.info("Creating job board '{}' for user {}", request.title(), currentUser.getId());
         
-        JobBoardMember owner = jobBoardMemberService.toJobBoardMember(currentUser);
-        owner.setRole(Role.OWNER);
+        JobBoardMember owner = new JobBoardMemberBuilder()
+            .withUser(currentUser)
+            .withRole(Role.OWNER)
+            .build();
 
         JobBoard jobBoard = new JobBoardBuilder()
             .withTitle(request.title())

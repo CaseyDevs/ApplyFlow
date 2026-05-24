@@ -1,5 +1,7 @@
 package com.casey.applyflow.controller.v1;
 
+import com.casey.applyflow.service.JobBoardInvitationService;
+import com.casey.applyflow.service.JobBoardOwnershipService;
 import com.casey.applyflow.service.RateLimitingService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +39,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RestController
 @RequestMapping("/api/v1")
 public class JobBoardController {
+    private final JobBoardOwnershipService jobBoardOwnershipService;
+    private final JobBoardInvitationService jobBoardInvitationService;
     private final RateLimitingService rateLimitingService;
     private final JobBoardService jobBoardService;
     private final JobBoardApplicationService jobBoardApplicationService;
@@ -47,12 +51,17 @@ public class JobBoardController {
         JobBoardService jobBoardService,
         JobBoardApplicationService jobBoardApplicationService,
         JobBoardApplicationStatusService jobBoardApplicationStatusService,
-        JobBoardMemberService jobBoardMemberService, RateLimitingService rateLimitingService
+        JobBoardMemberService jobBoardMemberService, 
+        RateLimitingService rateLimitingService, 
+        JobBoardInvitationService jobBoardInvitationService, 
+        JobBoardOwnershipService jobBoardOwnershipService
     ) {
         this.jobBoardService = jobBoardService;
         this.jobBoardApplicationService = jobBoardApplicationService;
         this.jobBoardApplicationStatusService = jobBoardApplicationStatusService;
+        this.jobBoardInvitationService = jobBoardInvitationService;
         this.jobBoardMemberService = jobBoardMemberService;
+        this.jobBoardOwnershipService = jobBoardOwnershipService;
         this.rateLimitingService = rateLimitingService;
     }
 
@@ -107,7 +116,7 @@ public class JobBoardController {
         // limit requests via client IP
         rateLimitingService.checkRateLimit(httpRequest, "invitations", 6, 4, 1);
 
-        jobBoardMemberService.inviteMember(jobBoardId, request.email());
+        jobBoardInvitationService.inviteMember(jobBoardId, request.email());
         return ResponseEntity.noContent().build();
     }
 
@@ -118,7 +127,7 @@ public class JobBoardController {
     ) {
 
         try {
-            return ResponseEntity.ok(jobBoardMemberService.getInvitation(jobBoardId, token));
+            return ResponseEntity.ok(jobBoardInvitationService.getInvitation(jobBoardId, token));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
         }
@@ -131,7 +140,7 @@ public class JobBoardController {
     ) {
 
         try {
-            jobBoardMemberService.acceptInvitation(jobBoardId, token);
+            jobBoardInvitationService.acceptInvitation(jobBoardId, token);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
@@ -145,7 +154,7 @@ public class JobBoardController {
     ) {
 
         try {
-            jobBoardMemberService.rejectInvitation(token);
+            jobBoardInvitationService.rejectInvitation(token);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().build();
@@ -168,7 +177,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardMemberId
     ) {
 
-        jobBoardMemberService.setNewOwner(jobBoardId, jobBoardMemberId);
+        jobBoardOwnershipService.setNewOwner(jobBoardId, jobBoardMemberId);
         return ResponseEntity.noContent().build();
     }
 
