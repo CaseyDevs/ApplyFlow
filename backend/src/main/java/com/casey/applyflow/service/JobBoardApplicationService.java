@@ -134,7 +134,11 @@ public class JobBoardApplicationService {
         jobBoardApplicationRepository.save(jobBoardApp);
 
         // Automatically set the owner's status to match the application's status
-        jobBoardApplicationStatusService.updateApplicationStatus(jobBoardApp.getId(), application.getStatus().toString());
+        try {
+            jobBoardApplicationStatusService.updateApplicationStatus(jobBoardApp.getId(), application.getStatus().toString());
+        } catch (Exception e) {
+            throw e;
+        }
 
         log.info("Application {} added to job board {} by user {}", applicationId, jobBoardId, currentUser.getId());
 

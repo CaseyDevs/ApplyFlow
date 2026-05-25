@@ -3,6 +3,7 @@ package com.casey.applyflow.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.JobBoardStatusResponseDto;
@@ -58,7 +59,8 @@ public class JobBoardApplicationStatusService {
             .toList();
     }
 
-    @Transactional
+    // force propagation
+    @Transactional(propagation = Propagation.REQUIRED)
     public JobBoardStatusResponseDto updateApplicationStatus(Long jobBoardApplicationId, String status) {
         // Get the JobBoardApplication
         JobBoardApplication jobBoardApp = jobBoardApplicationRepository.findById(jobBoardApplicationId)
@@ -76,7 +78,7 @@ public class JobBoardApplicationStatusService {
                 JobBoardApplicationStatus newStatus = new JobBoardApplicationStatus(currentUser, Status.valueOf(status));
                 newStatus.setJobBoardApplication(jobBoardApp);
                 return newStatus;
-            });
+        });
         
         // Update the status
         appStatus.setStatus(Status.valueOf(status));
