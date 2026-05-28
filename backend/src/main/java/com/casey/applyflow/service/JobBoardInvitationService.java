@@ -65,8 +65,8 @@ public class JobBoardInvitationService {
 
         User currentUser = currentUserProvider.getCurrentUser();
 
-        EmailVerificationToken verificationToken = emailTokenRepository.findByToken(token)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+        EmailVerificationToken verificationToken = emailTokenRepository.findByTokenAndUserId(token, currentUser.getId())
+            .orElseThrow(() -> new IllegalArgumentException("Invalid token. Ensure the invitation is associated witht the account you are signed in to."));
 
         if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Token expired");
