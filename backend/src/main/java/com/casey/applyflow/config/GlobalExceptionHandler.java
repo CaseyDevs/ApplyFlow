@@ -21,6 +21,7 @@ import com.casey.applyflow.exception.JobBoardNotFoundException;
 import com.casey.applyflow.exception.MemberAlreadyExistsException;
 import com.casey.applyflow.exception.MemberLimitException;
 import com.casey.applyflow.exception.NoOwnerException;
+import com.casey.applyflow.exception.NotAMemberException;
 import com.casey.applyflow.exception.NoteNotFoundException;
 import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.exception.UserAlreadyExistsException;
@@ -31,6 +32,15 @@ import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 
     @ExceptionHandler(CompanyAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleCompanyAlreadyExists(CompanyAlreadyExistsException ex) {
@@ -75,6 +85,15 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(NotAMemberException.class)
+    public ResponseEntity<ErrorResponse> handleNotAMember(NotAMemberException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(MemberLimitException.class)
@@ -133,15 +152,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoteNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoteNotFound(NoteNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-            HttpStatus.NOT_FOUND.value(),
-            ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(OptimisticLockException.class)
-    public ResponseEntity<ErrorResponse> handleOptimisticLock(OptimisticLockException ex) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
             ex.getMessage()
@@ -213,7 +223,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CompanyNotFoundException.class)
-        public ResponseEntity<ErrorResponse> handleApplicationNotFound(CompanyNotFoundException ex) {
+        public ResponseEntity<ErrorResponse> handleCompanyNotFound(CompanyNotFoundException ex) {
             ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(), 
                 ex.getMessage()
@@ -229,6 +239,35 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
+    
+    
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected error occurred."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "An unexpected error occurred."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(OptimisticLockException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(Exception ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.CONFLICT.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
     
     public record ErrorResponse(int status, String message) {}
 }

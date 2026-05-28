@@ -1,5 +1,8 @@
 package com.casey.applyflow.controller.v1;
 
+import com.casey.applyflow.service.JobBoardInvitationService;
+import com.casey.applyflow.service.JobBoardOwnershipService;
+import com.casey.applyflow.service.RateLimitingService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,22 +15,16 @@ import com.casey.applyflow.dto.JobBoardRequestDto;
 import com.casey.applyflow.dto.JobBoardResponseDto;
 import com.casey.applyflow.dto.JobBoardStatsDto;
 import com.casey.applyflow.dto.JobBoardStatusResponseDto;
-import com.casey.applyflow.exception.RateLimitExceededException;
 import com.casey.applyflow.service.JobBoardApplicationService;
 import com.casey.applyflow.service.JobBoardApplicationStatusService;
 import com.casey.applyflow.service.JobBoardMemberService;
 import com.casey.applyflow.service.JobBoardService;
-import com.casey.applyflow.utils.ClientIpProvider;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
-import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,31 +39,30 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RestController
 @RequestMapping("/api/v1")
 public class JobBoardController {
+    private final JobBoardOwnershipService jobBoardOwnershipService;
+    private final JobBoardInvitationService jobBoardInvitationService;
+    private final RateLimitingService rateLimitingService;
     private final JobBoardService jobBoardService;
     private final JobBoardApplicationService jobBoardApplicationService;
     private final JobBoardApplicationStatusService jobBoardApplicationStatusService;
     private final JobBoardMemberService jobBoardMemberService;
-    private final Map<String, Bucket> invitationBuckets = new ConcurrentHashMap<>();
-    private final Bandwidth invitationLimit;
-    private final ClientIpProvider clientIpProvider;
 
     public JobBoardController(
         JobBoardService jobBoardService,
         JobBoardApplicationService jobBoardApplicationService,
         JobBoardApplicationStatusService jobBoardApplicationStatusService,
-        JobBoardMemberService jobBoardMemberService,
-        ClientIpProvider clientIpProvider
+        JobBoardMemberService jobBoardMemberService, 
+        RateLimitingService rateLimitingService, 
+        JobBoardInvitationService jobBoardInvitationService, 
+        JobBoardOwnershipService jobBoardOwnershipService
     ) {
         this.jobBoardService = jobBoardService;
         this.jobBoardApplicationService = jobBoardApplicationService;
         this.jobBoardApplicationStatusService = jobBoardApplicationStatusService;
+        this.jobBoardInvitationService = jobBoardInvitationService;
         this.jobBoardMemberService = jobBoardMemberService;
-        this.clientIpProvider = clientIpProvider;
-
-        this.invitationLimit = Bandwidth.builder()
-            .capacity(6)
-            .refillGreedy(2, Duration.ofMinutes(1))
-            .build();
+        this.jobBoardOwnershipService = jobBoardOwnershipService;
+        this.rateLimitingService = rateLimitingService;
     }
 
     @GetMapping("/job-boards")
@@ -117,19 +113,10 @@ public class JobBoardController {
         @PathVariable Long jobBoardId,
         @Valid @RequestBody AddJobBoardMemberRequestDto request
     ) {
-        // limit requests via clietn IP
-        String clientIp = clientIpProvider.getClientIp(httpRequest);
-        Bucket invitationBucket = invitationBuckets.computeIfAbsent(
-            clientIp,
-            ip -> Bucket.builder().addLimit(invitationLimit).build()
-        );
+        // limit requests via client IP
+        rateLimitingService.checkRateLimit(httpRequest, "invitations", 6, 4, 1);
 
-        // return 429 if bucket is empty
-        if (!invitationBucket.tryConsume(1)) {
-            throw new RateLimitExceededException("Too many invitation requests, try again later.");
-        }
-
-        jobBoardMemberService.inviteMember(jobBoardId, request.email());
+        jobBoardInvitationService.inviteMember(jobBoardId, request.email());
         return ResponseEntity.noContent().build();
     }
 
@@ -138,12 +125,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
-
-        try {
-            return ResponseEntity.ok(jobBoardMemberService.getInvitation(jobBoardId, token));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(jobBoardInvitationService.getInvitation(jobBoardId, token));
     }
 
     @PostMapping("/job-boards/{jobBoardId}/invitation/accept")
@@ -151,13 +133,8 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
-
-        try {
-            jobBoardMemberService.acceptInvitation(jobBoardId, token);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        jobBoardInvitationService.acceptInvitation(jobBoardId, token);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/job-boards/{jobBoardId}/invitation")
@@ -165,13 +142,8 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
-
-        try {
-            jobBoardMemberService.rejectInvitation(token);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        jobBoardInvitationService.rejectInvitation(token);
+        return ResponseEntity.noContent().build();
     }
     
     @DeleteMapping("/job-boards/{jobBoardId}/members/{jobBoardMemberId}")
@@ -190,7 +162,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardMemberId
     ) {
 
-        jobBoardMemberService.setNewOwner(jobBoardId, jobBoardMemberId);
+        jobBoardOwnershipService.setNewOwner(jobBoardId, jobBoardMemberId);
         return ResponseEntity.noContent().build();
     }
 

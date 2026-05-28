@@ -1,7 +1,6 @@
 package com.casey.applyflow.service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +22,19 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     
+    private final SecureTokenGenerationService tokenGenerationService;
     private final JavaMailSender mailSender;
     private EmailTokenRepository emailTokenRepository;
     private String mailFrom = "ApplyFlow";
 
-    public EmailService(JavaMailSender mailSender, EmailTokenRepository emailTokenRepository) {
+    public EmailService(
+        JavaMailSender mailSender, 
+        EmailTokenRepository emailTokenRepository, 
+        SecureTokenGenerationService tokenGenerationService
+    ) {
         this.mailSender = mailSender;
         this.emailTokenRepository = emailTokenRepository;
+        this.tokenGenerationService = tokenGenerationService;
     }
 
     @Async
@@ -99,7 +104,7 @@ public class EmailService {
     @Async
     public void sendInvitationEmail(User user, Long jobBoarId) {
         // token generation
-        String token = UUID.randomUUID().toString(); // TODO: Make token more secure
+        String token = tokenGenerationService.generate();
         String to = user.getEmail();
         String subject = "You're invited to a job board";
         String invitationLink = "http://localhost:5173/job-boards/" + jobBoarId + "/invitation?token=" + token;

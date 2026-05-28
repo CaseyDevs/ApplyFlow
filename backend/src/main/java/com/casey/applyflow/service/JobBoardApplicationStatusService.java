@@ -3,38 +3,39 @@ package com.casey.applyflow.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.casey.applyflow.dto.JobBoardStatusResponseDto;
 import com.casey.applyflow.exception.ApplicationNotFoundException;
 import com.casey.applyflow.exception.NotAMemberException;
+import com.casey.applyflow.mapper.DtoMapper;
 import com.casey.applyflow.model.JobBoardApplication;
 import com.casey.applyflow.model.JobBoardApplicationStatus;
 import com.casey.applyflow.model.User;
 import com.casey.applyflow.model.enums.Status;
-import com.casey.applyflow.repository.ApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationRepository;
 import com.casey.applyflow.repository.JobBoardApplicationStatusRepository;
 import com.casey.applyflow.repository.JobBoardMemberRepository;
-import com.casey.applyflow.repository.JobBoardRepository;
 
 @Service
 public class JobBoardApplicationStatusService {
-    private final JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final DtoMapper dtoMapper;
+    private final JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository;
     private final JobBoardApplicationRepository jobBoardApplicationRepository;
     private final JobBoardMemberRepository jobBoardMemberRepository;
 
     public JobBoardApplicationStatusService(
-        ApplicationRepository applicationRepository,
         CurrentUserProvider currentUserProvider,
+        DtoMapper dtoMapper,
         JobBoardApplicationStatusRepository jobBoardApplicationStatusRepository,
-        JobBoardRepository jobBoardRepository,
         JobBoardApplicationRepository jobBoardApplicationRepository,
         JobBoardMemberRepository jobBoardMemberRepository
     ) {
-        this.jobBoardApplicationStatusRepository = jobBoardApplicationStatusRepository;
         this.currentUserProvider = currentUserProvider;
+        this.dtoMapper = dtoMapper;
+        this.jobBoardApplicationStatusRepository = jobBoardApplicationStatusRepository;
         this.jobBoardApplicationRepository = jobBoardApplicationRepository;
         this.jobBoardMemberRepository = jobBoardMemberRepository;
     }
@@ -54,11 +55,12 @@ public class JobBoardApplicationStatusService {
         return jobBoardApplicationStatusRepository
             .findAllByJobBoardApplication(jobBoardApp)
             .stream()
-            .map(this::toJobBoardStatusResponseDto)
+            .map(dtoMapper::toJobBoardStatusResponseDto)
             .toList();
     }
 
-    @Transactional
+    // force propagation
+    @Transactional(propagation = Propagation.REQUIRED)
     public JobBoardStatusResponseDto updateApplicationStatus(Long jobBoardApplicationId, String status) {
         // Get the JobBoardApplication
         JobBoardApplication jobBoardApp = jobBoardApplicationRepository.findById(jobBoardApplicationId)
@@ -76,27 +78,14 @@ public class JobBoardApplicationStatusService {
                 JobBoardApplicationStatus newStatus = new JobBoardApplicationStatus(currentUser, Status.valueOf(status));
                 newStatus.setJobBoardApplication(jobBoardApp);
                 return newStatus;
-            });
+        });
         
         // Update the status
         appStatus.setStatus(Status.valueOf(status));
         appStatus.setUpdatedAt(java.time.LocalDateTime.now());
         appStatus.setUpdatedBy(currentUser.getEmail());
-        
+    
         jobBoardApplicationStatusRepository.save(appStatus);
-        return toJobBoardStatusResponseDto(appStatus);
-    }
-
-    // dto mapper
-    public JobBoardStatusResponseDto toJobBoardStatusResponseDto(JobBoardApplicationStatus status) {
-        return new JobBoardStatusResponseDto (
-            status.getId(),
-            status.getJobBoardApplication().getId(),
-            status.getUser().getId(),
-            status.getUser().getEmail(),
-            status.getStatus(),
-            status.getUpdatedAt(),
-            status.getUpdatedBy()
-        );
+        return dtoMapper.toJobBoardStatusResponseDto(appStatus);
     }
 }

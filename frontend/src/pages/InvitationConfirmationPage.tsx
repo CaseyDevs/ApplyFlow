@@ -46,7 +46,7 @@ export default function InvitationConfirmationPage() {
         }
 
         if (invitationError) {
-            setError("Invalid or expired invitation link");
+            setError(invitationError instanceof Error ? invitationError.message : "Failed to load invitation details");
             const timeout = setTimeout(() => navigate("/"), 3000);
             return () => clearTimeout(timeout);
         }
@@ -79,6 +79,22 @@ export default function InvitationConfirmationPage() {
         }
     };
 
+    if (!user) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.card}>
+                    <div className={styles.header}>
+                        <div className={styles.icon}>
+                            🔒
+                        </div>
+                        <h1>Sign In Required</h1>
+                        <p>Please sign in to your account to view this invitation.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (isPendingInvitation) {
         return (
             <div className={styles.container}>
@@ -95,8 +111,21 @@ export default function InvitationConfirmationPage() {
         );
     }
 
-    if (!invitationData) {
-        return null;
+    if (error) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.card}>
+                    <div className={styles.header}>
+                        <div className={styles.icon}>
+                            ❌
+                        </div>
+                        <h1>Error Loading Invitation</h1>
+                        <p>{invitationError instanceof Error ? invitationError.message : "Failed to load invitation details"}</p>
+                        <p style={{ fontWeight: "bold" }}>Redirecting to home page...</p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -110,11 +139,7 @@ export default function InvitationConfirmationPage() {
                     <p>You've been invited to join a job board</p>
                 </div>
 
-                {error && (
-                    <div className={styles.error}>
-                        {error}
-                    </div>
-                )}
+
 
                 {successMessage && (
                     <div className={styles.success}>
@@ -123,8 +148,8 @@ export default function InvitationConfirmationPage() {
                 )}
 
                 <div className={styles.invitationDetails}>
-                    <DetailItem label="Job Board Name" value={invitationData.jobBoardTitle} />
-                    <DetailItem label="Invitation Sent From" value={invitationData.inviterName} />
+                    <DetailItem label="Job Board Name" value={invitationData?.jobBoardTitle ?? "Unknown"} />
+                    <DetailItem label="Invitation Sent From" value={invitationData?.inviterName ?? "Unknown"} />
                 </div>
 
                 <p className={styles.description}>

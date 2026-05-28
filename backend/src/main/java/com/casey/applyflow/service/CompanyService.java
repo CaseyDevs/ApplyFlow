@@ -1,5 +1,6 @@
 package com.casey.applyflow.service;
 
+import com.casey.applyflow.mapper.DtoMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -17,11 +18,13 @@ import com.casey.applyflow.repository.CompanyRepository;
 
 @Service
 public class CompanyService {
-    private final CompanyRepository companyRepository;
     private static final Logger log = LoggerFactory.getLogger(CompanyService.class);
+    private final CompanyRepository companyRepository;
+    private final DtoMapper dtoMapper;
 
-    CompanyService(CompanyRepository companyRepository) {
+    CompanyService(CompanyRepository companyRepository, DtoMapper dtoMapper) {
         this.companyRepository = companyRepository;
+        this.dtoMapper = dtoMapper;
     }
 
     @Transactional(readOnly = true)
@@ -29,7 +32,7 @@ public class CompanyService {
         log.debug("Fetching all known companies");
 
         return companyRepository.findAll(pageable)
-            .map(this::toCompanyResponseDto);
+            .map(dtoMapper::toCompanyResponseDto);
     }
 
     @Transactional(readOnly = true)
@@ -39,7 +42,7 @@ public class CompanyService {
         log.debug("Fetching company {}", companyId);
 
         return companyRepository.findById(companyId)
-            .map(this::toCompanyResponseDto)
+            .map(dtoMapper::toCompanyResponseDto)
             .orElseThrow(() -> new CompanyNotFoundException("Company does not exist"));
     }
 
@@ -60,7 +63,7 @@ public class CompanyService {
 
         log.info("Company - {} - created successfully.", company.getName());
 
-        return toCompanyResponseDto(savedCompany);
+        return dtoMapper.toCompanyResponseDto(savedCompany);
     }
 
     @Transactional
@@ -73,19 +76,7 @@ public class CompanyService {
 
         log.info("Company - {} - updated successfully.", company.getName());
 
-        return toCompanyResponseDto(company);
-    }
-
-    private CompanyResponseDto toCompanyResponseDto(Company company) {
-        if (company == null) {
-            return null;
-        }
-
-        return new CompanyResponseDto(
-            company.getId(),
-            company.getName(),
-            company.getRating()
-        );
+        return dtoMapper.toCompanyResponseDto(company);
     }
 
     @Transactional
