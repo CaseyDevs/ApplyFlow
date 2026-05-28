@@ -31,8 +31,19 @@ async function apiRequest<T>(
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `${errorMessage}: ${response.status}`);
+        const rawBody = await response.text();
+        let parsedMessage: string | null = null;
+
+        if (rawBody) {
+            try {
+                const parsed = JSON.parse(rawBody) as { message?: string };
+                parsedMessage = parsed.message ?? null;
+            } catch {
+                parsedMessage = rawBody;
+            }
+        }
+
+        throw new Error(parsedMessage || `${errorMessage}: ${response.status}`);
     }
 
     // Handle 204 No Content and other empty responses

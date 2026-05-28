@@ -125,12 +125,7 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
-
-        try {
-            return ResponseEntity.ok(jobBoardInvitationService.getInvitation(jobBoardId, token));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(jobBoardInvitationService.getInvitation(jobBoardId, token));
     }
 
     @PostMapping("/job-boards/{jobBoardId}/invitation/accept")
@@ -138,13 +133,8 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
-
-        try {
-            jobBoardInvitationService.acceptInvitation(jobBoardId, token);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        jobBoardInvitationService.acceptInvitation(jobBoardId, token);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/job-boards/{jobBoardId}/invitation")
@@ -152,13 +142,8 @@ public class JobBoardController {
         @PathVariable @Min(1) Long jobBoardId,
         @RequestParam String token
     ) {
-
-        try {
-            jobBoardInvitationService.rejectInvitation(token);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        jobBoardInvitationService.rejectInvitation(token);
+        return ResponseEntity.noContent().build();
     }
     
     @DeleteMapping("/job-boards/{jobBoardId}/members/{jobBoardMemberId}")
