@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_DB: applyflow
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/applyflow
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+      - gradle_cache:/root/.gradle
+    working_dir: /app
+    command: ["./gradlew", "--no-daemon", "bootRun"]
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  db_data:
+  gradle_cache:

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { registerUser } from "../api/auth/register";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "./Auth.module.css";
 import { useTimedError } from "../hooks/useTimedError";
 
