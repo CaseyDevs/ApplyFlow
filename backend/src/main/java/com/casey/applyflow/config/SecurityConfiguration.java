@@ -2,7 +2,6 @@ package com.casey.applyflow.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,9 +34,6 @@ public class SecurityConfiguration {
 
     private final RsaKeyProperties rsaKeys;
 
-    @Value("${app.security.allow-h2-console:false}")
-    private boolean allowH2Console;
-
     public SecurityConfiguration(RsaKeyProperties rsaKeys) {
         this.rsaKeys = rsaKeys;
     }
@@ -49,9 +45,7 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)  // Disable CSRF for stateless API
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**").permitAll();  // Public auth endpoints
-                    if (allowH2Console) {
-                        auth.requestMatchers("/h2-console/**").permitAll();
-                    }
+                    auth.requestMatchers("/h2-console/**").permitAll(); // H2 console (dev only)
                     auth.anyRequest().authenticated();  // Everything else requires auth
                 })
                 .sessionManagement(session -> 
@@ -60,11 +54,8 @@ public class SecurityConfiguration {
                     oauth2
                         .bearerTokenResolver(bearerTokenResolver())
                         .jwt(Customizer.withDefaults()))  // Enable JWT validation
-                .headers(headers -> {
-                    if (allowH2Console) {
-                        headers.frameOptions(frame -> frame.sameOrigin());
-                    }
-                })
+                .headers(headers -> 
+                    headers.frameOptions(frame -> frame.sameOrigin()))  // For H2 console
                 .build();
     }
 

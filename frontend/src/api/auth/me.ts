@@ -1,8 +1,7 @@
 import type { User } from "../../types/User";
 
 export async function getCurrentUser(): Promise<User | null> {
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-    const response = await fetch(`${BASE_URL}/api/auth/me`, {
+    const response = await fetch("http://localhost:8080/api/auth/me", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",

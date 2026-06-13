@@ -1,6 +1,5 @@
 export async function logoutUser(): Promise<void> {
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-    const response = await fetch(`${BASE_URL}/api/auth/logout`, {
+    const response = await fetch("http://localhost:8080/api/auth/logout", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
