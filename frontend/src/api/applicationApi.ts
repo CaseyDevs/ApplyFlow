@@ -1,6 +1,6 @@
 import type { Application, ApplicationRequest, Page, UpdateApplicationRequest } from "../types/Application";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 export async function getApplications(page = 0, size = 10): Promise<Page<Application>> {
     const response = await fetch(`${BASE_URL}/api/v1/applications?page=${page}&size=${size}`, {
