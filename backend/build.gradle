@@ -28,11 +28,6 @@ dependencies {
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // Database migrations
-    implementation 'org.springframework.boot:spring-boot-flyway'
-    implementation 'org.flywaydb:flyway-core'
-    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
-
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
 

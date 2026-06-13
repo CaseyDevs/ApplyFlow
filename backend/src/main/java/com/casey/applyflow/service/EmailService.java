@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -28,9 +27,6 @@ public class EmailService {
     private EmailTokenRepository emailTokenRepository;
     private String mailFrom = "ApplyFlow";
 
-    @Value("${app.frontend-url:http://localhost:5173}")
-    private String frontendUrl;
-
     public EmailService(
         JavaMailSender mailSender, 
         EmailTokenRepository emailTokenRepository, 
@@ -44,7 +40,7 @@ public class EmailService {
     @Async
     public void sendVerificationEmail(User user, String token) {
         log.warn("EMAIL_SEND_START to={}", user.getEmail());
-        String verificationLink = frontendUrl + "/email-verify?token=" + token;
+        String verificationLink = "http://localhost:5173/email-verify?token=" + token;
         String body = String.format("""
                 <!DOCTYPE html>
                 <html>
@@ -111,7 +107,7 @@ public class EmailService {
         String token = tokenGenerationService.generate();
         String to = user.getEmail();
         String subject = "You're invited to a job board";
-        String invitationLink = frontendUrl + "/job-boards/" + jobBoarId + "/invitation?token=" + token;
+        String invitationLink = "http://localhost:5173/job-boards/" + jobBoarId + "/invitation?token=" + token;
         String body = String.format("""
                 <!DOCTYPE html>
                 <html>
