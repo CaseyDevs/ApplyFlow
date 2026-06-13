@@ -3,7 +3,7 @@ import type { JobBoardRequest, JobBoardResponse } from "../types/JobBoard";
 import type { Page } from "../types/Application";
 import type { JobBoardApplicationRequest, JobBoardApplicationResponse } from "../types/JobBoardApplication";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 const API_BASE = `${BASE_URL}/api/v1`;
 
 const DEFAULT_HEADERS = {

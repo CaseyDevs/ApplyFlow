@@ -1,7 +1,7 @@
 import type { Page } from "../types/Application";
 import type { CompanyRequest, CompanyResponse } from "../types/Company";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 export async function getAllCompanies(): Promise<Page<CompanyResponse>> {
     const response = await fetch(`${BASE_URL}/api/v1/companies`, {

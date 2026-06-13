@@ -3,7 +3,7 @@ import type { UpdateApplicationRequest } from "../types/Application";
 import { createCompany, getAllCompanies } from "../api/companiesApi";
 import { getApplicationById, updateApplication } from "../api/applicationApi";
 import { useNavigate, useParams } from "react-router-dom";
-import type { CompanyRequest, CompanyResponse } from "../types/Company";
+import type { CompanyRequest } from "../types/Company";
 import type { ApplicationStatus } from "../types/ApplicationStatus";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import styles from "./Forms.module.css";
@@ -12,9 +12,9 @@ export default function UpdateApplicationPage() {
     const [updatedTitle, setUpdatedTitle] = useState<string>("");
     const [updatedUrl, setUpdatedUrl] = useState<string>("");
     const [updatedStatus, setUpdatesStatus] = useState<ApplicationStatus | null>(null);
+    const [updatedLocation, setUpdatedLocation] = useState<string | null>(null);
     const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
     const [newCompanyName, setNewCompanyName] = useState<string>("");
-    const [location, setLocation] = useState<string | null>(null);
     const [showNewCompanyForm, setShowNewCompanyForm] = useState(false);
 
     const navigate = useNavigate();
@@ -30,7 +30,7 @@ export default function UpdateApplicationPage() {
     const hasValidJobBoardId = thisJobBoardId !== null && Number.isFinite(thisJobBoardId); // ensure job board id is always valid
 
     // Fetch companies list
-    const { data: companiesData, isLoading: companiesLoading, error: companiesError } = useQuery({
+    const { data: companiesData } = useQuery({
         queryKey: ["companies"],
         queryFn: getAllCompanies,
     });
@@ -50,19 +50,19 @@ export default function UpdateApplicationPage() {
             setUpdatedTitle(application.title);
             setUpdatedUrl(application.url);
             setUpdatesStatus(application.status);
+            setUpdatedLocation(application.location);
             setSelectedCompanyId(application.companyId);
         }
     }, [application]);
 
     // Mutation for creating a company
     const createCompanyMutation = useMutation({
-        mutationFn: (data: { name: string; location: string | null }) =>
-            createCompany(data as CompanyRequest),
+        mutationFn: (data: CompanyRequest) =>
+            createCompany(data),
         onSuccess: () => {
             // Invalidate and refetch companies list
             queryClient.invalidateQueries({ queryKey: ["companies"] });
             setNewCompanyName("");
-            setLocation(null);
             setShowNewCompanyForm(false);
         },
     });
@@ -86,7 +86,7 @@ export default function UpdateApplicationPage() {
 
     async function handleAddCompany() {
         if (!newCompanyName) return;
-        createCompanyMutation.mutate({ name: newCompanyName, location });
+        createCompanyMutation.mutate({ name: newCompanyName, rating: null });
     }
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -96,6 +96,7 @@ export default function UpdateApplicationPage() {
         const updatedApplication: UpdateApplicationRequest = {
             title: updatedTitle,
             url: updatedUrl,
+            location: updatedLocation,
             companyId: selectedCompanyId,
             status: updatedStatus,
         };
@@ -183,6 +184,20 @@ export default function UpdateApplicationPage() {
                     </div>
 
                     <div className={styles.formGroup}>
+                        <label htmlFor="location" className={styles.label}>Location</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            id="location"
+                            name="location"
+                            placeholder="e.g., New York, NY"
+                            value={updatedLocation ?? ""}
+                            onChange={(e) => setUpdatedLocation(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
                         <label htmlFor="company" className={styles.label}>Company</label>
                         {companies && companies.length > 0 ? (
                             <select
@@ -221,17 +236,6 @@ export default function UpdateApplicationPage() {
                                     placeholder="e.g., Google, Meta, Microsoft"
                                     value={newCompanyName}
                                     onChange={e => setNewCompanyName(e.target.value)}
-                                />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="location" className={styles.label}>Location (Optional)</label>
-                                <input
-                                    className={styles.input}
-                                    type="text"
-                                    id="location"
-                                    placeholder="e.g., San Francisco, CA"
-                                    value={location ?? ""}
-                                    onChange={e => setLocation(e.target.value)}
                                 />
                             </div>
                             <button

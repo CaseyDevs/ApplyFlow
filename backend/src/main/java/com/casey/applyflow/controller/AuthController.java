@@ -61,6 +61,12 @@ public class AuthController {
     @Value("${jwt.expiration-ms:3600000}")
     private long expirationMs;
 
+    @Value("${app.security.cookie-secure:false}")
+    private boolean cookieSecure;
+
+    @Value("${app.security.cookie-same-site:Lax}")
+    private String cookieSameSite;
+
     public AuthController(
         AuthenticationManager authenticationManager, 
         TokenService tokenService,
@@ -103,8 +109,8 @@ public class AuthController {
     public ResponseEntity<?> logout() {
         ResponseCookie clear = ResponseCookie.from("ACCESS_TOKEN", "")
             .httpOnly(true)
-            .secure(false) // TODO: CHANGE TO TRUE AT PROD
-            .sameSite("Lax")
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
             .path("/api")
             .maxAge(Duration.ZERO)
             .build();
@@ -210,8 +216,8 @@ public class AuthController {
     private ResponseCookie accessCookie(String jwt, long maxAgeSeconds) {
         return ResponseCookie.from("ACCESS_TOKEN", jwt)
             .httpOnly(true)
-            .secure(false)           // TODO: true in prod -- keep false for local dev.
-            .sameSite("Lax")         // Changed from "None" - SameSite=None requires Secure=true
+            .secure(cookieSecure)
+            .sameSite(cookieSameSite)
             .path("/api")               
             .maxAge(maxAgeSeconds)
             .build();
